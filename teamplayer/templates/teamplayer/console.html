@@ -1,0 +1,49 @@
+{% load staticfiles %}
+<div id="console">
+    <div id="top_bar">
+        {% if not register %}<i class="icon-volume-up" id="mute_button" title="Mute"></i>{% endif %}
+        <div id="title">
+            <i class="icon-user"></i> {% if register %}Registration{% else %}<a id="dj_name_link" title="Change DJ name" href="{% url "teamplayer.views.home" %}">{{ name }}</a>
+
+            <div id="change_dj_name" style="display: none">
+                <form method="post" id="dj_name_form" action="{% url "teamplayer.views.change_dj_name" %}">{% csrf_token %}
+                    <input type="text" name="dj_name" id="dj_name" value="{{ user.userprofile.dj_name }}" placeholder="{{ username }}" />
+                </form>
+            </div><!-- change_dj_name -->
+
+            {% if station %}
+            &nbsp; <span class="current_station station_name station_{{ station_id }}_name">{{ station.name }}</span>
+            {% endif %}
+            <i title="Controls" id="preferences" class="icon-cog"></i>
+            {% endif %}
+        </div><!-- title -->
+
+        {% if not register %}
+        {% include "teamplayer/controls.html" %}
+        {% else %}
+        <a id="preferences" title="Exit" href="{% url "teamplayer.views.logout" %}"><i class="icon-remove"></i></a>
+        {% endif %}
+    </div><!-- top_bar -->
+
+    <div id="main_view">
+        <div class="view" id="queue">{% include "teamplayer/queue.html" %}</div>
+        <div class="view" id="stations">{% include "teamplayer/stations.html" %}</div>
+        <div class="view" id="library">{% include "search/search.html" %}</div>
+    </div>
+
+    <div id="tray">
+    {% if not register %}
+        <div class="tray" id="queue_tray"></div>
+        <div class="tray" id="stations_tray"></div>
+        <div class="tray" id="library_tray"></div>
+    {% endif %}
+    </div>
+    <audio id="station_static" src="{% static "sounds/radio-static.mp3" %}" preload="auto"></audio>
+
+    {% if register %}
+    <script type="text/javascript">
+        $('#main_view').load('{% url "teamplayer.views.registration" %}');
+    </script>
+    {% endif %}
+</div>
+

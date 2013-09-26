@@ -1,0 +1,24 @@
+<table id="register_console">
+    {% if error %}
+    <tr>
+        <td colspan="2" class="error_message">
+            {{ error }}
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td>
+            <div class="register_header">Register</div>
+            <form id="add_user" method="post" action="{% url "teamplayer.views.registration" %}">
+                {% csrf_token %}
+                <table id="add_user">
+                    {{ form.as_table }}
+                    <tr><td colspan="2" style="text-align: right">
+                            <input type="submit" value="OK" /></td></tr>
+                </table>
+            </form>
+            <script type="text/javascript">
+                $('#add_user').ajaxForm({ target: '#main_view' });
+            </script>
+        </td></tr>
+</table>

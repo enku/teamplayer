@@ -1,0 +1,39 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>TeamPlayer - Login</title>
+<link href='http://fonts.googleapis.com/css?family=Leckerli+One' rel='stylesheet' type='text/css' />
+<link href="{% static "styles/login.css" %}" media="all" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="{% static "js/jquery-2.0.2.min.js" %}"></script>
+</head>
+<body>
+    {% if messages %}
+    <div id="messages">
+    {% for message in messages %}<p>{{ message }}</p>{% endfor %}
+    </div>
+    {% endif %}
+    <form method="post" action="">{% csrf_token %}
+      <h1><span class="brand">TeamPlayer</span></h1>
+      <div class="inset">
+      <p>
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username">
+      </p>
+      <p>
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password">
+      </p>
+      </div>
+      <p class="p-container">
+        <input type="submit" name="go" id="go" value="Log in">
+      </p>
+    </form>
+    <div id="meta">
+        <a id="register" href="{% url "teamplayer.views.register" %}">Sign Up</a>
+         | 
+        <a id="about" target="_blank" href="{% url "teamplayer.views.about" %}">About</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+﻿<ffmp3-skin folder="/static/ffmp3/ffmp3-eastanbul">
+  <bg image="bg.jpg" x="0" y="0" ></bg>
+  <play image="play.png" x="2" y="2" clickimage="playclick.png" />
+  <stop image="stop.png" x="78" y="2" clickimage="stopclick.png" />
+  <text x="310" y="5" width="170" height="22" color="#222222" font="Tahoma" size="10" />
+  <volume x="170" y="2" width="130" height="22" 
+      colOr1="#ffffff" color2="#ff0000"
+      barwidth="3"
+      barStep="5"
+      holderImage="holder.jpg"
+	  mode="holder"  You-can-try-with-mode="bars"
+  />
+  <status imagePlay="statusplay.jpg" imageStop="statusstop.jpg" x="68" y="6" />
+</ffmp3-skin>

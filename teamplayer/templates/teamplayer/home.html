@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    {% include "teamplayer/head.html" %}
+    <body>
+        <div id="content">
+            {% include "teamplayer/console.html" %}
+            {% if not register %}<div id="progress_bar"></div>{% endif %}
+
+            {% if not register %}
+            <div id="bottom_bar">
+                {% include "teamplayer/console_buttons.html" %}
+                <div id="current_song"></div>
+                <div id="lastfm_link"></div>
+            </div><!-- bottom_bar -->
+            {% endif %}
+        </div> <!-- content -->
+
+        {% if not register %}
+        <div id="flashPlayer">
+            {% include "teamplayer/player.html" %}
+        </div>
+        {% include "teamplayer/mustache.html" %}
+        {% endif %}
+    </body>
+</html>

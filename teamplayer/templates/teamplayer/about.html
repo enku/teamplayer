@@ -1,0 +1,166 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>About TeamPlayer</title>
+    <link rel="Shortcut Icon" href="{% static "images/favicon.ico" %}" />
+    <link href='http://fonts.googleapis.com/css?family=Leckerli+One' rel='stylesheet' type='text/css' />
+    <link href="{% static "styles/main.css" %}" media="all" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+        body {
+            width: 70%;
+            position: absolute;
+            right: 15px;
+        }
+        p {
+            padding: 0.7ex inherit;
+        }
+        .label {
+            font-weight: bold;
+            color: #CDCDCD;
+            padding-right: 2em;
+            text-align: right;
+        }
+        .other_software {
+            margin-left: 20px;
+            width: 50%;
+            margin: 15px 0;
+            border: 0;
+            border-left: 5px solid gray;
+            padding-left: 1ex;
+            font-size: 110%;
+        }
+        .other_software:hover {
+            border-color: #CDAD00;
+        }
+        .other_software h3 {
+            color: #CDCDCD;
+            margin: 0;
+        }
+        a { color: #CDCDCD; font-weight: bold; }
+        .brand:hover {
+            color: #CDAD00;
+        }
+    </style>
+</head>
+<body>
+    <h2>About <span class="brand">TeamPlayer</span></h2>
+    <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td class="label">Teamplayer:</td>
+            {% if repo_url %}
+            <td><a href="{{ repo_url}}">{{ version }}</a></td>
+            {% else %}
+            <td>{{ version }}</td>
+            {% endif %}
+        </tr>
+        <tr>
+            <td class="label">Users:</td>
+            <td>{{ users }} registered user{{ users|pluralize }}</td>
+        </tr>
+        <tr>
+            <td class="label">Library:</td>
+            <td>{{ library_count }} title{{ library_count|pluralize }}, {{ library_size|filesizeformat }}</td>
+        </tr>
+        {% if scrobbler_id %}
+        <tr>
+            <td class="label">Scrobbler:</td>
+            <td>DJ Ango is <a href="http://last.fm/user/{{ scrobbler_id }}">{{ scrobbler_id }}@last.fm</a></td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td class="label">Django:</td>
+            <td>{{ django_version }}</td>
+        </tr>
+        <tr>
+            <td class="label">User Agent:</td>
+            <td>{{ user_agent }}</td>
+        </tr>
+    </table>
+    <p>
+    <span class="brand">TeamPlayer</span> is a democratic Internet
+    radio station. Members create play lists and the virtual DJ, DJ
+    Ango, goes from member to member playing a title out of their
+    list. Members get to hear what their fellow members' musical
+    interests are, and contribute titles on their own. With <span
+    lass="brand">TeamPlayer</span> everyone's musical tastes are
+    heard and everyone gets an equal chance to be heard.
+    </p>
+    <p>
+    Copyright&copy; 2010-2013 Marduk Enterprises. All Rights Reserved.
+    <span class="brand">TeamPlayer</span> <em>will</em> be released as OSS someday...
+    </p>
+
+    <h2 style="padding-top: 2ex">Other Software</h2>
+    <p><span class="brand">TeamPlayer</span> includes or uses software by:</p>
+    <div class="other_software">
+        <h3>Python</h3>
+        <p>Python standard library and interpreter by the Python Software
+        Foundation (<a href="http://www.python.org">www.python.org</a>)</p>
+    </div>
+    <div class="other_software">
+        <h3>Django</h3>
+        <p>Django High-level web framework by the Django Software
+        Foundation (<a
+            href="http://www.djangoproject.com">www.djangoproject.com</a>)</p>
+    </div>
+    <div class="other_software">
+        <h3>MPD</h3>
+        <p>Music Player Daemon (mpd) by Max Kellermann and others (<a
+            href="http://www.musicpd.org/">www.musicpd.org</a>)</p>
+    </div>
+    <div class="other_software">
+        <h3>Mutagen</h3>
+        <p>Mutagen library for handling audio metadata by Michael Urman and
+        others (<a
+            href="https://bitbucket.org/lazka/mutagen">bitbucket.org/lazka/mutagen</a>)</p>
+    </div>
+    <div class="other_software">
+        <h3>jQuery</h3>
+        <p>jQuery by The jQuery Project (<a
+            href="http://jquery.org">jquery.org</a>)</p>
+    </div>
+    <div class="other_software">
+        <h3>jQuery File Upload</h3>
+        <p>Also file upload tool with multi-file, drag &amp; drop, progress indicators, etc.  By Sebastian Tschan (<a href="https://github.com/blueimp/jQuery-File-Upload">github.com/blueimp/jQuery-File-Upload</a>)</p>
+    </div>
+    <div class="other_software">
+        <h3>scrobber.py</h3>
+        <p>Python Scrobbler by "exhuma" (<a href="http://exhuma.wicked.lu/projects/python/scrobbler/">exhuma.wicked.lu</a>)</p>
+    </div>
+    <div class="other_software">
+        <h3>Font Awesome</h3>
+        <p>
+            Font Awesome icon theme by Dave Gandy (<a
+            href="http://fortawesome.github.io/Font-Awesome/">fortawesome.github.io</a>)
+        </p>
+    </div>
+    <div class="other_software">
+        <h3>Pines Notify</h3>
+        <p>
+            JavaScript notifications for Bootstrap
+            or JQuery UI by SciActive (<a
+            href="http://pinesframework.org/pnotify/">pinesframework.org</a>)
+        </p>
+    </div>
+    <div class="other_software">
+        <h3>FFMp3</h3>
+        <p>FFMp3 - The Flash MP3/OGG Live Stream Player by Federico Bricker (<a
+            href="http://ffmp3.sourceforge.net/">ffmp3.sourceforge.net</a>)</p>
+    </div>
+    <div class="other_software">
+        <h3>ReconnectingWebSocket</h3>
+        <p>
+            Joe Walnes' reconnecting websocket library (<a
+            href="https://github.com/joewalnes/reconnecting-websocket">github.com/joewalnes/reconnecting-websocket</a>)
+        </p>
+    </div>
+    <div class="other_software">
+        <h3>Last.fm SaaS</h3>
+        <p>Not software per-sé, but <span
+        class="brand">TeamPlayer</span> utilizes the <a
+        href="http://last.fm/">Last.fm</a> API throughout. Thanks to
+        Last.fm for connecting users and music.</p>
+    </div>
+</body>
+</html>

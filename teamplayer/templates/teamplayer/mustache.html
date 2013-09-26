@@ -1,0 +1,114 @@
+{% verbatim %}
+<script id="station_row" type="text/html">
+    <tr class="station" data-station_id="{{ id }}" data-name="{{ name }}">
+        <td class="station_name"><a onclick="return TeamPlayer.change_station(this.href);" href="{{ url }}">{{name}}</a></td>
+        <td class="username">{{creator}}</td>
+        <td>{{songs}}</td>
+        {{#current_song.artist}}
+        <td class="song station_{{ id }}_song">“{{ current_song.title }}” by {{ current_song.artist }}</td>
+        {{/current_song.artist}}
+        {{^current_song.artist}}
+        <td class="song">Station Break</td>
+        {{/current_song.artist}}
+    </tr>
+</script>
+
+<script id="song_widget" type="text/html">
+    <div class="song_title">{{ title }}</div>
+    <div class="song_artist">{{ artist }}</div>
+    <div class="djname">{{ dj }}</div>
+</script>
+
+<script id="upload_file" type="text/html">
+<tr class="song_entry" data-name="{{name}}">
+    <td class="song_spacer"></td>
+    <td style="width: 588px">
+        <span class="filename">{{ name }}</span>
+        <div class="upload_progress"></div>
+    </td>
+    <td class="cancel_upload_button"><i class="icon-remove"></i></td>
+    <td class="song_spacer"></td>
+</tr>
+</script>
+
+<script id="song_template" type="text/html">
+<tr class="song_entry" data-song_id="{{ id }}">
+    <td class="song_spacer"></td>
+    <td style="width: 588px"><span class="song_title">{{ title }}</span>{{ artist }}</td>
+    <td class="delete_song_button" onclick="TeamPlayer.remove_from_queue({{ id }})">&nbsp;<i class="icon-remove"></i></td>
+    <td class="song_spacer"></td>
+</tr>
+</script>
+
+<script id="station_tray" type="text/html">
+{{#station_id}}
+<div id="your_station">You created the station <span class="station_name station_{{ station_id }}_name">{{ name }}</span>.  
+    Click <a id="open_edit_dialog" href="#">here</a> to edit or remove it.
+</div>
+<div id="station_edit_dialog" title="Edit Station">
+    <form method="POST" id="station_change_form" action="{{ edit_station_url }}">
+        <div>
+            <input type="radio" name="action" value="rename" checked/>
+            <label for="name">Rename&nbsp;</label> <input type="text" name="name" value="{{ name }}" autofocus/>
+        </div>
+        <div>&nbsp;</div>
+        <div>
+            <input type="radio" name="action" value="remove"/>
+            <label>Delete</label>
+        </div>
+        <input type="hidden" name="station_id" value="{{ station_id }}"/>
+        <div>&nbsp;</div>
+        <div class="button_set">
+            <input type="submit" value="OK"/>
+        </div>
+    </form>
+</div>
+{{/station_id}}
+
+{{^station_id}}
+<div id="your_station">Click <a id="open_create_dialog" href="#">here</a> to create your own station.</div>
+<div id="station_create_dialog" title="Create Station">
+    <form method="POST" id="station_create_form" action="{{ create_station_url }}">
+        <div>
+            <label for="name">Name&nbsp;</lable>
+            <input type="text" name="name" value="{{ username }}'s station"/>
+        </div>
+        <div>&nbsp;</div>
+        <div>&nbsp;</div>
+        <div class="button_set">
+            <input type="submit" value="create"/>
+        </div>
+    </form>
+</div>
+{{/station_id}}
+
+<div>
+    <form id="station_list_ok" method="get" 
+        action="{{ url }}">
+        <input type="submit" value="OK" />
+    </form>
+</div>
+</script>
+
+<script id="library_tray_tmpl" type="text/html">
+<div id="library_search">
+    <form id="search_form" method="GET" action="{{ search_url }}">
+        <input placeholder="tile, artist, etc." type="text" name="q" id="id_q" value="{{ query }}" class="focus" />
+        <input id="submit_search" type="submit" value="Search" />
+    </form>
+</div>
+
+<div>
+    <form id="search_done" method="get" action="#">
+        <input type="submit" value="OK" />
+    </form>
+</div>
+</script>
+
+<script id="user_stats" type="text/html">
+<div>{{ stations }} stations</div>
+<div>{{ active_queues }} queues</div>
+<div>{{ songs }} titles</div>
+<div>{{ users }} listeners</div>
+</script>
+{% endverbatim %}

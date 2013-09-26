@@ -1,0 +1,26 @@
+<table id="station_list">
+<tr>
+    <td style="vertical-align: top;">
+        <div class="station_list_header">Stations</div>
+        <table id="station_list_list">
+            <thead>
+                <tr class="title">
+                    <td>Station</td>
+                    <td>Creator</td>
+                    <td>Titles</td>
+                    <td>Currently Playing</td>
+                </tr>
+            </thead>
+            <tbody id="station_list_body"></tbody>
+        </table>
+    </td>
+</tr>
+</table>
+
+<script type="text/javascript">
+$(function() {
+    'use strict';
+    TeamPlayer.station_tray_body();
+    TeamPlayer.station_list_body();
+});
+</script>

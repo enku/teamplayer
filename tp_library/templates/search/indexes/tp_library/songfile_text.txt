@@ -1,0 +1,5 @@
+{{ object.title }}
+{{ object.artist }}
+{{ object.album }}
+{{ object.genre }}
+{{ object.filename }}

@@ -1,0 +1,59 @@
+
+#admin_console {
+    width: 50px;
+    margin: auto;
+    padding-top: 130px;
+    padding: 0;
+    border: 0;
+    margin: 0;
+}
+
+
+td {
+    vertical-align: top;
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+
+#add_user {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+#add_user td, th {
+    vertical-align: middle;
+    padding-bottom: 0.5em;
+}
+
+#add_user th {
+    text-align: right;
+}
+
+.error_message {
+    color: #D9B129;
+}
+
+h3 {
+    text-align: center;
+    text-decoration: underline;
+}
+
+li {
+    font-size: smaller;
+}
+
+table {
+    border: 0;
+}
+
+#userlist {
+    border: 1px solid #BFBFBF;
+    border-collapse: collapse;
+    background: #FBFBFB;
+}
+
+#userlist td {
+    border: 1px solid #FBFBFB;
+}

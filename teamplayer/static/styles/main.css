@@ -1,0 +1,636 @@
+* { 
+    -moz-box-sizing: border-box;
+    box-sizing: border-box; 
+    padding: 0; 
+    margin: 0; 
+}
+
+body {
+    background: #191919;
+    font-family: "Droid Sans", sans-serif;
+    font-size: 10px;
+    color: gray;
+
+}
+
+::-webkit-scrollbar {
+    width: 13px;
+    background-color: #3C3C3C;
+    border-radius: 0 5px 5px 0;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #222222;
+    border: 1px solid #3B3B3B;
+    border-radius: 0 5px 5px 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #5E5E5E;
+}
+
+#content {
+    width: 626px;
+    height: 478px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -313px;
+    margin-top: -239px;
+}
+
+#console {
+    /*position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -313px;
+    margin-top: -241px;
+    */
+    height: 399px;
+    border: 0;
+    padding: 0; 
+    background-color: #3C3C3C;
+    background-repeat: no-repeat;
+    color: gray;
+    font-family: sans-serif;
+    font-size: 12px;
+    border-radius:  9px 9px 4px 4px;
+    box-shadow: 0 -4px 8px black,
+                4px 0 8px black,
+                0 -4px 8px black,
+                -4px 0 8px black,
+                inset 0px 1px 6px white;
+}
+
+#top_bar {
+    width: 100%;
+    height: 24px;
+}
+
+#title {
+    display: block;
+    padding-top: 5px;
+    font-weight: bold;
+    font-size: 14px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+#mute_button {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding-left: 6px;
+    padding-top: 5px;
+    font-size: 18px;
+    color: black;
+    text-shadow: 0px -1px 1px gray;
+}
+
+#mute_button.icon-volume-off {
+    color: #8B0000;
+    text-shadow: 0px 1px 1px gray;
+}
+
+#preferences {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding-right: 6px;
+    padding-top: 5px;
+    font-size: 18px;
+    color: black;
+    text-shadow: 0px -1px 1px gray;
+}
+
+#mute_button:hover, #preferences:hover {
+    cursor: pointer;
+}
+
+#mute_button:active, #preferences:active {
+    text-shadow: 0px 1px 1px gray;
+}
+
+#bottom_bar {
+    background-color: #3C3C3C;
+    height: 76px;
+    border-radius: 0 0 9px 9px;
+    box-shadow: 4px 0 8px black,
+                -4px 0 8px black,
+                inset 0px 1px 6px white;
+}
+
+#progress_bar {
+    height: 3px;
+    background-color: #CDAD00;
+    width: 0;
+    border-radius: 1px;
+}
+
+#main_view {
+    margin: 0 1px 0 2px;
+    padding: 0;
+    height: 342px;
+    overflow: auto;
+    background: #222222;
+    border: inset 2px gray;
+    border-radius: 5px;
+}
+
+#console-buttons {
+    display: inline-block;
+    width: 106px;
+    height: 76px;
+    padding-left: 15px;
+    padding-top: 9px;
+    vertical-align: top;
+    text-align: center;
+}
+
+
+#flashPlayer, #mediaPlayer {
+    background-color: transparent;
+    width: 1px;
+    height: 1px;
+    border: none;
+    position: fixed;
+    left: -1000px;
+    top: -1000px;
+    z-index: -1;
+}
+
+.tray {
+    width: 100%;
+    height: 26px;
+    border: none;
+    font-weight: bold;
+    display: table;
+    padding: 0;
+    text-align: center;
+    color: #BFBFBF;
+    text-shadow: 1px 1px 3px black;
+}
+
+#current_song {
+    border: 0;
+    width: 414px;
+    height: 72px;
+    margin-top: 2px;
+    color: #bfbfbf;
+    font-weight: bold;
+    font-size: 20px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+}
+
+.djname {
+    font-size: smaller;
+    color: #879F87;
+}
+
+input[type=text],
+input[type=password] {
+    font-size: 14px;
+    font-weight: normal;
+    border: none;
+    margin: 0;
+    padding: 4px;
+    background-color: #BFBFBF;
+    color: #222222;
+    outline: none;
+    border-radius: 3px;
+    border: 1px solid #3C3C3C;
+}
+
+/* copied from login.css */
+input[type=submit], .button {
+  padding: 5px 5px;
+  margin: inherit 1ex;
+  border: 1px solid rgba(0,0,0,0.4);
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3),
+              inset 0 10px 10px rgba(255,255,255,0.1);
+  border-radius: 0.3em;
+  background: #848484;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-block;
+}
+
+input[type=submit]:hover, .button:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    inset 0 -10px 10px rgba(255,255,255,0.1);
+}
+
+input[type=submit]:active, .button:active {
+  color: #4D4DFF;
+  box-shadow:
+    inset -1px -1px 0 rgba(255,255,255,0.3),
+    inset 1px 1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 -10px 10px rgba(255,255,255,0.1);
+}
+
+.button[disabled='disabled'] {
+    box-shadow: none;
+}
+
+.file.button input[type=file] {
+    display: none;
+}
+
+#change_dj_name {
+    background: none;
+    color: white;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    height: 14px;
+    display: inline;
+}
+
+#change_dj_name form {
+    display: inline;
+}
+
+#dj_name {
+    padding: 0 3px;
+}
+
+#controls {
+    background-color: rgba(60, 60, 60, 0.8);
+    width: 150px;
+    border: solid gray 1px;
+    position: relative;
+    top: 6px;
+    left: 472px;
+    z-index: 5;
+}
+
+.control {
+    font-size: 13pt;
+    font-family: arial, sans-serif;
+    font-weight: normal;
+    vertical-align: middle;
+    padding-left: 3px;
+}
+
+.control input {
+    position: absolute;
+    right: 0;
+    margin: 4px;
+    display: inline;
+    vertical-align: middle;
+}
+
+.control:hover {
+    background-color: rgba(132, 132, 132, 0.8);
+    color: #000000;
+    cursor: pointer;
+}
+
+#lastfm_link {
+    display: inline-block;
+    width: 100px;
+    height: 76px;
+    vertical-align: top;
+}
+
+#lastfm_link img {
+    border: 1px inset gray;
+    height: 62px;
+    width: 62px;
+    margin-top: 7px;
+    margin-left: 19px;
+}
+
+a {
+    color: #879F87;
+    text-decoration: none;
+    border: 0;
+}
+
+a img {
+    border: 0;
+}
+
+img {
+    vertical-align: middle;
+}
+
+.placeholder {
+    width: 75%;
+    margin: auto;
+    padding-top: 140px;
+    border: none !important;
+    display: block;
+}
+
+td {
+    vertical-align: middle;
+}
+
+.delete_song_button, 
+.cancel_upload_button {
+    background-repeat: no-repeat;
+    background-position: 0px 12px;
+    background-color: transparent;
+    margin: auto;
+    border: 0;
+    padding: 0;
+    height: 16px;
+    color: #191919;
+}
+
+.delete_song_button:hover {
+    cursor: pointer;
+    text-shadow: 0px 1px 1px gray, 
+                 0px -1px 1px gray,
+                 1px 0 1px gray,
+                 -1px 0 1px gray;
+}
+
+.filename,
+.song_title {
+    color: #CDAD00;
+    display: block;
+    font-weight: bold;
+    font-size: larger;
+    text-shadow: 3px 3px 5px black;
+}
+
+.song_spacer {
+    width: 12px;
+    color: #bfbfbf;
+    color: #191919;
+    font-size: 9px;
+    font-weight: bold;
+    text-shadow: 0px 1px 1px gray;
+}
+
+.song_spacer:hover {
+    cursor: pointer;
+}
+
+#upload_list,
+#song_list {
+    margin: 0;
+    border: 0;
+    border-collapse: collapse;
+    padding: 0;
+}
+
+.song_entry {
+    border-collapse: collapse;
+    border-bottom: 1px solid #3B3B3B;
+    border-top: 1px solid #3B3B3B;
+    background-color: #222222;
+}
+
+#upload_list td,
+#song_list td {
+    padding: 4px 0;
+}
+
+#register_console {
+    width: 500px;
+    height: 300px;
+    padding: 4px;
+    margin: auto;
+}
+
+.library_header,
+.register_header, 
+.user_list_header, 
+.station_list_header {
+    color: #CDAD00;
+    display: block;
+    font-weight: bold;
+    font-size: 20px;
+    text-shadow: 3px 3px 5px black;
+    margin: 2px 4px 0 4px;
+}
+
+#register_console input {
+    border: 0;
+    background: #BFBFBF;
+}
+
+#user_list, #station_list {
+    width: 500px;
+    height: 300px;
+    margin: auto;
+}
+
+#station_list_list,
+#user_list_user_list {
+    width: 100%; 
+    border: 1px solid #3B3B3B; 
+    border-collapse: collapse;
+    margin-top: 15px;
+    padding: 4px;
+}
+
+.library_header {
+    width: 500px;
+    margin: 2px auto;
+}
+
+#library_list {
+    width: 100%; 
+    border-collapse: collapse;
+}
+
+#station_list_list tr {
+    height: 22px;
+}
+
+#library_list td,
+#user_list_user_list td, 
+#station_list_list td {
+    border: 1px solid #3B3B3B;
+    text-align: center;
+}
+
+#user_list_user_list tr.title td, 
+#station_list_list tr.title td {
+    font-weight: bold;
+    color: #BFBFBF;
+}
+
+#scrobbler_id {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+#user_list_user_list td.username,
+#station_list_list td.username {
+    text-align: left;
+    font-weight: bold;
+    color: #879F87;
+    padding-left: 4px;
+}
+
+#station_list_ok,
+#user_list_ok {
+    text-align: right;
+    padding-right: 8px;
+}
+
+label {
+    color: #879F87;
+    font-size: 12px;
+}
+
+.tray > div {
+    display: table-cell;
+    padding-top: 3px;
+    vertical-align: middle;
+}
+
+.station_name {
+    font-weight: bold;
+}
+
+.station_name:before {
+    font-family: FontAwesome;
+    -webkit-font-smoothing: antialiased;
+    content: "\f09e\00a0";  /*  rss icon + space */
+    speak: none;
+}
+
+#station_change_form {
+}
+
+.button_set {
+    float: right;
+}
+
+label {
+    font-weight: bold;
+}
+
+#your_station {
+}
+
+td.song {
+    width: 250px;
+    word-wrap: break-word;
+}
+
+td.station_name {
+    width: 110px;
+    word-wrap: break-word;
+}
+
+td.username {
+    width: 75px;
+    word-wrap: break-word;
+}
+
+#station_list td.username {
+    color: inherit;
+}
+
+.library_image {
+    width: 64px;
+    height: 64px;
+    border-right: none !important;
+    padding: 4px;
+}
+
+.library_image .button {
+    cursor: pointer; 
+    background-color: gray;
+    width: 64px; 
+    height: 64px; 
+    border-radius: 16px;
+}
+
+
+.library.song {
+    width: 234px; 
+    border-left: none !important; 
+    padding: 4px;
+}
+
+#search_form {
+    margin: 2px 4px;
+}
+
+#library_search {
+    width: 100%;
+    border: none !important;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+#library_search form {
+    display: inline;
+}
+
+#search_done {
+    float: right;
+    padding-right: 4px;
+}
+
+.ui-sortable-helper {
+    background: black;
+}
+
+
+#upload_list {
+    margin-top: -1px;
+}
+
+.upload_progress {
+    width: 0;
+    background-color: gray;
+    height: 4px;
+    margin-top: 6px;
+}
+
+#main_view .view {
+    display: none;
+}
+
+.notify_title {
+    font-size: larger;
+}
+
+.ui-pnotify {
+    position: absolute;
+    right: 5px;
+    border-radius: 5px;
+    background-color: rgba(60, 60, 60, 0.8);
+}
+
+.helptext {
+    color: black;
+    background-color: rgba(132, 132, 132, 0.8);
+    border-radius: 2px;
+    padding-left: 3px;
+    padding-right: 3px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3),
+                inset 0 10px 10px rgba(255,255,255,0.1);
+}
+
+.ui-pnotify-title {
+    font-size: larger;
+    text-shadow: 1px 1px 3px black;
+}
+
+.brand {
+    font-family: "Leckerli One", sans;
+    font-size: larger;
+    font-weight: normal;
+}
+
+.warning {
+    font-size: larger;
+    color: #7fff00;
+}

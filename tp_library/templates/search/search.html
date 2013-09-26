@@ -1,0 +1,114 @@
+<div class="library_header"><span class="brand">TeamPlayer</span> Library</div>
+
+<table id="library_list">
+    <tbody>
+        {% if query %}
+        <tr>
+        {% for result in page.object_list %}
+        <td class="library_image">
+            <input type="button" class="button" data-id="{{ result.object.pk }}" title="Add to queue." style="background: url('{{ result.object.image }}') no-repeat; background-size: 64px 64px;"/>
+        </td>
+        <td class="library song">
+            <span class="song_title">{{ result.object.title }}</span>{% if result.object.artist %} by {{ result.object.artist }}{% endif %}
+            {% if result.object.album %}
+            from <i>{{ result.object.album }}</i>
+            {% endif %}
+        </td>
+        {% if forloop.last %}
+        </tr>
+        {% else %}
+            {% if forloop.counter|divisibleby:"2" %}
+            </tr></tr>
+            {% endif %}
+        {% endif %}
+        {% empty %}<tr><td class="placeholder" style="text-align: center">Your search bore no fruit.  Try something else.</td></tr>
+        {% endfor %}
+        </tr>
+        {% else %}
+            <tr><td class="placeholder">
+                Use the search box below to search the <span
+                class="brand">TeamPlayer</span> Library.
+                The search results contain buttons that can be
+                clicked to add them to your queue. Use the <strong
+                class="helptext">OK</strong> button when you are
+                finished to return to your queue.
+            </td></tr>
+        {% endif %}
+        {% if page.has_previous or page.has_next %}
+        <tr>
+            <td colspan="2">
+                {% if page.has_previous %}<a id="search_prev" href="{% url "tp_library_search" %}?q={{ query|urlencode }}&amp;page={{ page.previous_page_number }}">{% endif %}&laquo; Previous{% if page.has_previous %}</a>{% endif %}
+            </td>
+            <td colspan="2">
+                {% if page.has_next %}<a id="search_next" href="{% url "tp_library_search" %}?q={{ query|urlencode }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
+            </td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<script type="text/javascript">
+$(function() {
+    'use strict';
+    var $tray = $('#library_tray');
+
+    $tray.html(ich.library_tray_tmpl({
+        done_url: '{% url "teamplayer.views.show_queue" %}',
+        search_url: '{% url "tp_library_search" %}',
+        query: '{{ query|escapejs }}'
+    }));
+
+    $('#main_view').spin(false);
+
+    $('#submit_search').click(function() {
+        $('#main_view').spin();
+        return true;
+    });
+
+    $('#search_done').ajaxForm(function() {
+        MainView.show('queue');
+    });
+
+    $('#search_form').ajaxForm({ 
+        target: '#library',
+        success: function() {
+            $('#main_view').spin(false);
+        }
+    });
+
+
+    $('#search_prev, #search_next').click(function() {
+        var url =  $(this).attr('href');
+        $('#library').html('');
+        $('#main_view').spin();
+        $('#library').load(url);
+        return false;
+    });
+
+    $('#library_list .button').click(function() {
+        var $this = $(this);
+
+        $.post(
+            '{% url "tp_library.views.add_to_queue" %}', 
+            {song_id: $this.data('id')},
+            function(data) {
+                $this.attr('disabled', true);
+                if (data.hasOwnProperty('error')) {
+                    $this.attr('title', '');
+                    $this.parent().css({opacity: 0.6, background: '#600'});
+                    $this.parent().next().css({opacity: 0.6, background: '#600'});
+                    $this.parent().next().html(data.error);
+                }
+                else {
+                    $this.attr('title', 'Added');
+                    $this.parent().css({opacity: '0.6', background: '#191919'});
+                    $this.parent().next().css({opacity: '0.6', background: '#191919'});
+                    $('#welcome').hide();
+                    TeamPlayer.add_row(ich.song_template(data));
+                }
+            }
+        );
+        return false;
+    });
+});
+</script>

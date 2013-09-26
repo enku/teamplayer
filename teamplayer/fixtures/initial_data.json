@@ -1,0 +1,50 @@
+[
+{
+    "pk": 1, 
+    "model": "auth.user", 
+    "fields": {
+        "username": "DJ Ango", 
+        "first_name": "DJ", 
+        "last_name": "Ango", 
+        "is_active": true, 
+        "is_superuser": false, 
+        "is_staff": false, 
+        "last_login": "2013-06-26T12:46:07.585Z", 
+        "groups": [], 
+        "user_permissions": [], 
+        "password": "", 
+        "email": "", 
+        "date_joined": "2013-06-26T12:46:07.585Z"
+    }
+},
+{
+    "pk": 1, 
+    "model": "teamplayer.queue", 
+    "fields": {
+        "active": false
+    }
+},
+{
+    "pk": 1, 
+    "model": "teamplayer.station", 
+    "fields": {
+        "name": "Main Station", 
+        "creator": [
+            "DJ Ango"
+        ]
+    }
+},
+{
+    "pk": 1, 
+    "model": "teamplayer.userprofile", 
+    "fields": {
+        "auto_mode": true, 
+        "auth_token": null, 
+        "dj_name": "", 
+        "queue": 1, 
+        "user": [
+            "DJ Ango"
+        ] 
+    }
+}
+]

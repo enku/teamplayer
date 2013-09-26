@@ -1,0 +1,20 @@
+<table id="console-buttons">
+    <tr>
+        <td colspan="3">
+            <div class="file button" style="display: block"><i class="icon-plus"></i><input 
+                id="fileupload" 
+                type="file" 
+                name="files[]" 
+                data-url="{% url "teamplayer.views.add_to_queue" %}" 
+                data-sequential-uploads="true"
+                data-progress-interval="10"
+                multiple />
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td><a class="button" onclick="return TeamPlayer.change_station(this.href)" href="{% url "teamplayer.views.previous_station" %}" title="previous station"><i class="icon-arrow-left"></i></a></td>
+        <td><a class="button" onclick="return TeamPlayer.change_station(this.href)" href="{% url "station" home %}" title="Main Station"><i class="icon-home"></i></a></td>
+        <td><a class="button" onclick="return TeamPlayer.change_station(this.href)" href="{% url "teamplayer.views.next_station" %}" title="next station"><i class="icon-arrow-right"></i></a></td>
+    </tr>
+</table>

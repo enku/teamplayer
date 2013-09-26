@@ -1,0 +1,43 @@
+{% load staticfiles %}
+
+{% if messages %}
+<script type="text/javascript">
+    {% for message in messages %}
+    alert('{{ message }}');
+    {% endfor %}
+</script>
+{% endif %}
+
+<div id="welcome" class="placeholder"{% if queue %} style="display: none"{% endif %}>
+<p>
+    This is your console to <strong
+    class="brand">TeamPlayer</strong>, the democratic Internet
+    radio station.
+</p>
+<p>
+    You have no titles in your queue. Use the <strong class="helptext"><i
+    class="icon-plus"></i></strong> button below to add or simply
+    drag audio files onto this page. You may also choose to peruse
+    the <a href="#" onclick="MainView.show('library')"><span
+    class="brand">TeamPlayer</span> Library</a>.
+</p>
+</div>
+
+<table id="song_list">
+    <tbody id="current_list">
+    </tbody>
+</table>
+
+<table id="upload_list">
+    <tbody id="current_uploads">
+    </tbody>
+</table>
+
+<script type="text/javascript">
+$(function() {
+    $('#tray').addClass('user_stats');
+    TeamPlayer.update_user_stats();
+    SongWidget.refresh_songlist();
+
+});
+</script>

@@ -1,0 +1,31 @@
+{% load staticfiles %}
+<head>
+    <meta charset="utf-8" />
+    <title>TeamPlayer</title>
+    <link rel="Shortcut Icon" href="{% static "images/favicon.ico" %}" />
+    {% if station_id %}<link rel="alternate" type="application/rss+xml" title="Station {{ station_id }} Feed" href="{% url 'tp_library.views.feed' station_id %}" />{% endif %}
+    <script type="text/javascript" src="{% static "js/jquery-2.0.2.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.form.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui-1.10.3.custom.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/ICanHaz.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/spin.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.spin.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.pnotify.min.js" %}"></script>
+    {% if not register %}
+    <script type="text/javascript" src="{% static "js/csrf.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mainview.js" %}"></script>
+    <script type="text/javascript" src="{% url "teamplayer.views.js_object" %}"></script>
+    <script type="text/javascript" src="{% static "js/songwidget.js" %}"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/vader/jquery-ui.css"/>
+    <script type="text/javascript" src="{% static "js/jquery.iframe-transport.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.fileupload.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/reconnecting-websocket.js" %}"></script>
+    <link rel="prev" type="text/html" href="{% url "teamplayer.views.previous_station" %}" />
+    <link rel="next" type="text/html" href="{% url "teamplayer.views.next_station" %}" />
+    <link rel="alternate" type="audio/mp3" href="{{ mpd_url }}" />
+    {% endif %}
+    <link href='http://fonts.googleapis.com/css?family=Leckerli+One' rel='stylesheet' type='text/css' />
+    <link rel="stylesheet" href="{% static "font-awesome/css/font-awesome.min.css" %}"/>
+    <link rel="stylesheet" href="{% static "styles/jquery.pnotify.default.css" %}"/>
+    <link href="{% static "styles/main.css" %}" media="all" rel="stylesheet" type="text/css" />
+</head>

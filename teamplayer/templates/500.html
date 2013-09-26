@@ -1,0 +1,200 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>TeamPlayer - Ouch!</title>
+    <link rel="Shortcut Icon" href="{% static "images/favicon.ico" %}" />
+    <link href='http://fonts.googleapis.com/css?family=Leckerli+One' rel='stylesheet' type='text/css' />
+    <style type="text/css">
+        * { 
+            -moz-box-sizing: border-box;
+            box-sizing: border-box; 
+            padding: 0; 
+            margin: 0; 
+        }
+
+        body {
+            background: url('http://www.snazzyspace.com/defaultimages/000000_static-tv.gif') repeat #191919;  
+            font-family: "Droid Sans", sans-serif;
+            font-size: 10px;
+            color: gray;
+
+        }
+
+        #content {
+            width: 626px;
+            height: 478px;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-left: -313px;
+            margin-top: -239px;
+        }
+
+        #console {
+            height: 399px;
+            border: 0;
+            padding: 0; 
+            background-color: #3C3C3C;
+            background-repeat: no-repeat;
+            color: gray;
+            font-family: sans-serif;
+            font-size: 12px;
+            border-radius:  9px 9px 4px 4px;
+            box-shadow: 0 -4px 8px black,
+                        4px 0 8px black,
+                        0 -4px 8px black,
+                        -4px 0 8px black,
+                        inset 0px 1px 6px white;
+        }
+
+        #top_bar {
+            width: 100%;
+        }
+
+        #title {
+            display: block;
+            padding-left: 6px;
+            padding-top: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        #main_view {
+            margin: 0 1px 0 2px;
+            padding: 0;
+            height: 342px;
+            overflow: auto;
+            background: #222222;
+            border: inset 2px gray;
+            border-radius: 5px;
+        }
+
+
+        .tray {
+            width: 100%;
+            height: 26px;
+            border: none;
+            font-weight: bold;
+            display: table;
+            padding: 0;
+            text-align: center;
+            color: #BFBFBF;
+            text-shadow: 1px 1px 3px black;
+            padding-top: 5px;
+        }
+
+        a {
+            color: #879F87;
+            text-decoration: none;
+            border: 0;
+        }
+
+        a img {
+            border: 0;
+        }
+
+        img {
+            vertical-align: middle;
+        }
+
+        .placeholder {
+            width: 75%;
+            margin: auto;
+            padding-top: 140px;
+            border: none !important;
+            display: block;
+        }
+
+        td {
+            vertical-align: middle;
+        }
+
+        .tray > div {
+            display: table-cell;
+            padding-top: 3px;
+            vertical-align: middle;
+        }
+
+        #main_view .view {
+            display: none;
+        }
+
+        .helptext {
+            color: black;
+            background-color: rgba(132, 132, 132, 0.8);
+            border-radius: 2px;
+            padding-left: 3px;
+            padding-right: 3px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3),
+                        inset 0 10px 10px rgba(255,255,255,0.1);
+        }
+
+        .brand {
+            font-family: "Leckerli One", sans;
+            font-size: larger;
+            font-weight: normal;
+        }
+
+        input[type=submit], .button {
+          padding: 5px 5px;
+          margin: inherit 1ex;
+          border: 1px solid rgba(0,0,0,0.4);
+          text-shadow: 0 -1px 0 rgba(0,0,0,0.4);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.3),
+                      inset 0 10px 10px rgba(255,255,255,0.1);
+          border-radius: 0.3em;
+          background: #848484;
+          color: black;
+          font-weight: bold;
+          cursor: pointer;
+          font-size: 13px;
+          display: inline-block;
+        }
+
+        input[type=submit]:hover, .button:hover {
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.3),
+            inset 0 -10px 10px rgba(255,255,255,0.1);
+        }
+
+        input[type=submit]:active, .button:active {
+          color: #4D4DFF;
+          box-shadow:
+            inset -1px -1px 0 rgba(255,255,255,0.3),
+            inset 1px 1px 0 rgba(0, 0, 0, 0.5),
+            inset 0 -10px 10px rgba(255,255,255,0.1);
+        }
+
+        .button_set {
+            float: right;
+        }
+    </style>
+    </head>
+    <body>
+    <div id="content">
+        <div id="console">
+            <div id="top_bar">
+                <div id="title">
+                    <span class="brand">TeamPlayer</span> - Ouch!
+                </div>
+            </div>
+            <div id="main_view">
+                <div class="view" style="display: block">
+                    <div id="welcome" class="placeholder">
+                        <p><span class="brand">TeamPlayer</span> Studios
+                        are experiencing technical difficulties. Please
+                        stand by...</p>
+                        <p class="button_set"><a href="{% url 'teamplayer.views.home' %}" class="button">OK</a></p>
+                    </div>
+                </div>
+            </div>
+            <div id="tray">
+                <div class="tray">Copyright&copy; 2010-2013 Marduk Enterprises</div>
+            </div>
+        </div>
+    </div>
+    </body>
+</html>
