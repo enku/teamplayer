@@ -117,7 +117,7 @@ def get_image_url_for(artist):
         return image_url
 
     encoded_artist = url_friendly_artist(artist)
-    tmpl = ('http://ws.audioscrobbler.com/2.0/?method=artist.getimages'
+    tmpl = ('http://ws.audioscrobbler.com/2.0/?method=artist.getInfo'
             '&artist={0}&api_key={1}&limit=1')
     api_url = tmpl.format(encoded_artist, LASTFM_APIKEY)
 
@@ -134,10 +134,10 @@ def get_image_url_for(artist):
         # raise different exceptions, so we use a catch-all for now
         LOGGER.error('Error parsing response from %s', api_url)
         return CLEAR_IMAGE_URL
-    size_elements = root.findall('./images/image/sizes/size')
-    for size in size_elements:
-        if size.get('name') == 'largesquare':
-            image_url = size.text
+    images = root.findall('./artist/image')
+    for image in images:
+        if image.get('size') == 'extralarge':
+            image_url = image.text
             break
     image_url = image_url or CLEAR_IMAGE_URL
     ARTIST_IMAGE_CACHE[artist] = image_url

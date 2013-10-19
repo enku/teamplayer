@@ -10,7 +10,7 @@ import teamplayer.models
 
 from teamplayer.tests import utils
 
-IMAGES_XML = utils.IMAGES_XML
+ARTIST_XML = utils.ARTIST_XML
 SILENCE = utils.SILENCE
 Mood = teamplayer.models.Mood
 TestCase = django.test.TestCase
@@ -69,11 +69,11 @@ class LibSongs(TestCase):
 
     @patch('urllib.urlopen')
     def test_artist_image_url(self, mock):
-        mock.return_value = open(IMAGES_XML)
+        mock.return_value = open(ARTIST_XML)
         self.assertFalse('Prince' in teamplayer.lib.songs.ARTIST_IMAGE_CACHE)
         url = teamplayer.lib.songs.get_image_url_for('Prince')
         self.assertEqual(url,
-                         'http://userserve-ak.last.fm/serve/126s/231717.jpg')
+                         'http://userserve-ak.last.fm/serve/252/609358.jpg')
 
     @patch('urllib.urlopen')
     def test_blank_artist(self, mock):

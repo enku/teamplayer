@@ -15,7 +15,7 @@ UploadedFile = django.core.files.uploadedfile.UploadedFile
 User = django.contrib.auth.models.User
 
 __dir__ = os.path.dirname(__file__)
-IMAGES_XML = os.path.join(__dir__, 'data', 'prince_images.xml')
+ARTIST_XML = os.path.join(__dir__, 'data', 'prince_artistinfo.xml')
 SILENCE = os.path.join(__dir__, 'data', 'silence.mp3')
 
 
