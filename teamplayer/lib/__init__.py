@@ -130,3 +130,12 @@ def first_or_none(d, key):
         else:
             return None
     return value
+
+
+def remove_pedantic():
+    """
+    Set the PEDANTIC attribute on the ID3 class to False.
+    """
+    from mutagen import id3
+
+    id3.ID3.PEDANTIC = False

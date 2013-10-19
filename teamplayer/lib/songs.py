@@ -21,7 +21,7 @@ from mutagen import File
 from teamplayer import models
 from teamplayer import scrobbler
 from teamplayer.conf import settings
-from teamplayer.lib import list_iter, now, first_or_none
+from teamplayer.lib import list_iter, now, first_or_none, remove_pedantic
 
 LOGGER = logging.getLogger('teamplayer.songlib')
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'
@@ -322,3 +322,5 @@ def scrobble_song(song, now_playing=False):
             scrobbler.submit(artist, title, start_time, length=length,
                              autoflush=True)
     return True
+
+remove_pedantic()

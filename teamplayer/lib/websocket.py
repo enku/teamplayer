@@ -25,6 +25,7 @@ from teamplayer.lib import (
     get_station_id_from_session_id,
     get_user_from_session_id,
 )
+from teamplayer.lib import remove_pedantic
 from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.serializers import StationSerializer
 from tp_library.models import SongFile
@@ -281,3 +282,5 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     def handle_user_created(self, data):
         SocketHandler.broadcast('roster_change', data)
 # -----------------------------------------------------------------------------
+
+remove_pedantic()

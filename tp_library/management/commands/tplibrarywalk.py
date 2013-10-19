@@ -6,6 +6,7 @@ from mutagen.mp3 import HeaderNotFoundError
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 
+from teamplayer.lib import remove_pedantic
 from teamplayer.models import Station
 from tp_library.models import SongFile
 
@@ -50,3 +51,6 @@ class Command(BaseCommand):
             )
             if created:
                 self.created += 1
+
+
+remove_pedantic()
