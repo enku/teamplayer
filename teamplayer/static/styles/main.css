@@ -304,6 +304,7 @@ input[type=submit]:active, .button:active {
     border: 1px inset gray;
     height: 62px;
     width: 62px;
+    object-fit: cover;
     margin-top: 7px;
     margin-left: 19px;
 }
