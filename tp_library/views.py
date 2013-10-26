@@ -38,24 +38,24 @@ def add_to_queue(request):
         if not os.path.exists(filename):
             return HttpResponse(
                 json.dumps({'error': 'Song could not be located'}),
-                mimetype='application/json'
+                content_type='application/json'
             )
 
         fp = File(open(filename))
 
-        entry = request.user.userprofile.queue.add_song(fp, station)
+        entry = request.user.player.queue.add_song(fp, station)
 
         # notify the Spin Doctor
         IPCHandler.send_message('song_added', entry.pk)
 
         return HttpResponse(
             json.dumps(EntrySerializer(entry).data),
-            mimetype='application/json'
+            content_type='application/json'
         )
 
     return HttpResponse(
         json.dumps({'error': str(form.errors[0])}),
-        mimetype='application/json'
+        content_type='application/json'
     )
 
 
@@ -73,7 +73,7 @@ song_search = search_view_factory(SongSearchView)
 
 def get_song(request, song_id):
     song = get_object_or_404(SongFile, pk=song_id)
-    return HttpResponse(open(song.filename), mimetype=song.mimetype)
+    return HttpResponse(open(song.filename), content_type=song.mimetype)
 
 
 class LibraryFeed(Feed):

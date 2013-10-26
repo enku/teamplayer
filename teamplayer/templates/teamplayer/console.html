@@ -7,7 +7,7 @@
 
             <div id="change_dj_name" style="display: none">
                 <form method="post" id="dj_name_form" action="{% url "teamplayer.views.change_dj_name" %}">{% csrf_token %}
-                    <input type="text" name="dj_name" id="dj_name" value="{{ user.userprofile.dj_name }}" placeholder="{{ username }}" />
+                    <input type="text" name="dj_name" id="dj_name" value="{{ user.player.dj_name }}" placeholder="{{ username }}" />
                 </form>
             </div><!-- change_dj_name -->
 

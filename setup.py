@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import os
 
 from setuptools import setup
@@ -29,8 +28,8 @@ setup(
     install_requires=[
         'Django>=1.6.1,<1.7',
         'django-haystack==2.1.0',
-        'mutagen',
-        'python-mpd',
+        'mutagenx',
+        'python-mpd2',
         'tornado',
         'djangorestframework==2.3.10'
     ],

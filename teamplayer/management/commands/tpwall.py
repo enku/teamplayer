@@ -5,10 +5,10 @@ import json
 import sys
 
 from django.conf import settings as django_settings
-from django.core.management.base import BaseCommand
 
 import tornado.ioloop
 import tornado.websocket
+from django.core.management.base import BaseCommand
 
 import teamplayer.conf
 

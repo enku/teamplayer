@@ -10,8 +10,8 @@ class ScrobbleSongError(TestCase):
     """
     Demonstrate the ProtocolError thrown during scrobble_song
     """
-    @patch('teamplayer.scrobbler.submit', side_effect=scrobbler.ProtocolError)
-    def test_error(self, _):
+    @patch('teamplayer.scrobbler.login')
+    def test_error(self, mock_login):
         # given the "song"
         song = {
             'artist': 'Prince',
@@ -20,6 +20,7 @@ class ScrobbleSongError(TestCase):
         }
 
         # when we scrobble it and the scrobbler raises an error
+        mock_login.side_effect = scrobbler.ProtocolError
         status = songs.scrobble_song(song)
 
         # Then the exception is not propogated and we just get a False return

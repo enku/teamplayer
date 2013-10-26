@@ -1,21 +1,19 @@
-# -*- encoding: utf-8 -*-
 """Thread classes and helpers for TeamPlayer."""
 import logging
-import Queue as queue
+import queue
 import shutil
 import threading
 from time import sleep
 
-from django.contrib.auth.models import User
-
 import mpd
 import tornado.web
+from django.contrib.auth.models import User
 
 from teamplayer.conf import settings
 from teamplayer.lib import copy_entry_to_queue, songs
 from teamplayer.lib.mpc import MPC
+from teamplayer.lib.signals import QUEUE_CHANGE_EVENT, SONG_CHANGE
 from teamplayer.lib.websocket import IPCHandler, SocketHandler
-from teamplayer.lib.signals import SONG_CHANGE, QUEUE_CHANGE_EVENT
 from teamplayer.serializers import EntrySerializer
 
 LOGGER = logging.getLogger('teamplayer.threads')
@@ -136,7 +134,7 @@ class StationThread(threading.Thread):
 
     @classmethod
     def remove(cls, station_id):
-        """Remove StationThread associated with «station»
+        """Remove StationThread associated with *station*
 
         This also shuts down the thread
         """
@@ -202,7 +200,7 @@ class StationThread(threading.Thread):
                 QUEUE_CHANGE_EVENT.wait()
                 continue
 
-            self.previous_user = entry.queue.userprofile.user
+            self.previous_user = entry.queue.player.user
             song = entry.song
             try:
                 new_filename = copy_entry_to_queue(entry, self.mpc)

@@ -3,10 +3,9 @@ A pure-python library to assist sending data to AudioScrobbler (the LastFM
 backend)
 """
 import urllib
-import urllib2
-from time import mktime
 from datetime import datetime, timedelta
 from hashlib import md5
+from time import mktime
 
 SESSION_ID = None
 POST_URL = None
@@ -64,8 +63,9 @@ def login(user, password, client=('tst', '1.0')):
 
     tstamp = int(mktime(datetime.now().timetuple()))
     url = "http://post.audioscrobbler.com/"
-    pwhash = md5(password).hexdigest()
-    token = md5("%s%d" % (pwhash, int(tstamp))).hexdigest()
+    pwhash = md5(password.encode('ascii')).hexdigest()
+    txt = ("%s%d" % (pwhash, int(tstamp))).encode('ascii')
+    token = md5(txt).hexdigest()
     values = {
         'hs': 'true',
         'p': PROTOCOL_VERSION,
@@ -75,10 +75,10 @@ def login(user, password, client=('tst', '1.0')):
         't': tstamp,
         'a': token
     }
-    data = urllib.urlencode(values)
-    req = urllib2.Request("%s?%s" % (url, data))
-    response = urllib2.urlopen(req)
-    result = response.read()
+    data = urllib.parse.urlencode(values).encode('ascii')
+    req = urllib.request.Request(url, data)
+    response = urllib.request.urlopen(req)
+    result = response.read().decode('utf-8')
     lines = result.split('\n')
 
     if lines[0] == 'BADAUTH':
@@ -153,16 +153,16 @@ def now_playing(artist, track, album="", length="", trackno="", mbid=""):
         raise TypeError("trackno should be of type int")
 
     values = {'s': SESSION_ID,
-              'a': unicode(artist).encode('utf-8'),
-              't': unicode(track).encode('utf-8'),
-              'b': unicode(album).encode('utf-8'),
+              'a': artist,
+              't': track,
+              'b': album,
               'l': length,
               'n': trackno,
               'm': mbid}
 
-    data = urllib.urlencode(values)
-    req = urllib2.Request(NOW_URL, data)
-    response = urllib2.urlopen(req)
+    data = urllib.parse.urlencode(values).encode('ascii')
+    req = urllib.request.Request(NOW_URL, data)
+    response = urllib.request.urlopen(req)
     result = response.read()
 
     if result.strip() == "OK":
@@ -245,13 +245,13 @@ source!""")
 timestamp). Instead it was %s""" % time)
 
     SUBMIT_CACHE.append(
-        {'a': unicode(artist).encode('utf-8'),
-         't': unicode(track).encode('utf-8'),
+        {'a': artist,
+         't': track,
          'i': time,
          'o': source,
          'r': rating,
          'l': length,
-         'b': unicode(album).encode('utf-8'),
+         'b': album,
          'n': trackno,
          'm': mbid
          }
@@ -273,10 +273,10 @@ def flush():
 
     values['s'] = SESSION_ID
 
-    data = urllib.urlencode(values)
-    req = urllib2.Request(POST_URL, data)
-    response = urllib2.urlopen(req)
-    result = response.read()
+    data = urllib.parse.urlencode(values).encode('ascii')
+    req = urllib.request.Request(POST_URL, data)
+    response = urllib.request.urlopen(req)
+    result = response.read().decode('utf-8')
     lines = result.split('\n')
 
     if lines[0] == "OK":

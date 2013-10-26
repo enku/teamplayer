@@ -62,7 +62,7 @@ class SongFile(models.Model):
             pass
 
         songfile = cls.objects.create(
-            filename=filename.decode('utf-8'),
+            filename=filename,
             filesize=os.stat(filename).st_size,
             mimetype=metadata.mime[0],
             artist=artist,
@@ -80,7 +80,7 @@ class SongFile(models.Model):
         """Return artist image url"""
         return songs.get_image_url_for(self.artist)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.title:
             return u'"{0}" by {1}'.format(self.title, self.artist)
         return self.filename

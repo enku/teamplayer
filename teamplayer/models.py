@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ORM models for the TeamPlayer app
 """
@@ -25,8 +24,8 @@ class Queue(models.Model):
     objects = models.Manager()
     active = models.BooleanField(default=True)
 
-    def __unicode__(self):
-        return "%s's Queue" % self.userprofile.user.username
+    def __str__(self):
+        return "%s's Queue" % self.player.username
 
     def add_song(self, song_file, station):
         """Add <<song_file>> to queue"""
@@ -95,7 +94,7 @@ class Queue(models.Model):
 
     @property
     def user(self):
-        return self.userprofile.user
+        return self.player.user
 
     def auto_fill(self, max_entries, station=None, qs_filter=None, minimum=0):
         """
@@ -131,7 +130,7 @@ class Queue(models.Model):
             songfile = song_files[index]
             logging.debug(songfile)
             try:
-                fp = File(open(songfile.filename.encode('utf-8')))
+                fp = File(open(songfile.filename, 'rb'))
                 self.add_song(fp, station)
             except Exception:
                 LOGGER.error('auto_fill exception: SongFile(%s)',
@@ -152,7 +151,7 @@ class Entry(models.Model):
     artist = models.CharField('Unknown', max_length=254)
     filetype = models.CharField(max_length=4, blank=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'“%s” by %s' % (self.title, self.artist)
 
     def delete(self, *args, **kwargs):
@@ -188,7 +187,7 @@ class Mood(models.Model):
     artist = models.TextField()
     timestamp = models.DateTimeField(auto_now=True, auto_now_add=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s: %s' % (self.artist, self.date)
 
     class Meta:
@@ -202,7 +201,7 @@ class Station(models.Model):
     name = models.CharField(max_length=128, unique=True)
     creator = models.ForeignKey(User, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_songs(self):
@@ -269,25 +268,22 @@ class AuthToken(models.Model):
     def save(self, *args, **kwargs):
         self.timestamp = datetime.datetime.now()
         if not self.string:
-            self.string = unicode(str(uuid.uuid4()), 'ascii')
+            self.string = str(uuid.uuid4(), encoding='ascii')
         return super(AuthToken, self).save(*args, **kwargs)
 
     def is_valid(self):
         """Return True iff the token is still valid"""
         return datetime.datetime.now() - self.timestamp <= self.life_span
 
-    def __unicode__(self):
+    def __str__(self):
         return self.string
 
-    def __str__(self):
-        return self.string.encode('ascii')
 
+class Player(models.Model):
 
-class UserProfile(models.Model):
-
-    """UserProfile: misc. data assocated with a User"""
+    """Player: misc. data assocated with a User"""
     objects = models.Manager()
-    user = models.OneToOneField(User, unique=True, related_name='userprofile')
+    user = models.OneToOneField(User, unique=True, related_name='player')
     queue = models.OneToOneField(Queue)
     auth_token = models.OneToOneField(AuthToken, null=True, blank=True)
     dj_name = models.CharField(blank=True, max_length=25)
@@ -304,6 +300,10 @@ class UserProfile(models.Model):
         self.full_clean()
         self.save()
         return self.dj_name
+
+    @property
+    def username(self):
+        return self.user.username
 
     @classmethod
     def user_stats(cls):
@@ -334,7 +334,7 @@ User.add_to_class('dj_ango', dj_ango)
 
 @classmethod
 def active_users(cls):
-    profiles = UserProfile.objects.values_list('user__pk', flat=True)
+    players = Player.objects.values_list('user__pk', flat=True)
     return cls.objects.filter(is_active=True,
-                              pk__in=profiles)
+                              pk__in=players)
 User.add_to_class('active_users', active_users)

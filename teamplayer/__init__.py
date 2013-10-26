@@ -4,7 +4,7 @@ Welcome to TeamPlayer: The Democratic Internet Radio Station
 import os
 import subprocess
 
-VERSION = (2, 0, 1, 'final')
+VERSION = (2, 1, 0, 'devel')
 REVISION = None
 
 
@@ -25,7 +25,7 @@ def version_string(show_revision=True):
                 stderr=open(os.devnull, 'w')
             )
             if popen.wait() == 0:
-                REVISION = popen.stdout.read().strip()
+                REVISION = popen.stdout.read().decode('ascii').strip()
         except OSError:
             REVISION = ''
 

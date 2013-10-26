@@ -1,27 +1,25 @@
-# -*- coding: utf-8 -*-
 """
 Library to deal with song files and song metadata
 """
 import contextlib
 import datetime
-from httplib import HTTPException
 import logging
 import socket
 import time
-import urllib
-import urllib2
+import urllib.parse
+from http.client import HTTPException
+from urllib.error import URLError
+from urllib.request import urlopen
 from xml.etree import ElementTree
 
-from django.db.models import Count
 from django.conf import settings as django_settings
 from django.contrib.auth.models import User
+from django.db.models import Count
+from mutagenx import File
 
-from mutagen import File
-
-from teamplayer import models
-from teamplayer import scrobbler
+from teamplayer import models, scrobbler
 from teamplayer.conf import settings
-from teamplayer.lib import list_iter, now, first_or_none, remove_pedantic
+from teamplayer.lib import first_or_none, list_iter, now, remove_pedantic
 
 LOGGER = logging.getLogger('teamplayer.songlib')
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'
@@ -92,20 +90,20 @@ def time_to_secs(time_str):
 
 def url_friendly_artist(artist):
     """
-    Return «artist» in such a way that it is acceptable by the
-    last.fm api when used in …/artist/«artist»/similar.txt for example.
+    Return *artist* in such a way that it is acceptable by the
+    last.fm api when used in …/artist/*artist*/similar.txt for example.
 
     Currently this is used to get the similar artist url.  Might
     it also be useful for other things last.fm?
     """
     new_artist = artist
 
-    if type(new_artist) is unicode:
+    if type(new_artist) is str:
         new_artist = artist.encode('utf-8', 'ignore')
 
     new_artist = artist.replace('.', '')
     new_artist = new_artist.replace('/', '')
-    new_artist = urllib.quote(new_artist)
+    new_artist = urllib.parse.quote(new_artist)
     return new_artist
 
 
@@ -123,7 +121,7 @@ def get_image_url_for(artist):
 
     with sockettimeout(3.0):
         try:
-            response = urllib.urlopen(api_url)
+            response = urllib.request.urlopen(api_url)
         except IOError:
             return CLEAR_IMAGE_URL
 
@@ -146,7 +144,7 @@ def get_image_url_for(artist):
 
 def get_similar_artists(artist):
     """
-    Generator for finding similar artists to «artist».  Uses the last.fm
+    Generator for finding similar artists to *artist*.  Uses the last.fm
     api to fetch the list
     """
     data = SIMILAR_ARTIST_CACHE.get(artist, None)
@@ -156,13 +154,13 @@ def get_similar_artists(artist):
                encoded_artist)
         SIMILAR_ARTIST_CACHE[artist] = list()
         try:
-            data = urllib2.urlopen(url)
-        except (urllib2.URLError, HTTPException):
+            data = urlopen(url).read().decode('utf-8')
+        except (URLError, HTTPException):
             LOGGER.error('URLError: %s', url, exc_info=True)
             return
-        for line in data:
+        for line in data.split('\n'):
             try:
-                similar_artist = line.strip().split(',')[2]
+                similar_artist = line.strip().split(',')[-1]
             except IndexError:
                 continue
             # damned entity references
@@ -197,14 +195,14 @@ def best_song_from_user(user, station, previous_artist=None):
     If no relevant song is found, return None.
     """
     try:
-        queue = user.userprofile.queue
-    except models.UserProfile.DoesNotExist:
+        queue = user.player.queue
+    except models.Player.DoesNotExist:
         return None
 
     if not queue.active:
         return None
 
-    if user.userprofile.auto_mode:
+    if user.player.auto_mode:
         entry = auto_find_song(previous_artist, queue, station)
         if entry:
             return entry
@@ -221,7 +219,7 @@ def find_a_song(users, station, previous_user=None, previous_artist=None):
     Rotate through the user list until you find a song.  If no one
     has a song in their station/queue after one loop then return None
 
-    If previous_artist is defined, and user.userprofile.auto_mode is True,
+    If previous_artist is defined, and user.player.auto_mode is True,
     try to find a song in the user's queue whose artist is similar to
     the current mood without repeating the previous_artist.
     """
@@ -229,7 +227,7 @@ def find_a_song(users, station, previous_user=None, previous_artist=None):
                      and station == models.Station.main_station())
     if wants_dj_ango:
         dj_ango = User.dj_ango()
-        dj_ango.userprofile.queue.auto_fill(
+        dj_ango.player.queue.auto_fill(
             settings.SHAKE_THINGS_UP,
             station=station,
             qs_filter=settings.SHAKE_THINGS_UP_FILTER,
@@ -244,7 +242,7 @@ def find_a_song(users, station, previous_user=None, previous_artist=None):
     if wants_dj_ango:
         return auto_find_song(
             previous_artist,
-            dj_ango.userprofile.queue,
+            dj_ango.player.queue,
             station
         )
     return None
@@ -253,8 +251,8 @@ def find_a_song(users, station, previous_user=None, previous_artist=None):
 def auto_find_song(previous_artist, queue, station):
     """
     Return first song from an artist that is similar to the current mood,
-    but not repeating «previous_artist».  If no similar artist/song can
-    be found, return the first entry in «queue». If «queue» is empty,
+    but not repeating *previous_artist*.  If no similar artist/song can
+    be found, return the first entry in *queue*. If *queue* is empty,
     return None
     """
     entries = queue.entry_set.filter(station=station)
@@ -290,12 +288,15 @@ def scrobble_song(song, now_playing=False):
     """
     if not scrobbler.POST_URL:
         # we are not logged in
-        scrobbler.login(settings.SCROBBLER_USER,
-                        settings.SCROBBLER_PASSWORD)
+        try:
+            scrobbler.login(settings.SCROBBLER_USER,
+                            settings.SCROBBLER_PASSWORD)
+        except (URLError, HTTPException, scrobbler.ProtocolError):
+            return False
 
     # song => (u'DJ', 'Purity Ring', 'Ungirthed', 169, 19, 0)
-    artist = unicode(song['artist'], 'utf-8', 'replace')
-    title = unicode(song['title'], 'utf-8', 'replace')
+    artist = song['artist']
+    title = song['title']
     length = song['total_time']
     start_time = int(time.mktime(time.localtime())) - length  # not exact..
     try:
@@ -304,7 +305,7 @@ def scrobble_song(song, now_playing=False):
         else:
             scrobbler.submit(artist, title, start_time, length=length,
                              autoflush=True)
-    except (urllib2.URLError, HTTPException, scrobbler.ProtocolError):
+    except (URLError, HTTPException, scrobbler.ProtocolError):
         LOGGER.error('Error scrobbing song: %s', song, exc_info=True)
         return False
     except (scrobbler.SessionError, scrobbler.BackendError):

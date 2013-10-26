@@ -1,8 +1,6 @@
 """
 App-specific settings defaults for the TeamPlayer app
 """
-from __future__ import unicode_literals
-
 import os
 
 from django.conf import settings as django_settings

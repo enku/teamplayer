@@ -3,7 +3,6 @@ from threading import Event
 
 from django.dispatch import Signal
 
-
 SONG_CHANGE = Signal(providing_args=['station_id',
                                      'previous_song',
                                      'current_song'])

@@ -5,13 +5,14 @@ import django.contrib.auth.models
 
 import mock
 
-import teamplayer.lib
+import teamplayer.lib.users
 import teamplayer.models
 
 from teamplayer.tests import utils
 
 ARTIST_XML = utils.ARTIST_XML
 SILENCE = utils.SILENCE
+PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
 Mood = teamplayer.models.Mood
 TestCase = django.test.TestCase
 patch = mock.patch
@@ -41,7 +42,7 @@ class LibSongs(TestCase):
         }
 
         self.user = teamplayer.lib.users.create_user(**self.user_data)
-        song = open(SILENCE)
+        song = open(SILENCE, 'rb')
         view = reverse('teamplayer.views.add_to_queue')
 
         self.client.login(username=self.user_data['username'],
@@ -67,7 +68,7 @@ class LibSongs(TestCase):
         self.assertEqual(func('9:01'), 541)
         self.assertEqual(func('9:00:01'), 32401)
 
-    @patch('urllib.urlopen')
+    @patch('teamplayer.lib.songs.urllib.request.urlopen')
     def test_artist_image_url(self, mock):
         mock.return_value = open(ARTIST_XML)
         self.assertFalse('Prince' in teamplayer.lib.songs.ARTIST_IMAGE_CACHE)
@@ -75,7 +76,7 @@ class LibSongs(TestCase):
         self.assertEqual(url,
                          'http://userserve-ak.last.fm/serve/252/609358.jpg')
 
-    @patch('urllib.urlopen')
+    @patch('teamplayer.lib.songs.urllib.request.urlopen')
     def test_blank_artist(self, mock):
         """Demonstrate we get the "clear" image for blank artists"""
         # given a blank artist
@@ -87,7 +88,9 @@ class LibSongs(TestCase):
         # then we get a clear image url
         self.assertEqual(result, teamplayer.lib.songs.CLEAR_IMAGE_URL)
 
-    def test_mood(self):
+    @patch('teamplayer.lib.songs.urlopen')
+    def test_mood(self, mock):
+        mock.return_value = open(PRINCE_SIMILAR_TXT, 'rb')
         station = teamplayer.models.Station.main_station()
         self.assertEqual(Mood.objects.all().count(), 0)
         teamplayer.lib.songs.log_mood('Prince', station)
@@ -115,8 +118,8 @@ class LibUsers(TestCase):
         teamplayer.lib.users.create_user(username='test', password='test')
 
         user = django.contrib.auth.models.User.objects.get(username='test')
-        profile = user.userprofile
-        self.assertEqual(profile.queue.entry_set.count(), 0)
+        player = user.player
+        self.assertEqual(player.queue.entry_set.count(), 0)
 
 
 class FirstOrNoneTest(TestCase):

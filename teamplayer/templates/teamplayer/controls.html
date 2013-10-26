@@ -27,10 +27,10 @@
         onclick="SongWidget.get_and_songlist('{% url "teamplayer.views.order_by_rank" %}', {})">Auto Sort
     </div>
     <div class="control" title="Put queue on hold" id="toggle_hold">Hold
-        <input type="checkbox" {% if not user.userprofile.queue.active %}checked="checked"{% endif %} />
+        <input type="checkbox" {% if not user.player.queue.active %}checked="checked"{% endif %} />
     </div>
     <div class="control" title="Automatically pick the best song to play next" id="toggle_auto">Auto
-        <input type="checkbox" {% if user.userprofile.auto_mode %}checked="checked"{% endif %} />
+        <input type="checkbox" {% if user.player.auto_mode %}checked="checked"{% endif %} />
     </div>
     <div class="control" title="View/Add/Change Stations"
         onclick="MainView.show('stations')">Stations

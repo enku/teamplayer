@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import string
 
 from django import forms
@@ -51,7 +48,7 @@ class CreateStationForm(forms.Form):
 
 class ChangeDJNameForm(forms.Form):
     dj_name = forms.CharField(max_length=25, required=False)
-    allowable_characters = (string.letters
+    allowable_characters = (string.ascii_letters
                             + string.digits
                             + string.punctuation
                             + ' _-')
@@ -72,10 +69,10 @@ class ChangeDJNameForm(forms.Form):
             raise forms.ValidationError(invalid_name.format(name))
 
         try:
-            profile = models.UserProfile.objects.get(dj_name__iexact=name)
-            if profile.pk != self.user.userprofile.pk:
+            player = models.Player.objects.get(dj_name__iexact=name)
+            if player.pk != self.user.player.pk:
                 raise forms.ValidationError(already_taken)
-        except models.UserProfile.DoesNotExist:
+        except models.Player.DoesNotExist:
             pass
 
         return name

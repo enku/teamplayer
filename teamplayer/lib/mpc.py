@@ -1,17 +1,16 @@
-# -*- coding: utf-8 -*-
 """
 Functions for interacting with mpc/mpd
 """
 import contextlib
 import logging
 import os
-from time import sleep, time
 import subprocess
 from threading import Event, Thread
+from time import sleep, time
 
+import mpd
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-import mpd
 
 from teamplayer.conf import settings
 from teamplayer.lib import songs
@@ -141,7 +140,7 @@ class MPC(object):
 
     def add_file_to_playlist(self, filename):
         """
-        Instruct mpd to add «filename» to playlist.  The file must have first
+        Instruct mpd to add *filename* to playlist.  The file must have first
         been copied to mpd's play directory.
         """
         self.call('add', filename)
@@ -217,7 +216,7 @@ class MPC(object):
             return ''
 
         try:
-            return User.objects.get(pk=user_id).userprofile.dj_name
+            return User.objects.get(pk=user_id).player.dj_name
         except User.DoesNotExist:
             return ''
 

@@ -1,31 +1,23 @@
-from __future__ import unicode_literals
-
 import functools
-from json import dumps, loads
 import logging
 import os
-import sys
 import shutil
 import signal
+import sys
 import time
-
-from django.conf import settings as django_settings
-from django.core.exceptions import ObjectDoesNotExist
+from json import dumps, loads
 
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
-
-from mutagen import File
+from django.conf import settings as django_settings
+from django.core.exceptions import ObjectDoesNotExist
+from mutagenx import File
 
 from teamplayer import models
 from teamplayer.conf import settings
-from teamplayer.lib import (
-    get_random_filename,
-    get_station_id_from_session_id,
-    get_user_from_session_id,
-)
-from teamplayer.lib import remove_pedantic
+from teamplayer.lib import (get_random_filename, get_station_id_from_session_id,
+                            get_user_from_session_id, remove_pedantic)
 from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.serializers import StationSerializer
 from tp_library.models import SongFile
@@ -96,7 +88,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     @classmethod
     def broadcast_user_stats(cls):
-        stats = models.UserProfile.user_stats()
+        stats = models.Player.user_stats()
         stats['users'] = len(cls.clients)
         cls.broadcast('user_stats', stats)
 

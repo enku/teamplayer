@@ -36,7 +36,7 @@
 },
 {
     "pk": 1, 
-    "model": "teamplayer.userprofile", 
+    "model": "teamplayer.player", 
     "fields": {
         "auto_mode": true, 
         "auth_token": null, 

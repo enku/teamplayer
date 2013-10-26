@@ -34,7 +34,7 @@ def get_random_filename(ext=None):
     the filename will have an .ext extension
     """
     uuid_str = str(uuid.uuid4()).replace('-', '')[::2]
-    if ext is not None and isinstance(ext, basestring):
+    if ext is not None and isinstance(ext, str):
         uuid_str = '{0}.{1}'.format(uuid_str, ext)
     return uuid_str
 
@@ -136,6 +136,6 @@ def remove_pedantic():
     """
     Set the PEDANTIC attribute on the ID3 class to False.
     """
-    from mutagen import id3
+    from mutagenx import id3
 
     id3.ID3.PEDANTIC = False

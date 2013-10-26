@@ -15,11 +15,11 @@ def create_user(username, password):
     new_user.is_active = True
     new_user.save()
 
-    userprofile = models.UserProfile()
-    userprofile.user = new_user
+    player = models.Player()
+    player.user = new_user
     queue = models.Queue()
     queue.save()
-    userprofile.queue = queue
-    userprofile.save()
+    player.queue = queue
+    player.save()
 
     return new_user

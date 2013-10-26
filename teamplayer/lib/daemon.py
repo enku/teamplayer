@@ -19,9 +19,10 @@ Resources:
 __author__ = "Chad J. Schroeder"
 __version__ = "$Id$"
 
-import os               # Miscellaneous OS interfaces.
-import sys              # System-specific parameters and functions.
-import signal           # Set handlers for asynchronous events.
+import os
+import signal
+import sys
+
 
 def createDaemon():
    """Detach a process from the controlling terminal and run it in the
@@ -36,7 +37,7 @@ def createDaemon():
       # the child gets a new PID, making it impossible for its PID to equal its
       # PGID.
       pid = os.fork()
-   except OSError, e:
+   except OSError as e:
       return((e.errno, e.strerror))     # ERROR (return a tuple)
 
    if (pid == 0):       # The first child.
@@ -61,7 +62,7 @@ def createDaemon():
          # fork guarantees that the child is no longer a session leader, thus
          # preventing the daemon from ever acquiring a controlling terminal.
          pid = os.fork()        # Fork a second child.
-      except OSError, e:
+      except OSError as e:
          return((e.errno, e.strerror))  # ERROR (return a tuple)
 
       if (pid == 0):      # The second child.

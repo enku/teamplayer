@@ -2,46 +2,35 @@
 Views for the teamplayer django app
 """
 import json
+from urllib.parse import quote_plus
 
 import django
-from django.db import transaction
-from django.db.models import Count, Sum
-from django.contrib.auth import logout as auth_logout
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.core.files import File
 from django.core.urlresolvers import reverse
+from django.db import transaction
+from django.db.models import Count, Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render_to_response
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
-
-from urllib import quote_plus
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from teamplayer import version_string
-from teamplayer.forms import (
-    ChangeDJNameForm,
-    CreateStationForm,
-    EditStationForm,
-)
-from teamplayer.lib import mktemp_file_from_request
-from teamplayer.lib.mpc import MPC
-from teamplayer.lib import songs
-from teamplayer.lib import users
-from teamplayer.models import Station, UserProfile, Entry
 from teamplayer.conf import settings
+from teamplayer.forms import (ChangeDJNameForm, CreateStationForm,
+                              EditStationForm)
+from teamplayer.lib import mktemp_file_from_request, songs, users
+from teamplayer.lib.mpc import MPC
 from teamplayer.lib.websocket import IPCHandler
-from teamplayer.serializers import (
-    EntrySerializer,
-    PlayerSerializer,
-    StationSerializer,
-)
+from teamplayer.models import Entry, Player, Station
+from teamplayer.serializers import (EntrySerializer, PlayerSerializer,
+                                    StationSerializer)
 from tp_library.models import SongFile
-
 
 YEAR_IN_SECS = 365 * 24 * 60 * 60
 
@@ -104,14 +93,14 @@ def home(request, station_id=None):
     if request.is_ajax():
         serializer = StationSerializer(station, context={'request': request})
         return HttpResponse(json.dumps(serializer.data),
-                            mimetype='application/json')
+                            content_type='application/json')
 
     return render_to_response(
         'teamplayer/home.html',
         {
             'mpd_url': get_mpd_url(request, station),
-            'name': (request.user.userprofile.dj_name
-                     if request.user.userprofile.dj_name
+            'name': (request.user.player.dj_name
+                     if request.user.player.dj_name
                      else 'Anonymous'),
             'show_player': True,
             'station': station,
@@ -141,7 +130,7 @@ def show_queue(request):
     """
     station = get_station_from_session(request)
 
-    entries = request.user.userprofile.queue.entry_set.filter(station=station)
+    entries = request.user.player.queue.entry_set.filter(station=station)
     seralizer = EntrySerializer(entries, many=True)
     return Response(seralizer.data)
 
@@ -154,7 +143,7 @@ def show_entry(request, entry_id):
     """
     entry = get_object_or_404(Entry,
                               pk=entry_id,
-                              queue__userprofile__user=request.user)
+                              queue__player__user=request.user)
     data = EntrySerializer(entry).data
     entry_id = entry.pk
     if request.method == 'DELETE':
@@ -168,8 +157,8 @@ def show_entry(request, entry_id):
 @login_required
 def show_players(request):
     """view to show user stats/settings"""
-    userprofiles = UserProfile.objects.all()
-    serializer = PlayerSerializer(userprofiles, many=True)
+    players = Player.objects.all()
+    serializer = PlayerSerializer(players, many=True)
     return Response(serializer.data)
 
 
@@ -182,13 +171,12 @@ def add_to_queue(request):
     station = get_station_from_session(request)
 
     if request.FILES:
-        uploaded_file = request.FILES.values()[0]
+        uploaded_file = next(request.FILES.values())
     else:
         uploaded_file = File(mktemp_file_from_request(request))
 
     try:
-        entry = request.user.userprofile.queue.add_song(uploaded_file,
-                                                        station)
+        entry = request.user.player.queue.add_song(uploaded_file, station)
     except songs.SongMetadataError:
         client_filename = request.FILES['files[]'].name
         if client_filename:
@@ -198,7 +186,8 @@ def add_to_queue(request):
         status = {'fail': ('%sThe song was not added because I did '
                            u'not recognize the type of file you sent' % extra)
                   }
-        return HttpResponse(json.dumps(status), mimetype='application/json')
+        return HttpResponse(json.dumps(status),
+                            content_type='application/json')
 
     # notify the Spin Doctor
     IPCHandler.send_message('song_added', entry.pk)
@@ -207,14 +196,14 @@ def add_to_queue(request):
         IPCHandler.send_message('library_add', entry.pk)
 
     return HttpResponse(json.dumps(EntrySerializer(entry).data),
-                        mimetype='application/json')
+                        content_type='application/json')
 
 
 @login_required
 def randomize_queue(request):
     """Randomize the user's queue"""
     station = get_station_from_session(request)
-    request.user.userprofile.queue.randomize(station)
+    request.user.player.queue.randomize(station)
     return redirect(reverse('teamplayer.views.show_queue'))
 
 
@@ -222,7 +211,7 @@ def randomize_queue(request):
 def order_by_rank(request):
     """Order your queue according to artist rank"""
     station = get_station_from_session(request)
-    request.user.userprofile.queue.order_by_rank(station)
+    request.user.player.queue.order_by_rank(station)
     return redirect(reverse('teamplayer.views.show_queue'))
 
 
@@ -230,7 +219,7 @@ def order_by_rank(request):
 @require_POST
 def toggle_queue_status(request):
     """Toggle user's queue's active status"""
-    new_status = bool(request.user.userprofile.queue.toggle_status())
+    new_status = bool(request.user.player.queue.toggle_status())
     IPCHandler.send_message(
         'queue_status',
         {
@@ -240,7 +229,7 @@ def toggle_queue_status(request):
     )
     return HttpResponse(
         json.dumps(new_status),
-        mimetype='application/json'
+        content_type='application/json'
     )
 
 
@@ -248,7 +237,7 @@ def toggle_queue_status(request):
 @require_POST
 def toggle_auto_mode(request):
     """Toggle user's auto_mode flag"""
-    request.user.userprofile.toggle_auto_mode()
+    request.user.player.toggle_auto_mode()
     return HttpResponseNoContent()
 
 
@@ -267,7 +256,7 @@ def currently_playing(request):
 
     output = MPC(station=station).currently_playing()
     response = HttpResponse(json.dumps(output),
-                            mimetype='application/json')
+                            content_type='application/json')
     if output['remaining_time'] is not None:
         response['Cache-Control'] = 'no-cache, max-age={0}'.format(
             output['remaining_time'])
@@ -284,13 +273,13 @@ def reorder_queue(request):
     Given comma-delimited string (of integers), re-order queue
     return the re-ordered list of ids in json format
     """
-    ids = [x['id'] for x in request.user.userprofile.queue.reorder(
-        [int(i) for i in request.body.split(',')])
+    ids = [x['id'] for x in request.user.player.queue.reorder(
+        [int(i) for i in request.body.decode('utf-8').split(',')])
     ]
 
     return HttpResponse(
         json.dumps(ids),
-        mimetype='application/json'
+        content_type='application/json'
     )
 
 
@@ -303,8 +292,8 @@ def change_dj_name(request):
     if not form.is_valid():
         return HttpResponse(form.errors.values()[0])
 
-    previous_dj_name = request.user.userprofile.dj_name
-    request.user.userprofile.set_dj_name(form.cleaned_data['dj_name'])
+    previous_dj_name = request.user.player.dj_name
+    request.user.player.set_dj_name(form.cleaned_data['dj_name'])
 
     # send a notification the the spin doctor
     IPCHandler.send_message(
@@ -337,18 +326,18 @@ def registration(request):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password1']
             try:
-                UserProfile.objects.get(user__username=username)
+                Player.objects.get(user__username=username)
                 context['error'] = 'User "%s" already exists.' % username
-            except UserProfile.DoesNotExist:
+            except Player.DoesNotExist:
                 user = users.create_user(username, password)
                 IPCHandler.send_message(
-                    'user_created', PlayerSerializer(user.userprofile).data)
+                    'user_created', PlayerSerializer(user.player).data)
                 messages.info(request, '%s registered. Please login.' %
                               username)
                 return HttpResponse('<script>window.location="%s"</script>' %
                                     reverse('teamplayer.views.home'))
 
-    context['users'] = UserProfile.objects.all()
+    context['users'] = Player.objects.all()
     return render_to_response('teamplayer/register.html', context,
                               context_instance)
 
@@ -461,7 +450,7 @@ def create_station(request):
         station = Station.create_station(name, request.user)
         IPCHandler.send_message('station_create', station.pk)
         return HttpResponseNoContent()
-    return HttpResponse('Error creating station', mimetype='text/plain')
+    return HttpResponse('Error creating station', content_type='text/plain')
 
 
 def about(request):
@@ -482,7 +471,7 @@ def about(request):
             'library_count': query['title__count'],
             'library_size': query['filesize__sum'],
             'scrobbler_id': getattr(settings, 'SCROBBLER_USER', ''),
-            'users': UserProfile.objects.count() - 1,
+            'users': Player.objects.count() - 1,
         },
         context_instance=RequestContext(request)
     )
@@ -508,7 +497,7 @@ def js_object(request):
             'username': request.user.username,
         },
         context_instance=RequestContext(request),
-        mimetype='application/javascript'
+        content_type='application/javascript'
     )
 
 

@@ -1,5 +1,6 @@
-# -*- encoding: utf-8 -*-
 """Unit tests for the TeamPlayer Django app"""
+import os
+
 import django.contrib.auth.models
 import django.core.files.uploadedfile
 import django.core.urlresolvers
@@ -14,6 +15,8 @@ from tp_library.models import SongFile
 from teamplayer.tests import utils
 
 SILENCE = utils.SILENCE
+METALLICA_SIMILAR_TXT = utils.METALLICA_SIMILAR_TXT
+PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
 SpinDoctor = utils.SpinDoctor
 TestCase = django.test.TestCase
 UploadedFile = django.core.files.uploadedfile.UploadedFile
@@ -45,16 +48,16 @@ class UserQueue(TestCase):
     @patch('teamplayer.lib.websocket.IPCHandler.send_message')
     def test_add_entries(self, mock):
         """Test that user can add entries"""
-        song = open(SILENCE)
+        song = open(SILENCE, 'rb')
         view = reverse('teamplayer.views.add_to_queue')
 
         # first, verify user has an empty queue
-        self.assertEqual(self.user.userprofile.queue.entry_set.count(), 0)
+        self.assertEqual(self.user.player.queue.entry_set.count(), 0)
         # log in as the user
         self.client.login(username=self.user_data['username'],
                           password=self.user_data['password'])
         self.client.post(view, {'song': song}, follow=True)
-        self.assertEqual(self.user.userprofile.queue.entry_set.count(), 1)
+        self.assertEqual(self.user.player.queue.entry_set.count(), 1)
 
     @patch('teamplayer.lib.websocket.IPCHandler.send_message')
     def test_delete_entries(self, mock):
@@ -63,10 +66,10 @@ class UserQueue(TestCase):
         """
         # first add the entry
         self.test_add_entries()
-        song_id = self.user.userprofile.queue.entry_set.all()[0].pk
+        song_id = self.user.player.queue.entry_set.all()[0].pk
         view = reverse('teamplayer.views.show_entry', args=(song_id,))
         self.client.delete(view)
-        self.assertEqual(self.user.userprofile.queue.entry_set.count(), 0)
+        self.assertEqual(self.user.player.queue.entry_set.count(), 0)
 
 
 class Queue(TestCase):
@@ -77,20 +80,20 @@ class Queue(TestCase):
     def setUp(self):
         self.station = Station.main_station()
         self.user = users.create_user('test', 'test')
-        self.profile = self.user.userprofile
+        self.player = self.user.player
 
         # add some songs
         for _ in range(5):
             Entry.objects.create(
                 song=SILENCE,
-                queue=self.profile.queue,
+                queue=self.player.queue,
                 station=self.station,
             )
 
     def test_reorder(self):
-        order = [x['id'] for x in self.profile.queue.entry_set.values()]
+        order = [x['id'] for x in self.player.queue.entry_set.values()]
         new_order = list(reversed(order))
-        result = self.profile.queue.reorder(new_order)
+        result = self.player.queue.reorder(new_order)
         self.assertEqual(new_order, [x['id'] for x in result])
 
 
@@ -112,7 +115,7 @@ class QueueAutoFill(TestCase):
         )
 
     def runTest(self):
-        queue = self.dj_ango.userprofile.queue
+        queue = self.dj_ango.player.queue
 
         # when we filter songs < 5 minutes
         queue.auto_fill(
@@ -130,7 +133,7 @@ class StationTest(TestCase):
     """Demonstrate the Station model"""
     def setUp(self):
         self.user = users.create_user('test', 'test')
-        self.profile = self.user.userprofile
+        self.player = self.user.player
 
     def test_create_station(self):
         """Demonstrate the create_station method."""
@@ -147,12 +150,12 @@ class StationTest(TestCase):
         # with a song in each station
         song1 = Entry.objects.create(
             song=SILENCE,
-            queue=self.profile.queue,
+            queue=self.player.queue,
             station=station1,
         )
         Entry.objects.create(
             song=SILENCE,
-            queue=self.profile.queue,
+            queue=self.player.queue,
             station=station2,
         )
 
@@ -187,12 +190,12 @@ class StationTest(TestCase):
         station = Station.create_station('station', self.user)
 
         # when i call .add_song() on a queue
-        queue = self.user.userprofile.queue
+        queue = self.user.player.queue
         entry = queue.add_song(
-            UploadedFile(open(SILENCE)), station=station)
+            UploadedFile(open(SILENCE, 'rb')), station=station)
 
         # the song is created in the user's queue and with the station
-        self.assertEqual(entry.queue, self.user.userprofile.queue)
+        self.assertEqual(entry.queue, self.user.player.queue)
         self.assertEqual(entry.station, station)
 
     def test_from_user(self):
@@ -234,14 +237,14 @@ class QueueMasterTestCase(TestCase):
     def setUp(self):
         # need to create some users
         self.user1 = users.create_user(username='user1', password='pass')
-        self.user1.userprofile.dj_name = 'user1'
-        self.user1.userprofile.save()
+        self.user1.player.dj_name = 'user1'
+        self.user1.player.save()
         self.user2 = users.create_user(username='user2', password='pass')
-        self.user2.userprofile.dj_name = 'user2'
-        self.user2.userprofile.save()
+        self.user2.player.dj_name = 'user2'
+        self.user2.player.save()
         self.user3 = users.create_user(username='user3', password='pass')
-        self.user3.userprofile.dj_name = 'user3'
-        self.user3.userprofile.save()
+        self.user3.player.dj_name = 'user3'
+        self.user3.player.save()
         self.spin = SpinDoctor()
 
     def test_plays_users_song(self):
@@ -253,7 +256,8 @@ class QueueMasterTestCase(TestCase):
         self.assertEqual(current[1], 'Prince')
         self.assertEqual(current[2], 'Purple Rain')
 
-    def test_round_robin(self):
+    @patch('teamplayer.lib.songs.urlopen')
+    def test_round_robin(self, mock_urlopen):
         self.spin.create_song_for(self.user1, artist='Prince',
                                   title='Purple Rain')
         self.spin.create_song_for(self.user2, artist='Metallica',
@@ -296,30 +300,35 @@ class QueueMasterTestCase(TestCase):
         self.spin.create_song_for(self.user1, artist='Metallica',
                                   title='One')
 
-        self.assertEqual(self.user1.userprofile.queue.entry_set.count(),
+        self.assertEqual(self.user1.player.queue.entry_set.count(),
                          2)
         self.spin.next()
-        self.assertEqual(self.user1.userprofile.queue.entry_set.count(),
+        self.assertEqual(self.user1.player.queue.entry_set.count(),
                          1)
         self.spin.next()
-        self.assertEqual(self.user1.userprofile.queue.entry_set.count(),
+        self.assertEqual(self.user1.player.queue.entry_set.count(),
                          0)
 
-    def test_auto_mode(self):
-        """This test makes all kinds of assumptions.  Assumes that "The
-        Time" is more similar to "Prince" than "Metallica"
+    @patch('teamplayer.lib.songs.urlopen')
+    def test_auto_mode(self, mock_urlopen):
+        def my_urlopen(url):
+            if 'Prince' in url:
+                return open(PRINCE_SIMILAR_TXT, 'rb')
+            if 'Metallica' in url:
+                return open(METALLICA_SIMILAR_TXT, 'rb')
+            return open(os.devnull, 'rb')
 
-        I think that's a safe assumption
-        """
+        mock_urlopen.side_effect = my_urlopen
+
         self.spin.create_song_for(self.user1, artist='Prince',
                                   title='Purple Rain')
         self.spin.create_song_for(self.user1, artist='Metallica',
                                   title='One')
         self.spin.create_song_for(self.user1, artist='The Time',
                                   title='Jungle Love')
-        profile = self.user1.userprofile
-        profile.auto_mode = True
-        profile.save()
+        player = self.user1.player
+        player.auto_mode = True
+        player.save()
 
         current = self.spin.next()  # should play "Purple Rain"
         self.assertEqual(current[1], 'Prince')

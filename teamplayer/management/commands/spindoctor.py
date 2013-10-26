@@ -1,31 +1,31 @@
-# -*- coding: utf-8 -*-
 """Spin Doctor management command for the teamplayer app
 
 This command is responsible for starting the mpd daemons and continually
 grabbing entries from users' queues and adding them to the mpd playlist
 """
 import logging
-from optparse import make_option
 import os
 import re
 import signal
+from optparse import make_option
 from time import sleep
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
+
+from teamplayer import models
+from teamplayer.conf import settings
+from teamplayer.lib import songs
+from teamplayer.lib.daemon import createDaemon
+from teamplayer.lib.signals import SONG_CHANGE
+from teamplayer.lib.threads import SocketServer, StationThread
+from teamplayer.lib.websocket import SocketHandler
 
 try:
     from setproctitle import setproctitle
 except ImportError:
     setproctitle = lambda x: None
 
-from teamplayer.conf import settings
-from teamplayer.lib import songs
-from teamplayer.lib.threads import SocketServer, StationThread
-from teamplayer.lib.websocket import SocketHandler
-from teamplayer.lib.daemon import createDaemon
-from teamplayer import models
-from teamplayer.lib.signals import SONG_CHANGE
 
 PLAYING_REGEX = re.compile(
     r'^\[playing\] #\d+/\d+ +(\d+:\d{2})/(\d+:\d{2}) .*')
@@ -110,7 +110,7 @@ class Command(BaseCommand):
                 self.shutdown()
 
     def update_dj_ango_queue(self):
-        queue = User.dj_ango().userprofile.queue
+        queue = User.dj_ango().player.queue
         queue.active = settings.ALWAYS_SHAKE_THINGS_UP
         queue.save()
 

@@ -50,7 +50,7 @@ class PlayerSerializer(serializers.ModelSerializer):
     paused = serializers.SerializerMethodField('get_hold_state')
 
     class Meta:
-        model = models.UserProfile
+        model = models.Player
         fields = ('username', 'auto_mode', 'paused', 'entries')
 
     def get_username(self, obj):

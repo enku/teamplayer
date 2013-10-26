@@ -1,5 +1,5 @@
 """Utilities for TeamPlayer unit tests"""
-import cStringIO
+from io import StringIO
 import os
 import threading
 
@@ -10,12 +10,13 @@ import teamplayer.models
 import teamplayer.lib
 
 Entry = teamplayer.models.Entry
-StringIO = cStringIO.StringIO
 UploadedFile = django.core.files.uploadedfile.UploadedFile
 User = django.contrib.auth.models.User
 
 __dir__ = os.path.dirname(__file__)
 ARTIST_XML = os.path.join(__dir__, 'data', 'prince_artistinfo.xml')
+PRINCE_SIMILAR_TXT = os.path.join(__dir__, 'data', 'prince_similar.txt')
+METALLICA_SIMILAR_TXT = os.path.join(__dir__, 'data', 'metallica_similar.txt')
 SILENCE = os.path.join(__dir__, 'data', 'silence.mp3')
 
 
@@ -53,7 +54,7 @@ class SpinDoctor:
             self.current_song = self.silence
             self.current_user = None
             return self.current_song
-        self.previous_user = entry.queue.userprofile.user
+        self.previous_user = entry.queue.player.user
         entry.delete()
 
         # log "mood"
@@ -62,14 +63,14 @@ class SpinDoctor:
             args=(entry.artist, self.station)
         ).run()
         user = self.previous_user
-        self.current_song = (user.userprofile.dj_name, entry.artist,
+        self.current_song = (user.player.dj_name, entry.artist,
                              entry.title, 15, 0)
         self.current_user = user
         return self.current_song
 
     def create_song_for(self, user, title, artist):
         """Emulate adding a song in a user's queue"""
-        queue = user.userprofile.queue
+        queue = user.player.queue
         entry = Entry()
         entry.station = self.station
         entry.queue = queue
