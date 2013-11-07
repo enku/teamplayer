@@ -27,7 +27,7 @@ setup(
     package_data={'teamplayer': get_package_data('teamplayer'),
                   'tp_library': get_package_data('tp_library')},
     install_requires=[
-        'Django==1.5.5',
+        'Django>=1.5.5,<1.7',
         'django-haystack==2.1.0',
         'mutagen',
         'python-mpd',
