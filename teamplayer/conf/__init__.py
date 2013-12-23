@@ -20,7 +20,7 @@ DEFAULTS = {
     'MPD_PORT': 6600,
     'MPD_LOG': '/dev/null',
     'MPD_DB': None,
-    'HTTP_PORT': 8080,
+    'HTTP_PORT': 8000,  # Channels will alway be 1 + this, so don't worry
     'WEBSOCKET_PORT': 8000,
     'STREAM_QUALITY': 8.0,
     'STREAM_BITRATE': 64,
@@ -35,10 +35,6 @@ DEFAULTS = {
     'SHAKE_THINGS_UP': 0,
     'SHAKE_THINGS_UP_FILTER': {'length__lt': 300, 'length__gt': 0},
     'ALWAYS_SHAKE_THINGS_UP': False,
-
-    # IPC stuff,
-    'IPC_PORT': 8002,
-
     'UPLOADED_LIBRARY_DIR': '',
 }
 

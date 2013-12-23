@@ -136,6 +136,11 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         """Handle message"""
         message = loads(message)
+
+        if message.get('key') != django_settings.SECRET_KEY:
+            LOGGER.critical('Someone is trying to hack me!', extra=message)
+            return
+
         message_type = message['type']
         data = message['data']
         handler_name = 'handle_%s' % message_type
@@ -150,13 +155,14 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         """
         Create a websocket connection and send a message to the handler.
         """
-        url = 'ws://localhost:%s/ipc' % settings.IPC_PORT
+        url = 'ws://localhost:%s/ipc' % settings.WEBSOCKET_PORT
         ioloop = tornado.ioloop.IOLoop()
         conn = ioloop.run_sync(functools.partial(
             tornado.websocket.websocket_connect, url))
         conn.write_message(dumps(
             {
                 'type': message_type,
+                'key': django_settings.SECRET_KEY,
                 'data': data,
             }
         ))

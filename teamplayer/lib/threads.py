@@ -251,13 +251,9 @@ class SocketServer(threading.Thread):
         LOGGER.debug('%s has started', self.name)
         self.application = tornado.web.Application([
             (r"/", SocketHandler),
-        ])
-        self.application.listen(settings.WEBSOCKET_PORT)
-
-        self.ipc = tornado.web.Application([
             (r"/ipc", IPCHandler),
         ])
-        self.ipc.listen(settings.IPC_PORT, address='localhost')
+        self.application.listen(settings.WEBSOCKET_PORT)
 
         tornado.ioloop.IOLoop.instance().start()
 

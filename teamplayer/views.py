@@ -66,9 +66,7 @@ def get_websocket_url(request):
     http_host = request.META.get('HTTP_HOST', 'localhost')
     if ':' in http_host:
         http_host = http_host.split(':', 1)[0]
-    return 'ws://{0}:{1}/'.format(
-        http_host,
-        settings.WEBSOCKET_PORT)
+    return 'ws://{0}:{1}/'.format(http_host, settings.WEBSOCKET_PORT)
 
 
 def get_station_from_session(request):
