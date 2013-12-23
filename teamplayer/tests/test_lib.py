@@ -115,7 +115,7 @@ class LibUsers(TestCase):
         teamplayer.lib.users.create_user(username='test', password='test')
 
         user = django.contrib.auth.models.User.objects.get(username='test')
-        profile = user.get_profile()
+        profile = user.userprofile
         self.assertEqual(profile.queue.entry_set.count(), 0)
 
 

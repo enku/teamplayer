@@ -287,7 +287,7 @@ class UserProfile(models.Model):
 
     """UserProfile: misc. data assocated with a User"""
     objects = models.Manager()
-    user = models.OneToOneField(User, unique=True)
+    user = models.OneToOneField(User, unique=True, related_name='userprofile')
     queue = models.OneToOneField(Queue)
     auth_token = models.OneToOneField(AuthToken, null=True, blank=True)
     dj_name = models.CharField(blank=True, max_length=25)

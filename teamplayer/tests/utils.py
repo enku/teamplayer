@@ -62,14 +62,14 @@ class SpinDoctor:
             args=(entry.artist, self.station)
         ).run()
         user = self.previous_user
-        self.current_song = (user.get_profile().dj_name, entry.artist,
+        self.current_song = (user.userprofile.dj_name, entry.artist,
                              entry.title, 15, 0)
         self.current_user = user
         return self.current_song
 
     def create_song_for(self, user, title, artist):
         """Emulate adding a song in a user's queue"""
-        queue = user.get_profile().queue
+        queue = user.userprofile.queue
         entry = Entry()
         entry.station = self.station
         entry.queue = queue

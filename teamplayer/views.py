@@ -214,7 +214,7 @@ def add_to_queue(request):
 def randomize_queue(request):
     """Randomize the user's queue"""
     station = get_station_from_session(request)
-    request.user.get_profile().queue.randomize(station)
+    request.user.userprofile.queue.randomize(station)
     return redirect(reverse('teamplayer.views.show_queue'))
 
 
@@ -222,7 +222,7 @@ def randomize_queue(request):
 def order_by_rank(request):
     """Order your queue according to artist rank"""
     station = get_station_from_session(request)
-    request.user.get_profile().queue.order_by_rank(station)
+    request.user.userprofile.queue.order_by_rank(station)
     return redirect(reverse('teamplayer.views.show_queue'))
 
 
@@ -284,7 +284,7 @@ def reorder_queue(request):
     Given comma-delimited string (of integers), re-order queue
     return the re-ordered list of ids in json format
     """
-    ids = [x['id'] for x in request.user.get_profile().queue.reorder(
+    ids = [x['id'] for x in request.user.userprofile.queue.reorder(
         [int(i) for i in request.body.split(',')])
     ]
 

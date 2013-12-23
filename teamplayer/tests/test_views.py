@@ -24,7 +24,7 @@ class HomePageView(TestCase):
     def setUp(self):
         # create a user
         self.user = users.create_user(username='test', password='test')
-        self.profile = self.user.get_profile()
+        self.profile = self.user.userprofile
         self.client.login(username='test', password='test')
         self.url = reverse('teamplayer.views.home')
         self.client.get(self.url)
@@ -48,7 +48,7 @@ class HomePageView(TestCase):
         response = self.client.post(url, {'dj_name': u'Liquid X'})
         self.assertEqual(response.status_code, 204)
         user = User.objects.get(username='test')
-        profile = user.get_profile()
+        profile = user.userprofile
         self.assertEqual(profile.dj_name, u'Liquid X')
         mock.assert_called_with(message_type='dj_name_change',
                                 data={'dj_name': u'Liquid X',
@@ -114,7 +114,7 @@ class ShowQueueView(TestCase):
     def setUp(self):
         # create a user
         self.user = users.create_user(username='test', password='test')
-        self.profile = self.user.get_profile()
+        self.profile = self.user.userprofile
         self.client.login(username='test', password='test')
         self.url = reverse('teamplayer.views.show_queue')
 
@@ -141,7 +141,7 @@ class ShowQueueView(TestCase):
         spin.create_song_for(self.user, 'Arcade Fire', 'Rococo')
 
         user = User.objects.get(username='test')
-        profile = user.get_profile()
+        profile = user.userprofile
         current_order = [x.id for x in profile.queue.entry_set.all()]
         new_order = list(reversed(current_order))
         new_order_str = ','.join([str(i) for i in new_order])
@@ -164,7 +164,7 @@ class ShowQueueView(TestCase):
 
         response = self.client.get(self.url)
         self.assertContains(response, 'Purple Rain')
-        song_id = self.user.get_profile().queue.entry_set.all()[0].id
+        song_id = self.user.userprofile.queue.entry_set.all()[0].id
 
         response = self.client.delete(
             reverse('teamplayer.views.show_entry', args=(song_id,)))
@@ -211,8 +211,8 @@ class AddUserView(TestCase):
         test_user = User.objects.get(username=self.form_data['username'])
 
         # check that the user has a profile and a queue
-        self.assertTrue(test_user.get_profile())
-        self.assertTrue(hasattr(test_user.get_profile(), 'queue'))
+        self.assertTrue(test_user.userprofile)
+        self.assertTrue(hasattr(test_user.userprofile, 'queue'))
 
     @patch('teamplayer.lib.websocket.IPCHandler.send_message')
     def test_user_already_exists(self, mock):

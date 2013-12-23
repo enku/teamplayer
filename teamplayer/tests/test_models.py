@@ -49,12 +49,12 @@ class UserQueue(TestCase):
         view = reverse('teamplayer.views.add_to_queue')
 
         # first, verify user has an empty queue
-        self.assertEqual(self.user.get_profile().queue.entry_set.count(), 0)
+        self.assertEqual(self.user.userprofile.queue.entry_set.count(), 0)
         # log in as the user
         self.client.login(username=self.user_data['username'],
                           password=self.user_data['password'])
         self.client.post(view, {'song': song}, follow=True)
-        self.assertEqual(self.user.get_profile().queue.entry_set.count(), 1)
+        self.assertEqual(self.user.userprofile.queue.entry_set.count(), 1)
 
     @patch('teamplayer.lib.websocket.IPCHandler.send_message')
     def test_delete_entries(self, mock):
@@ -63,10 +63,10 @@ class UserQueue(TestCase):
         """
         # first add the entry
         self.test_add_entries()
-        song_id = self.user.get_profile().queue.entry_set.all()[0].pk
+        song_id = self.user.userprofile.queue.entry_set.all()[0].pk
         view = reverse('teamplayer.views.show_entry', args=(song_id,))
         self.client.delete(view)
-        self.assertEqual(self.user.get_profile().queue.entry_set.count(), 0)
+        self.assertEqual(self.user.userprofile.queue.entry_set.count(), 0)
 
 
 class Queue(TestCase):
@@ -77,7 +77,7 @@ class Queue(TestCase):
     def setUp(self):
         self.station = Station.main_station()
         self.user = users.create_user('test', 'test')
-        self.profile = self.user.get_profile()
+        self.profile = self.user.userprofile
 
         # add some songs
         for _ in range(5):
@@ -130,7 +130,7 @@ class StationTest(TestCase):
     """Demonstrate the Station model"""
     def setUp(self):
         self.user = users.create_user('test', 'test')
-        self.profile = self.user.get_profile()
+        self.profile = self.user.userprofile
 
     def test_create_station(self):
         """Demonstrate the create_station method."""
@@ -296,13 +296,13 @@ class QueueMasterTestCase(TestCase):
         self.spin.create_song_for(self.user1, artist='Metallica',
                                   title='One')
 
-        self.assertEqual(self.user1.get_profile().queue.entry_set.count(),
+        self.assertEqual(self.user1.userprofile.queue.entry_set.count(),
                          2)
         self.spin.next()
-        self.assertEqual(self.user1.get_profile().queue.entry_set.count(),
+        self.assertEqual(self.user1.userprofile.queue.entry_set.count(),
                          1)
         self.spin.next()
-        self.assertEqual(self.user1.get_profile().queue.entry_set.count(),
+        self.assertEqual(self.user1.userprofile.queue.entry_set.count(),
                          0)
 
     def test_auto_mode(self):
@@ -317,7 +317,7 @@ class QueueMasterTestCase(TestCase):
                                   title='One')
         self.spin.create_song_for(self.user1, artist='The Time',
                                   title='Jungle Love')
-        profile = self.user1.get_profile()
+        profile = self.user1.userprofile
         profile.auto_mode = True
         profile.save()
 
