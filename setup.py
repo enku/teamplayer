@@ -27,16 +27,14 @@ setup(
     package_data={'teamplayer': get_package_data('teamplayer'),
                   'tp_library': get_package_data('tp_library')},
     install_requires=[
-        'Django>=1.5.5,<1.7',
+        'Django>=1.6.1,<1.7',
         'django-haystack==2.1.0',
         'mutagen',
         'python-mpd',
         'tornado',
-        'djangorestframework==2.3.8'
+        'djangorestframework==2.3.10'
     ],
     setup_requires=[
         'mock',
     ],
 )
-
-k
