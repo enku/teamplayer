@@ -1,6 +1,6 @@
 {% load staticfiles %}
 /*
- * Copyright (c) 2010-2013 marduk enterprises <marduk@python.net>
+ * Copyright (c) 2010-2014 marduk enterprises <marduk@python.net>
  *
  */
 
