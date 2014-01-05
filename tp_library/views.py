@@ -34,14 +34,13 @@ def add_to_queue(request):
 
         songfile = get_object_or_404(SongFile, pk=songfile_id)
 
-        filename = songfile.filename.encode('utf-8')
-        if not os.path.exists(filename):
+        if not os.path.exists(songfile.filename):
             return HttpResponse(
                 json.dumps({'error': 'Song could not be located'}),
                 content_type='application/json'
             )
 
-        fp = File(open(filename))
+        fp = File(open(songfile.filename, 'rb'))
 
         entry = request.user.player.queue.add_song(fp, station)
 
@@ -54,7 +53,7 @@ def add_to_queue(request):
         )
 
     return HttpResponse(
-        json.dumps({'error': str(form.errors[0])}),
+        json.dumps({'error': form.errors.as_text()}),
         content_type='application/json'
     )
 

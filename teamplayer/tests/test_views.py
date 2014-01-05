@@ -45,7 +45,7 @@ class HomePageView(TestCase):
         # This doesn't test the home page view per-se but it's an AJAX view
         # accessible via the home page
         url = reverse('teamplayer.views.change_dj_name')
-        response = self.client.post(url, {'dj_name': u'Liquid X'})
+        response = self.client.post(url, {'dj_name': 'Liquid X'})
         self.assertEqual(response.status_code, 204)
         user = User.objects.get(username='test')
         player = user.player

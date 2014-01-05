@@ -1,7 +1,7 @@
 import os
 
-from mutagen import File
-from mutagen.mp3 import HeaderNotFoundError
+from mutagenx import File
+from mutagenx.mp3 import HeaderNotFoundError
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
@@ -9,6 +9,9 @@ from django.contrib.auth.models import User
 from teamplayer.lib import remove_pedantic
 from teamplayer.models import Station
 from tp_library.models import SongFile
+
+# Because Python 3 sucks:
+os.environ.setdefault('LANG', 'en_US.UTF-8')
 
 
 class Command(BaseCommand):
@@ -23,18 +26,17 @@ class Command(BaseCommand):
 
         for arg in args:
             path = os.path.realpath(arg)
-            os.path.walk(path, self._handle_dir, None)
+            for tup in os.walk(path):
+                self._handle_files(*tup)
 
-        print self.created
+        print(self.created)
 
-    def _handle_dir(self, arg, dirname, fnames):
+    def _handle_files(self, dirpath, dirnames, filenames):
         user = self.dj_ango
         station_id = self.station.pk
 
-        for fname in fnames:
-            fullpath = os.path.join(dirname, fname)
-            if not os.path.isfile(fullpath):
-                continue
+        for filename in filenames:
+            fullpath = os.path.join(dirpath, filename)
 
             try:
                 metadata = File(fullpath, easy=True)
