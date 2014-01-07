@@ -1,18 +1,17 @@
 """Unit tests for the TeamPlayer Django app"""
 import os
+from tempfile import TemporaryDirectory
 
 import django.contrib.auth.models
 import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
-
 import mock
 
 from teamplayer.lib import users
-from teamplayer.models import Station, Entry
-from tp_library.models import SongFile
-
+from teamplayer.models import Entry, Station
 from teamplayer.tests import utils
+from tp_library.models import SongFile
 
 SILENCE = utils.SILENCE
 METALLICA_SIMILAR_TXT = utils.METALLICA_SIMILAR_TXT
@@ -114,7 +113,7 @@ class QueueAutoFill(TestCase):
             length=301,
         )
 
-    def runTest(self):
+    def test_auto_fill(self):
         queue = self.dj_ango.player.queue
 
         # when we filter songs < 5 minutes
@@ -126,6 +125,34 @@ class QueueAutoFill(TestCase):
 
         # then we don't get our 301-second songfile
         self.assertEqual(queue.entry_set.count(), 0)
+
+    def test_multiple_files(self):
+        """We can have multiple files and get back as many as we ask for"""
+        queue = self.dj_ango.player.queue
+        with TemporaryDirectory() as tempdir:
+            silence = open(SILENCE, 'rb').read()
+            filesize = len(silence)
+            for i in range(10):
+                filename = '{0}.mp3'.format(i)
+                fullpath = os.path.join(tempdir, filename)
+                open(fullpath, 'wb').write(silence)
+                SongFile.objects.create(
+                    filename=fullpath,
+                    artist='DJ Ango',
+                    title='Song {0}'.format(i),
+                    album='Redundant',
+                    filesize=filesize,
+                    station_id=self.station.pk,
+                    added_by=self.dj_ango,
+                    length=301,
+                )
+            self.assertEqual(SongFile.objects.count(), 11)
+            queue.auto_fill(
+                max_entries=5,
+                station=self.station,
+                qs_filter={'length__lt': 600}
+            )
+            self.assertEqual(queue.entry_set.count(), 5)
 
 
 class StationTest(TestCase):

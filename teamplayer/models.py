@@ -121,13 +121,15 @@ class Queue(models.Model):
         entries_needed = max_entries - entries_count
 
         song_files = SongFile.objects.filter(**qs_filter)
-        last = song_files.count() - 1
-        for i in range(entries_needed):
-            if last < 0:
-                break
-            index = random.randint(0, last)
-            logging.debug(index)
-            songfile = song_files[index]
+        song_count = song_files.count()
+        if not song_count:
+            return
+        min_first_song = max(0, song_count - entries_needed)
+        first_song_idx = random.randint(0, min_first_song)
+        song_files = song_files[first_song_idx:first_song_idx + entries_needed]
+        song_files = list(song_files)
+        random.shuffle(song_files)
+        for songfile in song_files:
             logging.debug(songfile)
             try:
                 fp = File(open(songfile.filename, 'rb'))
@@ -136,7 +138,6 @@ class Queue(models.Model):
                 LOGGER.error('auto_fill exception: SongFile(%s)',
                              songfile.pk,
                              exc_info=True)
-            last = index - 1
 
 
 class Entry(models.Model):
