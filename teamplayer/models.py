@@ -124,12 +124,12 @@ class Queue(models.Model):
         song_count = song_files.count()
         if not song_count:
             return
-        min_first_song = max(0, song_count - entries_needed)
-        first_song_idx = random.randint(0, min_first_song)
-        song_files = song_files[first_song_idx:first_song_idx + entries_needed]
-        song_files = list(song_files)
-        random.shuffle(song_files)
-        for songfile in song_files:
+        chosen = set()
+        num_to_get = min(song_count, entries_needed)
+        while len(chosen) < num_to_get:
+            songfile = song_files[random.randint(0, song_count - 1)]
+            chosen.add(songfile)
+        for songfile in chosen:
             logging.debug(songfile)
             try:
                 fp = File(open(songfile.filename, 'rb'))
