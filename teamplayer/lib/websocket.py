@@ -16,8 +16,12 @@ from mutagenx import File
 
 from teamplayer import models
 from teamplayer.conf import settings
-from teamplayer.lib import (get_random_filename, get_station_id_from_session_id,
-                            get_user_from_session_id, remove_pedantic)
+from teamplayer.lib import (
+    get_random_filename,
+    get_station_id_from_session_id,
+    get_user_from_session_id,
+    remove_pedantic
+)
 from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.serializers import StationSerializer
 from tp_library.models import SongFile
@@ -122,6 +126,8 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     """
     WebSocketHandler for ipc messages.
     """
+    conn = None
+
     def open(self):
         LOGGER.debug('IPC connection opened')
 
@@ -143,15 +149,20 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
             handler(data)
 
     @staticmethod
-    def send_message(message_type, data):
-        """
-        Create a websocket connection and send a message to the handler.
-        """
+    def get_conn():
         url = 'ws://localhost:%s/ipc' % settings.WEBSOCKET_PORT
         ioloop = tornado.ioloop.IOLoop()
         conn = ioloop.run_sync(functools.partial(
             tornado.websocket.websocket_connect, url))
-        conn.write_message(dumps(
+        return conn
+
+    @classmethod
+    def send_message(cls, message_type, data):
+        """
+        Create a websocket connection and send a message to the handler.
+        """
+        cls.conn = cls.conn or cls.get_conn()
+        cls.conn.write_message(dumps(
             {
                 'type': message_type,
                 'key': django_settings.SECRET_KEY,
