@@ -33,6 +33,7 @@ DEFAULTS = {
     'SHAKE_THINGS_UP': 0,
     'SHAKE_THINGS_UP_FILTER': {'length__lt': 300, 'length__gt': 0},
     'ALWAYS_SHAKE_THINGS_UP': False,
+    'AUTOFILL_STRATEGY': 'random',
     'UPLOADED_LIBRARY_DIR': '',
 }
 

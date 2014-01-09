@@ -12,7 +12,8 @@ from django.contrib.auth.models import User
 from django.core.files import File
 from django.db import models, transaction
 
-from teamplayer import lib
+from . import lib
+from . conf import settings
 
 DJ_ANGO = None
 LOGGER = logging.getLogger('teamplayer.models')
@@ -121,15 +122,13 @@ class Queue(models.Model):
         entries_needed = max_entries - entries_count
 
         song_files = SongFile.objects.filter(**qs_filter)
-        song_count = song_files.count()
-        if not song_count:
-            return
-        chosen = set()
-        num_to_get = min(song_count, entries_needed)
-        while len(chosen) < num_to_get:
-            songfile = song_files[random.randint(0, song_count - 1)]
-            chosen.add(songfile)
-        for songfile in chosen:
+
+        if settings.AUTOFILL_STRATEGY == 'contiguous':
+            song_files = self.auto_fill_contiguous(song_files, entries_needed)
+        else:
+            song_files = self.auto_fill_random(song_files, entries_needed)
+
+        for songfile in song_files:
             logging.debug(songfile)
             try:
                 fp = File(open(songfile.filename, 'rb'))
@@ -138,6 +137,39 @@ class Queue(models.Model):
                 LOGGER.error('auto_fill exception: SongFile(%s)',
                              songfile.pk,
                              exc_info=True)
+
+    # TODO: Unit test
+    @staticmethod
+    def auto_fill_random(queryset, entries_needed):
+        """Return at most *entries_needed* SongFiles from the *queryset*.
+
+        The songs are randomly scattered among the *queryset*
+        """
+        song_files = set()
+        song_count = queryset.count()
+        if not song_count:
+            return song_files
+
+        num_to_get = min(song_count, entries_needed)
+        while len(song_files) < num_to_get:
+            song_file = queryset[random.randint(0, song_count - 1)]
+            song_files.add(song_file)
+        return song_files
+
+    # TODO: Unit test
+    @staticmethod
+    def auto_fill_contiguous(queryset, entries_needed):
+        """Return at most *entries_needed* SongFiles from the *queryset*.
+
+        The songs are selected randomly but are contiguous among the *queryset*
+        """
+        song_count = queryset.count()
+        if not song_count:
+            return set()
+        min_first_song = max(0, song_count - entries_needed)
+        first_song_idx = random.randint(0, min_first_song)
+        song_files = queryset[first_song_idx:first_song_idx + entries_needed]
+        return set(song_files)
 
 
 class Entry(models.Model):
