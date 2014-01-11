@@ -4,7 +4,7 @@ Welcome to TeamPlayer: The Democratic Internet Radio Station
 import os
 import subprocess
 
-VERSION = (2, 1, 0, 'devel')
+VERSION = (2, 1, 0, 'final')
 REVISION = None
 
 
