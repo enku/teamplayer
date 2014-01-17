@@ -13,6 +13,7 @@ import tornado.websocket
 from django.conf import settings as django_settings
 from django.core.exceptions import ObjectDoesNotExist
 from mutagenx import File
+from tornado.ioloop import IOLoop
 
 from teamplayer import models
 from teamplayer.conf import settings
@@ -151,7 +152,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     @staticmethod
     def get_conn():
         url = 'ws://localhost:%s/ipc' % settings.WEBSOCKET_PORT
-        ioloop = tornado.ioloop.IOLoop()
+        ioloop = IOLoop.current()
         conn = ioloop.run_sync(functools.partial(
             tornado.websocket.websocket_connect, url))
         return conn
