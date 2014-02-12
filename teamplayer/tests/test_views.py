@@ -55,7 +55,7 @@ class HomePageView(TestCase):
                                       'previous_dj_name': '',
                                       'user_id': user.pk})
 
-    @patch('teamplayer.lib.mpc.MPC.currently_playing')
+    @patch('teamplayer.views.MPC.currently_playing')
     def test_song_display(self, mock):
         """Test that the currently playing area is working"""
         # Again, this is an AJAX view, also we need to monkey-patch
@@ -81,7 +81,7 @@ class HomePageView(TestCase):
             reverse('teamplayer.views.artist_image',
                     kwargs={'artist': 'Prince'}))
 
-    @patch('teamplayer.lib.mpc.MPC.currently_playing')
+    @patch('teamplayer.views.MPC.currently_playing')
     def test_currently_playing(self, mock):
         mock.return_value = {'dj': 'DJ Skipp Traxx',
                              'artist': 'Prince',
@@ -99,7 +99,7 @@ class HomePageView(TestCase):
         self.assertEqual(data['artist'], 'Prince')
         self.assertEqual(data['title'], 'Purple Rain')
 
-    @patch('teamplayer.lib.mpc.MPC.currently_playing')
+    @patch('teamplayer.views.MPC.currently_playing')
     def test_going_back_to_station(self, mock):
         """Show that we don't get infinite redirects when re-getting
         the station page"""

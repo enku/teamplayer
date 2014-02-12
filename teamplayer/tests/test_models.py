@@ -35,7 +35,7 @@ class UserQueue(TestCase):
 
         self.user = users.create_user(**self.user_data)
 
-    @patch('teamplayer.lib.websocket.IPCHandler.send_message')
+    @patch('teamplayer.views.IPCHandler.send_message')
     def test_can_login(self, mock):
         """Assert that the user can login"""
 
@@ -44,7 +44,7 @@ class UserQueue(TestCase):
         response = self.client.post(url, self.user_data)
         self.assertEqual(response.status_code, 302)
 
-    @patch('teamplayer.lib.websocket.IPCHandler.send_message')
+    @patch('teamplayer.views.IPCHandler.send_message')
     def test_add_entries(self, mock):
         """Test that user can add entries"""
         song = open(SILENCE, 'rb')
@@ -58,7 +58,7 @@ class UserQueue(TestCase):
         self.client.post(view, {'song': song}, follow=True)
         self.assertEqual(self.user.player.queue.entry_set.count(), 1)
 
-    @patch('teamplayer.lib.websocket.IPCHandler.send_message')
+    @patch('teamplayer.views.IPCHandler.send_message')
     def test_delete_entries(self, mock):
         """
         Test that user can delete entries
@@ -240,7 +240,7 @@ class StationTest(TestCase):
         """Demonstrate that from user returns None if a user has none."""
         self.assertEqual(Station.from_user(self.user), None)
 
-    @patch('teamplayer.lib.mpc.MPC')
+    @patch('teamplayer.views.MPC')
     def test_cannot_name_teamplayer_view(self, MockMPC):
         station = Station.create_station('My Station', self.user)
         view = 'teamplayer.views.edit_station'
