@@ -71,7 +71,6 @@ class LibSongs(TestCase):
     @patch('teamplayer.lib.songs.urllib.request.urlopen')
     def test_artist_image_url(self, mock):
         mock.return_value = open(ARTIST_XML)
-        self.assertFalse('Prince' in teamplayer.lib.songs.ARTIST_IMAGE_CACHE)
         url = teamplayer.lib.songs.get_image_url_for('Prince')
         self.assertEqual(url,
                          'http://userserve-ak.last.fm/serve/252/609358.jpg')

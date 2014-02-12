@@ -7,27 +7,24 @@ import logging
 import socket
 import time
 import urllib.parse
+from functools import lru_cache
 from http.client import HTTPException
 from urllib.error import URLError
 from urllib.request import urlopen
 from xml.etree import ElementTree
 
-from django.conf import settings as django_settings
-from django.contrib.auth.models import User
-from django.db.models import Count
 from mutagenx import File
 
 from teamplayer import models, scrobbler
 from teamplayer.conf import settings
 from teamplayer.lib import first_or_none, list_iter, now, remove_pedantic
 
+from django.conf import settings as django_settings
+from django.contrib.auth.models import User
+from django.db.models import Count
+
 LOGGER = logging.getLogger('teamplayer.songlib')
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'
-ARTIST_IMAGE_CACHE = {
-    '': CLEAR_IMAGE_URL,
-    None: CLEAR_IMAGE_URL
-}
-SIMILAR_ARTIST_CACHE = dict()
 MIME_MAP = {
     'audio/ape': 'ape',
     'audio/flac': 'flac',
@@ -107,12 +104,11 @@ def url_friendly_artist(artist):
     return new_artist
 
 
+@lru_cache(maxsize=256)
 def get_image_url_for(artist):
     """Return a URL for image of artist"""
-    image_url = ARTIST_IMAGE_CACHE.get(artist, None)
-    if image_url:
-        LOGGER.debug('Artist image cache hit for %s' % artist)
-        return image_url
+    if not artist:
+        return CLEAR_IMAGE_URL
 
     encoded_artist = url_friendly_artist(artist)
     tmpl = ('http://ws.audioscrobbler.com/2.0/?method=artist.getInfo'
@@ -138,38 +134,34 @@ def get_image_url_for(artist):
             image_url = image.text
             break
     image_url = image_url or CLEAR_IMAGE_URL
-    ARTIST_IMAGE_CACHE[artist] = image_url
     return image_url
 
 
+@lru_cache(maxsize=512)
 def get_similar_artists(artist):
     """
     Generator for finding similar artists to *artist*.  Uses the last.fm
     api to fetch the list
     """
-    data = SIMILAR_ARTIST_CACHE.get(artist, None)
-    if data is None:
-        encoded_artist = url_friendly_artist(artist)
-        url = ('http://ws.audioscrobbler.com/2.0/artist/%s/similar.txt' %
-               encoded_artist)
-        SIMILAR_ARTIST_CACHE[artist] = list()
+    encoded_artist = url_friendly_artist(artist)
+    url = ('http://ws.audioscrobbler.com/2.0/artist/%s/similar.txt' %
+           encoded_artist)
+    try:
+        data = urlopen(url).read().decode('utf-8')
+    except (URLError, HTTPException):
+        LOGGER.error('URLError: %s', url, exc_info=True)
+        return []
+
+    similar = set()
+    for line in data.split('\n'):
         try:
-            data = urlopen(url).read().decode('utf-8')
-        except (URLError, HTTPException):
-            LOGGER.error('URLError: %s', url, exc_info=True)
-            return
-        for line in data.split('\n'):
-            try:
-                similar_artist = line.strip().split(',')[-1]
-            except IndexError:
-                continue
-            # damned entity references
-            similar_artist = similar_artist.replace("&amp;", "&")
-            SIMILAR_ARTIST_CACHE[artist].append(similar_artist)
-            yield similar_artist
-    else:
-        for similar_artist in data:
-            yield similar_artist
+            similar_artist = line.strip().split(',')[-1]
+        except IndexError:
+            continue
+        # damned entity references
+        similar_artist = similar_artist.replace("&amp;", "&")
+        similar.add(similar_artist)
+    return similar
 
 
 def log_mood(artist, station):
