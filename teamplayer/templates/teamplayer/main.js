@@ -76,12 +76,34 @@ function () {
         $(this).find('input[type=file]')[0].click();
     });
 
-    // CTRL-F activates the Library view.
-    window.addEventListener("keydown", function (e) {
-        if (e.ctrlKey && e.keyCode === 70) {
-            e.preventDefault();
-            MainView.show('library');
-        }
+    // Ctrl-F activates the Library view.
+    $(window).bind('keydown', 'ctrl+f', function () {
+        MainView.show('library');
+        return false;
+    });
+
+    // PageUp goes to the previous station
+    $(window).bind('keydown', 'pageup', function () {
+        TeamPlayer.change_station_prev();
+        return false;
+    });
+
+    // PageDown goes to the previous station
+    $(window).bind('keydown', 'pagedown', function () {
+        TeamPlayer.change_station_next();
+        return false;
+    });
+
+    // Home goes to the Main Station
+    $(window).bind('keydown', 'home', function () {
+        TeamPlayer.change_station_home();
+        return false;
+    });
+
+    // Ctrl-S shows the Stations view
+    $(window).bind('keydown', 'ctrl+s', function () {
+        MainView.show('stations');
+        return false;
     });
 
     $('#mute_button').click(function () {

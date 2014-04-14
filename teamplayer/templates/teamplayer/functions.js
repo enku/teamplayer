@@ -60,6 +60,24 @@ change_station: function (url) {
 },
 
 
+change_station_prev: function () {
+    return TeamPlayer.change_station(
+            '{% url "teamplayer.views.previous_station" %}');
+},
+
+
+change_station_next: function () {
+    return TeamPlayer.change_station(
+            '{% url "teamplayer.views.next_station" %}');
+},
+
+
+change_station_home: function() {
+    return TeamPlayer.change_station(
+            '{% url "station" home %}');
+},
+
+
 add_row: function ($row, $target) {
     if ($target === undefined) {
         $target = $('#current_list');

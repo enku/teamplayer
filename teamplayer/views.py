@@ -494,6 +494,7 @@ def js_object(request):
             'websocket_url': get_websocket_url(request),
             'mpd_hostname': http_host,
             'mpd_http_port': settings.HTTP_PORT,
+            'home': Station.main_station().pk,
             'username': request.user.username,
         },
         context_instance=RequestContext(request),
