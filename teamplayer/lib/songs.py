@@ -269,7 +269,7 @@ def auto_find_song(previous_artist, queue, station):
             LOGGER.info(u'“%s” fits the mood', mood_artist['artist'])
             return entries.filter(artist__iexact=a)[0]
 
-    return None
+    return entries[0]
 
 
 def scrobble_song(song, now_playing=False):
