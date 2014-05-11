@@ -24,7 +24,7 @@ from teamplayer import version_string
 from teamplayer.conf import settings
 from teamplayer.forms import (ChangeDJNameForm, CreateStationForm,
                               EditStationForm)
-from teamplayer.lib import mktemp_file_from_request, songs, users
+from teamplayer.lib import mktemp_file_from_request, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.websocket import IPCHandler
 from teamplayer.models import Entry, Player, Station
@@ -329,9 +329,10 @@ def registration(request):
                 Player.objects.get(user__username=username)
                 context['error'] = 'User "%s" already exists.' % username
             except Player.DoesNotExist:
-                user = users.create_user(username, password)
+                player = Player.objects.create_player(username=username,
+                                                      password=password)
                 IPCHandler.send_message(
-                    'user_created', PlayerSerializer(user.player).data)
+                    'user_created', PlayerSerializer(player).data)
                 messages.info(request, '%s registered. Please login.' %
                               username)
                 return HttpResponse('<script>window.location="%s"</script>' %

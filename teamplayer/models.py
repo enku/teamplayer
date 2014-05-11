@@ -322,10 +322,31 @@ class AuthToken(models.Model):
         return self.string
 
 
+class PlayerManager(models.Manager):
+
+    def create_player(self, username, **kwargs):
+        """Create a player with username"""
+        user_kwargs = {'username': username}
+        password = kwargs.pop('password', None)
+
+        if password is not None:
+            user_kwargs['password'] = password
+
+        user = User.objects.create_user(**user_kwargs)
+        queue = Queue.objects.create()
+
+        player = Player.objects.create(
+            user=user,
+            queue=queue,
+            dj_name=''
+        )
+        return player
+
+
 class Player(models.Model):
 
     """Player: misc. data assocated with a User"""
-    objects = models.Manager()
+    objects = PlayerManager()
     user = models.OneToOneField(User, unique=True, related_name='player')
     queue = models.OneToOneField(Queue)
     auth_token = models.OneToOneField(AuthToken, null=True, blank=True)

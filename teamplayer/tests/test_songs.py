@@ -1,13 +1,14 @@
 from io import BytesIO
 
-from django.core.urlresolvers import reverse
-from django.test import TestCase
 from mock import patch
 
 from teamplayer import scrobbler
-from teamplayer.lib import songs, users
-from teamplayer.models import Entry, Station, Mood
+from teamplayer.lib import songs
+from teamplayer.models import Entry, Mood, Player, Station
 from teamplayer.tests import utils
+
+from django.core.urlresolvers import reverse
+from django.test import TestCase
 
 PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
 
@@ -35,9 +36,8 @@ class ScrobbleSongError(TestCase):
 
 class AutoFindSong(TestCase):
     def setUp(self):
-        # create a user
-        self.user = users.create_user(username='test', password='test')
-        self.player = self.user.player
+        # create a player
+        self.player = Player.objects.create_player('test', password='test')
         self.client.login(username='test', password='test')
         self.url = reverse('teamplayer.views.home')
         self.client.get(self.url)

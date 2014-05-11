@@ -8,8 +8,7 @@ import django.test
 
 from mock import patch
 
-from teamplayer.lib import users
-
+from teamplayer.models import Player
 from teamplayer.tests import utils
 
 SpinDoctor = utils.SpinDoctor
@@ -22,9 +21,9 @@ class HomePageView(TestCase):
 
     """Tests for the home page view (exluding song list)"""
     def setUp(self):
-        # create a user
-        self.user = users.create_user(username='test', password='test')
-        self.player = self.user.player
+        # create a player
+        self.player = Player.objects.create_player(username='test',
+                                                   password='test')
         self.client.login(username='test', password='test')
         self.url = reverse('teamplayer.views.home')
         self.client.get(self.url)
@@ -112,9 +111,9 @@ class ShowQueueView(TestCase):
 
     """Tests the teamplayer.views.show_queue view"""
     def setUp(self):
-        # create a user
-        self.user = users.create_user(username='test', password='test')
-        self.player = self.user.player
+        # create a player
+        self.player = Player.objects.create_player(username='test',
+                                                   password='test')
         self.client.login(username='test', password='test')
         self.url = reverse('teamplayer.views.show_queue')
 
@@ -127,7 +126,7 @@ class ShowQueueView(TestCase):
     def test_queue_with_songs(self):
         """Test that songs added show up in the list"""
         spin = SpinDoctor()
-        spin.create_song_for(self.user, 'Prince', 'Purple Rain')
+        spin.create_song_for(self.player.user, 'Prince', 'Purple Rain')
         response = self.client.get(self.url)
         self.assertContains(response, 'Prince')
         self.assertContains(response, 'Purple Rain')
@@ -136,9 +135,9 @@ class ShowQueueView(TestCase):
         """Test that after re-ordering the queue it shows up in the new
         order Also tests that the reorder_queue view works"""
         spin = SpinDoctor()
-        spin.create_song_for(self.user, 'Prince', 'Purple Rain')
-        spin.create_song_for(self.user, 'Metallica', 'One')
-        spin.create_song_for(self.user, 'Arcade Fire', 'Rococo')
+        spin.create_song_for(self.player.user, 'Prince', 'Purple Rain')
+        spin.create_song_for(self.player.user, 'Metallica', 'One')
+        spin.create_song_for(self.player.user, 'Arcade Fire', 'Rococo')
 
         user = User.objects.get(username='test')
         player = user.player
@@ -160,11 +159,11 @@ class ShowQueueView(TestCase):
         """Tests that removing a song from the queue makes it no longer
         show in the list"""
         spin = SpinDoctor()
-        spin.create_song_for(self.user, 'Prince', 'Purple Rain')
+        spin.create_song_for(self.player.user, 'Prince', 'Purple Rain')
 
         response = self.client.get(self.url)
         self.assertContains(response, 'Purple Rain')
-        song_id = self.user.player.queue.entry_set.all()[0].id
+        song_id = self.player.queue.entry_set.all()[0].id
 
         response = self.client.delete(
             reverse('teamplayer.views.show_entry', args=(song_id,)))
@@ -177,7 +176,7 @@ class ShowQueueView(TestCase):
     def test_queue_after_song_plays(self, mock_call):
         """Test that song is removed from songlist when it plays"""
         spin = SpinDoctor()
-        spin.create_song_for(self.user, 'Prince', 'Purple Rain')
+        spin.create_song_for(self.player.user, 'Prince', 'Purple Rain')
         response = self.client.get(self.url)
         self.assertContains(response, 'Prince')
         self.assertContains(response, 'Purple Rain')

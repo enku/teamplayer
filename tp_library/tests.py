@@ -5,8 +5,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from teamplayer.lib import users
-from teamplayer.models import Entry
+from teamplayer.models import Entry, Player
 from tp_library.models import SongFile
 from mock import patch
 
@@ -66,8 +65,7 @@ class AddToQueueTest(TestCase):
             added_by=User.objects.get(username='DJ Ango'),
         )
         self.url = reverse('tp_library.views.add_to_queue')
-        self.user = users.create_user(username='test', password='test')
-        self.player = self.user.player
+        self.player = Player.objects.create_player('test', password='test')
 
     @patch('tp_library.views.IPCHandler.send_message')
     def test_add_to_queue(self, mock):
@@ -105,8 +103,7 @@ class AddSongWithUTF8Filename(TestCase):
             added_by=User.objects.get(username='DJ Ango'),
         )
         self.url = reverse('tp_library.views.add_to_queue')
-        self.user = users.create_user(username='test', password='test')
-        self.player = self.user.player
+        self.player = Player.objects.create_player('test', password='test')
 
     @patch('tp_library.views.IPCHandler.send_message')
     def test_add_utf8_filename(self, mock):

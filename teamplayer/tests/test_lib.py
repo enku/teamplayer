@@ -5,7 +5,6 @@ import django.contrib.auth.models
 
 import mock
 
-import teamplayer.lib.users
 import teamplayer.models
 
 from teamplayer.tests import utils
@@ -41,7 +40,9 @@ class LibSongs(TestCase):
             'password': 'blah blah',
         }
 
-        self.user = teamplayer.lib.users.create_user(**self.user_data)
+        self.player = teamplayer.models.Player.objects.create_player(
+            **self.user_data)
+        self.user = self.player.user
         song = open(SILENCE, 'rb')
         view = reverse('teamplayer.views.add_to_queue')
 
@@ -107,18 +108,6 @@ class LibSongs(TestCase):
         song.delete()
         song = teamplayer.lib.songs.find_a_song([self.user], station)
         self.assertEqual(song, None)
-
-
-class LibUsers(TestCase):
-
-    """Test the songs lib"""
-
-    def test_create_user(self):
-        teamplayer.lib.users.create_user(username='test', password='test')
-
-        user = django.contrib.auth.models.User.objects.get(username='test')
-        player = user.player
-        self.assertEqual(player.queue.entry_set.count(), 0)
 
 
 class FirstOrNoneTest(TestCase):

@@ -8,8 +8,7 @@ import django.core.urlresolvers
 import django.test
 import mock
 
-from teamplayer.lib import users
-from teamplayer.models import Entry, Station
+from teamplayer.models import Entry, Player, Station
 from teamplayer.tests import utils
 from tp_library.models import SongFile
 
@@ -25,6 +24,16 @@ patch = mock.patch
 reverse = django.core.urlresolvers.reverse
 
 
+class PlayerTestCase(TestCase):
+    def test_create_player(self):
+        player = Player.objects.create_player('test_player', password='test')
+        self.assertEqual(player.username, 'test_player')
+        self.assertTrue(hasattr(player, 'queue'))
+
+        logged_in = self.client.login(username='test_player', password='test')
+        self.assertTrue(logged_in)
+
+
 class UserQueue(TestCase):
 
     def setUp(self):
@@ -33,7 +42,7 @@ class UserQueue(TestCase):
             'password': 'blah blah',
         }
 
-        self.user = users.create_user(**self.user_data)
+        self.player = Player.objects.create_player(**self.user_data)
 
     @patch('teamplayer.views.IPCHandler.send_message')
     def test_can_login(self, mock):
@@ -51,12 +60,12 @@ class UserQueue(TestCase):
         view = reverse('teamplayer.views.add_to_queue')
 
         # first, verify user has an empty queue
-        self.assertEqual(self.user.player.queue.entry_set.count(), 0)
+        self.assertEqual(self.player.queue.entry_set.count(), 0)
         # log in as the user
         self.client.login(username=self.user_data['username'],
                           password=self.user_data['password'])
         self.client.post(view, {'song': song}, follow=True)
-        self.assertEqual(self.user.player.queue.entry_set.count(), 1)
+        self.assertEqual(self.player.queue.entry_set.count(), 1)
 
     @patch('teamplayer.views.IPCHandler.send_message')
     def test_delete_entries(self, mock):
@@ -65,10 +74,10 @@ class UserQueue(TestCase):
         """
         # first add the entry
         self.test_add_entries()
-        song_id = self.user.player.queue.entry_set.all()[0].pk
+        song_id = self.player.queue.entry_set.all()[0].pk
         view = reverse('teamplayer.views.show_entry', args=(song_id,))
         self.client.delete(view)
-        self.assertEqual(self.user.player.queue.entry_set.count(), 0)
+        self.assertEqual(self.player.queue.entry_set.count(), 0)
 
 
 class Queue(TestCase):
@@ -78,8 +87,7 @@ class Queue(TestCase):
     """
     def setUp(self):
         self.station = Station.main_station()
-        self.user = users.create_user('test', 'test')
-        self.player = self.user.player
+        self.player = Player.objects.create_player('test', password='test')
 
         # add some songs
         for _ in range(5):
@@ -159,20 +167,19 @@ class StationTest(TestCase):
 
     """Demonstrate the Station model"""
     def setUp(self):
-        self.user = users.create_user('test', 'test')
-        self.player = self.user.player
+        self.player = Player.objects.create_player('test', password='test')
 
     def test_create_station(self):
         """Demonstrate the create_station method."""
-        station = Station.create_station('My Station', self.user)
+        station = Station.create_station('My Station', self.player.user)
         self.assertTrue(isinstance(station, Station))
 
     def test_get_songs(self):
         """Test that get_songs shows files on that station"""
         # given the stations
-        station1 = Station.create_station('station1', self.user)
-        user2 = users.create_user('test2', 'test2')
-        station2 = Station.create_station('station2', user2)
+        station1 = Station.create_station('station1', self.player.user)
+        player2 = Player.objects.create_player('test2', password='test2')
+        station2 = Station.create_station('station2', player2.user)
 
         # with a song in each station
         song1 = Entry.objects.create(
@@ -195,9 +202,9 @@ class StationTest(TestCase):
     def test_get_stations(self):
         """Demonstrate the get_stations() method."""
         # given the stations
-        user2 = users.create_user('test2', 'test2')
-        station2 = Station.create_station('station2', user2)
-        station1 = Station.create_station('station1', self.user)
+        player2 = Player.objects.create_player('test2', password='test2')
+        station2 = Station.create_station('station2', player2.user)
+        station1 = Station.create_station('station1', self.player.user)
 
         # and the "built-in" station
         station0 = Station.main_station()
@@ -214,35 +221,35 @@ class StationTest(TestCase):
     def test_add_song_with_station(self):
         """Demonstrate Queue.add_song() with a station."""
         # given the station
-        station = Station.create_station('station', self.user)
+        station = Station.create_station('station', self.player.user)
 
         # when i call .add_song() on a queue
-        queue = self.user.player.queue
+        queue = self.player.queue
         entry = queue.add_song(
             UploadedFile(open(SILENCE, 'rb')), station=station)
 
         # the song is created in the user's queue and with the station
-        self.assertEqual(entry.queue, self.user.player.queue)
+        self.assertEqual(entry.queue, self.player.queue)
         self.assertEqual(entry.station, station)
 
     def test_from_user(self):
         """Demonstrate the from_user() classmethod."""
         # given the station
-        station = Station.create_station('station', self.user)
+        station = Station.create_station('station', self.player.user)
 
         # when we call the from_user classmethod
-        result = Station.from_user(self.user)
+        result = Station.from_user(self.player.user)
 
         # then we get the station.
         self.assertEqual(result, station)
 
     def test_from_user_returns_none(self):
         """Demonstrate that from user returns None if a user has none."""
-        self.assertEqual(Station.from_user(self.user), None)
+        self.assertEqual(Station.from_user(self.player.user), None)
 
     @patch('teamplayer.views.MPC')
     def test_cannot_name_teamplayer_view(self, MockMPC):
-        station = Station.create_station('My Station', self.user)
+        station = Station.create_station('My Station', self.player.user)
         view = 'teamplayer.views.edit_station'
         post = {'station_id': station.pk,
                 'action': 'rename',
@@ -260,36 +267,36 @@ class StationTest(TestCase):
     def test_participants(self):
         """Station.participants()"""
         # given the stations
-        station = Station.create_station('My Station', self.user)
+        station = Station.create_station('My Station', self.player.user)
         main = Station.main_station()
 
-        # and users
-        user1 = self.user
-        user2 = users.create_user(username='player1', password='pass')
+        # and players
+        player1 = self.player
+        player2 = Player.objects.create_player('test2', password='test')
 
         # With a bunch of entries
         Entry.objects.create(
             artist='Elliott Smith',
             title='Happiness',
-            queue=user1.player.queue,
+            queue=player1.queue,
             station=main
         )
         Entry.objects.create(
             artist='Prince',
             title='Purple Rain',
-            queue=user1.player.queue,
+            queue=player1.queue,
             station=station
         )
         Entry.objects.create(
             artist='Prince',
             title='Purple Rain',
-            queue=user1.player.queue,
+            queue=player1.queue,
             station=main
         )
         Entry.objects.create(
             artist='Elliott Smith',
             title='Happiness',
-            queue=user2.player.queue,
+            queue=player2.queue,
             station=main
         )
 
@@ -298,48 +305,48 @@ class StationTest(TestCase):
 
         # Then we get both users
         self.assertEqual(participants.count(), 2)
-        self.assertEqual(set(participants), set([user1, user2]))
+        self.assertEqual(set(participants), set([player1.user, player2.user]))
 
         # And when we call .participants on station
         participants = station.participants()
 
         # Then we only get player1
         self.assertEqual(participants.count(), 1)
-        self.assertEqual(set(participants), set([user1]))
+        self.assertEqual(set(participants), set([player1.user]))
 
 
 class QueueMasterTestCase(TestCase):
 
     """Test case to test that queues spinning does as it should"""
     def setUp(self):
-        # need to create some users
-        self.user1 = users.create_user(username='user1', password='pass')
-        self.user1.player.dj_name = 'user1'
-        self.user1.player.save()
-        self.user2 = users.create_user(username='user2', password='pass')
-        self.user2.player.dj_name = 'user2'
-        self.user2.player.save()
-        self.user3 = users.create_user(username='user3', password='pass')
-        self.user3.player.dj_name = 'user3'
-        self.user3.player.save()
+        # need to create some players
+        self.player1 = Player.objects.create_player('user1',
+                                                    dj_name='user1',
+                                                    password='pass')
+        self.player2 = Player.objects.create_player('user2',
+                                                    dj_name='user2',
+                                                    password='pass')
+        self.player3 = Player.objects.create_player('user3',
+                                                    dj_name='user3',
+                                                    password='pass')
         self.spin = SpinDoctor()
 
     def test_plays_users_song(self):
         self.assertEqual(self.spin.current_song, self.spin.silence)
-        self.spin.create_song_for(self.user1, artist='Prince',
+        self.spin.create_song_for(self.player1.user, artist='Prince',
                                   title='Purple Rain')
         current = self.spin.next()
-        self.assertEqual(self.spin.current_user, self.user1)
+        self.assertEqual(self.spin.current_user, self.player1.user)
         self.assertEqual(current[1], 'Prince')
         self.assertEqual(current[2], 'Purple Rain')
 
     @patch('teamplayer.lib.songs.urlopen')
     def test_round_robin(self, mock_urlopen):
-        self.spin.create_song_for(self.user1, artist='Prince',
+        self.spin.create_song_for(self.player1.user, artist='Prince',
                                   title='Purple Rain')
-        self.spin.create_song_for(self.user2, artist='Metallica',
+        self.spin.create_song_for(self.player2.user, artist='Metallica',
                                   title='One')
-        self.spin.create_song_for(self.user3, artist='Interpol',
+        self.spin.create_song_for(self.player3.user, artist='Interpol',
                                   title='Take You On a Cruise')
 
         self.spin.next()
@@ -354,15 +361,15 @@ class QueueMasterTestCase(TestCase):
 
     def test_only_one_user(self):
         """if only one user has songs, play his next song"""
-        self.spin.create_song_for(self.user1, artist='Prince',
+        self.spin.create_song_for(self.player1.user, artist='Prince',
                                   title='Purple Rain')
-        self.spin.create_song_for(self.user1, artist='Metallica',
+        self.spin.create_song_for(self.player1.user, artist='Metallica',
                                   title='One')
 
         song1 = self.spin.next()
-        self.assertEqual(self.spin.current_user, self.user1)
+        self.assertEqual(self.spin.current_user, self.player1.user)
         song2 = self.spin.next()
-        self.assertEqual(self.spin.current_user, self.user1)
+        self.assertEqual(self.spin.current_user, self.player1.user)
         self.assertNotEqual(song1, song2)
 
     def test_remove_from_queue(self):
@@ -372,19 +379,16 @@ class QueueMasterTestCase(TestCase):
         using the "mocked" spin class, but the code is nearly identical, so
         it's quasi-testing the behaviour
         """
-        self.spin.create_song_for(self.user1, artist='Prince',
+        self.spin.create_song_for(self.player1.user, artist='Prince',
                                   title='Purple Rain')
-        self.spin.create_song_for(self.user1, artist='Metallica',
+        self.spin.create_song_for(self.player1.user, artist='Metallica',
                                   title='One')
 
-        self.assertEqual(self.user1.player.queue.entry_set.count(),
-                         2)
+        self.assertEqual(self.player1.queue.entry_set.count(), 2)
         self.spin.next()
-        self.assertEqual(self.user1.player.queue.entry_set.count(),
-                         1)
+        self.assertEqual(self.player1.queue.entry_set.count(), 1)
         self.spin.next()
-        self.assertEqual(self.user1.player.queue.entry_set.count(),
-                         0)
+        self.assertEqual(self.player1.queue.entry_set.count(), 0)
 
     @patch('teamplayer.lib.songs.urlopen')
     def test_auto_mode(self, mock_urlopen):
@@ -397,13 +401,13 @@ class QueueMasterTestCase(TestCase):
 
         mock_urlopen.side_effect = my_urlopen
 
-        self.spin.create_song_for(self.user1, artist='Prince',
+        self.spin.create_song_for(self.player1.user, artist='Prince',
                                   title='Purple Rain')
-        self.spin.create_song_for(self.user1, artist='Metallica',
+        self.spin.create_song_for(self.player1.user, artist='Metallica',
                                   title='One')
-        self.spin.create_song_for(self.user1, artist='The Time',
+        self.spin.create_song_for(self.player1.user, artist='The Time',
                                   title='Jungle Love')
-        player = self.user1.player
+        player = self.player1
         player.auto_mode = True
         player.save()
 
