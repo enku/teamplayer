@@ -332,6 +332,9 @@ class Player(models.Model):
     dj_name = models.CharField(blank=True, max_length=25)
     auto_mode = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.user.username
+
     def toggle_auto_mode(self):
         """Toggle the user's auto_mode. Return new mode."""
         self.auto_mode = not self.auto_mode
