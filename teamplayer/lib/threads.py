@@ -187,7 +187,7 @@ class StationThread(threading.Thread):
 
             artist = self.mpc.get_last_artist(playlist)
             artist = None if artist == 'TeamPlayer' else artist
-            users = User.active_users()
+            users = self.station.participants()
             entry = songs.find_a_song(
                 users,
                 self.station,

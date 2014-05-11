@@ -257,6 +257,56 @@ class StationTest(TestCase):
 
         self.assertContains(response, "is an invalid name")
 
+    def test_participants(self):
+        """Station.participants()"""
+        # given the stations
+        station = Station.create_station('My Station', self.user)
+        main = Station.main_station()
+
+        # and users
+        user1 = self.user
+        user2 = users.create_user(username='player1', password='pass')
+
+        # With a bunch of entries
+        Entry.objects.create(
+            artist='Elliott Smith',
+            title='Happiness',
+            queue=user1.player.queue,
+            station=main
+        )
+        Entry.objects.create(
+            artist='Prince',
+            title='Purple Rain',
+            queue=user1.player.queue,
+            station=station
+        )
+        Entry.objects.create(
+            artist='Prince',
+            title='Purple Rain',
+            queue=user1.player.queue,
+            station=main
+        )
+        Entry.objects.create(
+            artist='Elliott Smith',
+            title='Happiness',
+            queue=user2.player.queue,
+            station=main
+        )
+
+        # When we call .participants() on main
+        participants = main.participants()
+
+        # Then we get both users
+        self.assertEqual(participants.count(), 2)
+        self.assertEqual(set(participants), set([user1, user2]))
+
+        # And when we call .participants on station
+        participants = station.participants()
+
+        # Then we only get player1
+        self.assertEqual(participants.count(), 1)
+        self.assertEqual(set(participants), set([user1]))
+
 
 class QueueMasterTestCase(TestCase):
 

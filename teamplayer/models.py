@@ -244,6 +244,16 @@ class Station(models.Model):
             queue__active=True,
         )
 
+    def participants(self):
+        """Return the set of Users with songs ready for this station."""
+        entries_qs = Entry.objects.filter(
+            station=self,
+            queue__active=True
+        )
+        return User.objects.filter(
+            player__queue__entry__in=entries_qs,
+        ).distinct()
+
     @classmethod
     def get_stations(cls):
         return cls.objects.all().order_by('pk')
