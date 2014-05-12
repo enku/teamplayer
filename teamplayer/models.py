@@ -387,8 +387,8 @@ class Player(models.Model):
         return self.user.username
 
     @classmethod
-    def user_stats(cls):
-        """Return a dictionary of user stats (all users)"""
+    def player_stats(cls):
+        """Return a dictionary of player stats (all players)"""
         active_queues = Queue.objects.filter(
             active=True).values_list('pk', flat=True)
         songs_in_queue = Entry.objects.filter(

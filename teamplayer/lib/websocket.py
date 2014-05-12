@@ -93,7 +93,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     @classmethod
     def broadcast_user_stats(cls):
-        stats = models.Player.user_stats()
+        stats = models.Player.player_stats()
         stats['users'] = len(cls.clients)
         cls.broadcast('user_stats', stats)
 
