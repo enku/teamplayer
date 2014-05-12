@@ -4,6 +4,27 @@ Views for the teamplayer django app
 import json
 from urllib.parse import quote_plus
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from teamplayer import version_string
+from teamplayer.conf import settings
+from teamplayer.forms import (
+    ChangeDJNameForm,
+    CreateStationForm,
+    EditStationForm
+)
+from teamplayer.lib import mktemp_file_from_request, songs
+from teamplayer.lib.mpc import MPC
+from teamplayer.lib.websocket import IPCHandler
+from teamplayer.models import Entry, Player, Station
+from teamplayer.serializers import (
+    EntrySerializer,
+    PlayerSerializer,
+    StationSerializer
+)
+from tp_library.models import SongFile
+
 import django
 from django.contrib import messages
 from django.contrib.auth import logout as auth_logout
@@ -17,20 +38,6 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render_to_response
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-
-from teamplayer import version_string
-from teamplayer.conf import settings
-from teamplayer.forms import (ChangeDJNameForm, CreateStationForm,
-                              EditStationForm)
-from teamplayer.lib import mktemp_file_from_request, songs
-from teamplayer.lib.mpc import MPC
-from teamplayer.lib.websocket import IPCHandler
-from teamplayer.models import Entry, Player, Station
-from teamplayer.serializers import (EntrySerializer, PlayerSerializer,
-                                    StationSerializer)
-from tp_library.models import SongFile
 
 YEAR_IN_SECS = 365 * 24 * 60 * 60
 
