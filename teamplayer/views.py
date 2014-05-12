@@ -99,8 +99,8 @@ def home(request, station_id=None):
         'teamplayer/home.html',
         {
             'mpd_url': get_mpd_url(request, station),
-            'name': (request.user.player.dj_name
-                     if request.user.player.dj_name
+            'name': (request.player.dj_name
+                     if request.player.dj_name
                      else 'Anonymous'),
             'show_player': True,
             'station': station,
@@ -130,7 +130,7 @@ def show_queue(request):
     """
     station = get_station_from_session(request)
 
-    entries = request.user.player.queue.entry_set.filter(station=station)
+    entries = request.player.queue.entry_set.filter(station=station)
     seralizer = EntrySerializer(entries, many=True)
     return Response(seralizer.data)
 
@@ -176,7 +176,7 @@ def add_to_queue(request):
         uploaded_file = File(mktemp_file_from_request(request))
 
     try:
-        entry = request.user.player.queue.add_song(uploaded_file, station)
+        entry = request.player.queue.add_song(uploaded_file, station)
     except songs.SongMetadataError:
         client_filename = request.FILES['files[]'].name
         if client_filename:
@@ -203,7 +203,7 @@ def add_to_queue(request):
 def randomize_queue(request):
     """Randomize the user's queue"""
     station = get_station_from_session(request)
-    request.user.player.queue.randomize(station)
+    request.player.queue.randomize(station)
     return redirect(reverse('teamplayer.views.show_queue'))
 
 
@@ -211,7 +211,7 @@ def randomize_queue(request):
 def order_by_rank(request):
     """Order your queue according to artist rank"""
     station = get_station_from_session(request)
-    request.user.player.queue.order_by_rank(station)
+    request.player.queue.order_by_rank(station)
     return redirect(reverse('teamplayer.views.show_queue'))
 
 
@@ -219,7 +219,7 @@ def order_by_rank(request):
 @require_POST
 def toggle_queue_status(request):
     """Toggle user's queue's active status"""
-    new_status = bool(request.user.player.queue.toggle_status())
+    new_status = bool(request.player.queue.toggle_status())
     IPCHandler.send_message(
         'queue_status',
         {
@@ -237,7 +237,7 @@ def toggle_queue_status(request):
 @require_POST
 def toggle_auto_mode(request):
     """Toggle user's auto_mode flag"""
-    request.user.player.toggle_auto_mode()
+    request.player.toggle_auto_mode()
     return HttpResponseNoContent()
 
 
@@ -273,7 +273,7 @@ def reorder_queue(request):
     Given comma-delimited string (of integers), re-order queue
     return the re-ordered list of ids in json format
     """
-    ids = [x['id'] for x in request.user.player.queue.reorder(
+    ids = [x['id'] for x in request.player.queue.reorder(
         [int(i) for i in request.body.decode('utf-8').split(',')])
     ]
 
@@ -292,8 +292,8 @@ def change_dj_name(request):
     if not form.is_valid():
         return HttpResponse(form.errors.values()[0])
 
-    previous_dj_name = request.user.player.dj_name
-    request.user.player.set_dj_name(form.cleaned_data['dj_name'])
+    previous_dj_name = request.player.dj_name
+    request.player.set_dj_name(form.cleaned_data['dj_name'])
 
     # send a notification the the spin doctor
     IPCHandler.send_message(

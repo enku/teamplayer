@@ -42,7 +42,7 @@ def add_to_queue(request):
 
         fp = File(open(songfile.filename, 'rb'))
 
-        entry = request.user.player.queue.add_song(fp, station)
+        entry = request.player.queue.add_song(fp, station)
 
         # notify the Spin Doctor
         IPCHandler.send_message('song_added', entry.pk)
