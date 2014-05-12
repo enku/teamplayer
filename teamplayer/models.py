@@ -246,7 +246,7 @@ class Station(models.Model):
 
     objects = models.Manager()
     name = models.CharField(max_length=128, unique=True)
-    creator = models.ForeignKey(User, unique=True)
+    creator = models.ForeignKey('Player', unique=True)
 
     def __str__(self):
         return self.name
@@ -291,10 +291,10 @@ class Station(models.Model):
         )
 
     @classmethod
-    def from_user(cls, user):
-        """Return the station belong to user or None if user has no station"""
+    def from_player(cls, player):
+        """Return the player's station or None if player has no station"""
         try:
-            return cls.objects.get(creator=user)
+            return cls.objects.get(creator=player)
         except cls.DoesNotExist:
             return None
 

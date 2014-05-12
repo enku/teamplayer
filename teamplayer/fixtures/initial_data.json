@@ -26,16 +26,6 @@
 },
 {
     "pk": 1, 
-    "model": "teamplayer.station", 
-    "fields": {
-        "name": "Main Station", 
-        "creator": [
-            "DJ Ango"
-        ]
-    }
-},
-{
-    "pk": 1, 
     "model": "teamplayer.player", 
     "fields": {
         "auto_mode": true, 
@@ -45,6 +35,14 @@
         "user": [
             "DJ Ango"
         ] 
+    }
+},
+{
+    "pk": 1, 
+    "model": "teamplayer.station", 
+    "fields": {
+        "name": "Main Station", 
+        "creator": 1
     }
 }
 ]

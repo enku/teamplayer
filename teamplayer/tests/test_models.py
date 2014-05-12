@@ -171,15 +171,15 @@ class StationTest(TestCase):
 
     def test_create_station(self):
         """Demonstrate the create_station method."""
-        station = Station.create_station('My Station', self.player.user)
+        station = Station.create_station('My Station', self.player)
         self.assertTrue(isinstance(station, Station))
 
     def test_get_songs(self):
         """Test that get_songs shows files on that station"""
         # given the stations
-        station1 = Station.create_station('station1', self.player.user)
+        station1 = Station.create_station('station1', self.player)
         player2 = Player.objects.create_player('test2', password='test2')
-        station2 = Station.create_station('station2', player2.user)
+        station2 = Station.create_station('station2', player2)
 
         # with a song in each station
         song1 = Entry.objects.create(
@@ -203,8 +203,8 @@ class StationTest(TestCase):
         """Demonstrate the get_stations() method."""
         # given the stations
         player2 = Player.objects.create_player('test2', password='test2')
-        station2 = Station.create_station('station2', player2.user)
-        station1 = Station.create_station('station1', self.player.user)
+        station2 = Station.create_station('station2', player2)
+        station1 = Station.create_station('station1', self.player)
 
         # and the "built-in" station
         station0 = Station.main_station()
@@ -221,7 +221,7 @@ class StationTest(TestCase):
     def test_add_song_with_station(self):
         """Demonstrate Queue.add_song() with a station."""
         # given the station
-        station = Station.create_station('station', self.player.user)
+        station = Station.create_station('station', self.player)
 
         # when i call .add_song() on a queue
         queue = self.player.queue
@@ -235,21 +235,21 @@ class StationTest(TestCase):
     def test_from_user(self):
         """Demonstrate the from_user() classmethod."""
         # given the station
-        station = Station.create_station('station', self.player.user)
+        station = Station.create_station('station', self.player)
 
         # when we call the from_user classmethod
-        result = Station.from_user(self.player.user)
+        result = Station.from_player(self.player)
 
         # then we get the station.
         self.assertEqual(result, station)
 
     def test_from_user_returns_none(self):
         """Demonstrate that from user returns None if a user has none."""
-        self.assertEqual(Station.from_user(self.player.user), None)
+        self.assertEqual(Station.from_player(self.player), None)
 
     @patch('teamplayer.views.MPC')
     def test_cannot_name_teamplayer_view(self, MockMPC):
-        station = Station.create_station('My Station', self.player.user)
+        station = Station.create_station('My Station', self.player)
         view = 'teamplayer.views.edit_station'
         post = {'station_id': station.pk,
                 'action': 'rename',
@@ -267,7 +267,7 @@ class StationTest(TestCase):
     def test_participants(self):
         """Station.participants()"""
         # given the stations
-        station = Station.create_station('My Station', self.player.user)
+        station = Station.create_station('My Station', self.player)
         main = Station.main_station()
 
         # and players

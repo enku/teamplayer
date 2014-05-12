@@ -114,7 +114,7 @@ def home(request, station_id=None):
             'station_id': station.pk,
             'home': Station.main_station().pk,
             'stations': Station.get_stations(),
-            'user_owned_station': Station.from_user(request.user),
+            'user_owned_station': Station.from_player(request.player),
             'username': request.user.username,
         },
         context_instance=RequestContext(request)
@@ -375,7 +375,7 @@ def show_stations(request):
 @api_view(['GET'])
 def station_detail(request, station_id):
     if station_id == 'mine':
-        station = get_object_or_404(Station, creator=request.user)
+        station = get_object_or_404(Station, creator=request.player)
     else:
         station = get_object_or_404(Station, pk=station_id)
     serializer = StationSerializer(station, context={'request': request})
@@ -430,9 +430,8 @@ def edit_station(request):
         station_id = form.cleaned_data['station_id']
         action = form.cleaned_data['action']
 
-        station = get_object_or_404(Station,
-                                    pk=station_id,
-                                    creator=request.user)
+        station = get_object_or_404(Station, pk=station_id,
+                                    creator=request.player)
         if action == 'rename':
             station.name = name
             station.save()
@@ -455,7 +454,7 @@ def create_station(request):
     if form.is_valid():
         name = form.cleaned_data['name']
 
-        station = Station.create_station(name, request.user)
+        station = Station.create_station(name, request.player)
         IPCHandler.send_message('station_create', station.pk)
         return HttpResponseNoContent()
     return HttpResponse('Error creating station', content_type='text/plain')
