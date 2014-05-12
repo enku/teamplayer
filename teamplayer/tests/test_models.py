@@ -34,7 +34,7 @@ class PlayerTestCase(TestCase):
         self.assertTrue(logged_in)
 
 
-class UserQueue(TestCase):
+class QueueTestCase(TestCase):
 
     def setUp(self):
         self.user_data = {
@@ -305,14 +305,14 @@ class StationTest(TestCase):
 
         # Then we get both users
         self.assertEqual(participants.count(), 2)
-        self.assertEqual(set(participants), set([player1.user, player2.user]))
+        self.assertEqual(set(participants), set([player1, player2]))
 
         # And when we call .participants on station
         participants = station.participants()
 
         # Then we only get player1
         self.assertEqual(participants.count(), 1)
-        self.assertEqual(set(participants), set([player1.user]))
+        self.assertEqual(set(participants), set([player1]))
 
 
 class QueueMasterTestCase(TestCase):
@@ -333,43 +333,43 @@ class QueueMasterTestCase(TestCase):
 
     def test_plays_users_song(self):
         self.assertEqual(self.spin.current_song, self.spin.silence)
-        self.spin.create_song_for(self.player1.user, artist='Prince',
+        self.spin.create_song_for(self.player1, artist='Prince',
                                   title='Purple Rain')
         current = self.spin.next()
-        self.assertEqual(self.spin.current_user, self.player1.user)
+        self.assertEqual(self.spin.current_player, self.player1)
         self.assertEqual(current[1], 'Prince')
         self.assertEqual(current[2], 'Purple Rain')
 
     @patch('teamplayer.lib.songs.urlopen')
     def test_round_robin(self, mock_urlopen):
-        self.spin.create_song_for(self.player1.user, artist='Prince',
+        self.spin.create_song_for(self.player1, artist='Prince',
                                   title='Purple Rain')
-        self.spin.create_song_for(self.player2.user, artist='Metallica',
+        self.spin.create_song_for(self.player2, artist='Metallica',
                                   title='One')
-        self.spin.create_song_for(self.player3.user, artist='Interpol',
+        self.spin.create_song_for(self.player3, artist='Interpol',
                                   title='Take You On a Cruise')
 
         self.spin.next()
-        first_user = self.spin.current_user
+        first_player = self.spin.current_player
         self.spin.next()
-        second_user = self.spin.current_user
+        second_player = self.spin.current_player
         self.spin.next()
-        third_user = self.spin.current_user
+        third_player = self.spin.current_player
 
-        self.assertNotEqual(first_user, second_user)
-        self.assertNotEqual(second_user, third_user)
+        self.assertNotEqual(first_player, second_player)
+        self.assertNotEqual(second_player, third_player)
 
     def test_only_one_user(self):
         """if only one user has songs, play his next song"""
-        self.spin.create_song_for(self.player1.user, artist='Prince',
+        self.spin.create_song_for(self.player1, artist='Prince',
                                   title='Purple Rain')
-        self.spin.create_song_for(self.player1.user, artist='Metallica',
+        self.spin.create_song_for(self.player1, artist='Metallica',
                                   title='One')
 
         song1 = self.spin.next()
-        self.assertEqual(self.spin.current_user, self.player1.user)
+        self.assertEqual(self.spin.current_player, self.player1)
         song2 = self.spin.next()
-        self.assertEqual(self.spin.current_user, self.player1.user)
+        self.assertEqual(self.spin.current_player, self.player1)
         self.assertNotEqual(song1, song2)
 
     def test_remove_from_queue(self):
@@ -379,9 +379,9 @@ class QueueMasterTestCase(TestCase):
         using the "mocked" spin class, but the code is nearly identical, so
         it's quasi-testing the behaviour
         """
-        self.spin.create_song_for(self.player1.user, artist='Prince',
+        self.spin.create_song_for(self.player1, artist='Prince',
                                   title='Purple Rain')
-        self.spin.create_song_for(self.player1.user, artist='Metallica',
+        self.spin.create_song_for(self.player1, artist='Metallica',
                                   title='One')
 
         self.assertEqual(self.player1.queue.entry_set.count(), 2)
@@ -401,11 +401,11 @@ class QueueMasterTestCase(TestCase):
 
         mock_urlopen.side_effect = my_urlopen
 
-        self.spin.create_song_for(self.player1.user, artist='Prince',
+        self.spin.create_song_for(self.player1, artist='Prince',
                                   title='Purple Rain')
-        self.spin.create_song_for(self.player1.user, artist='Metallica',
+        self.spin.create_song_for(self.player1, artist='Metallica',
                                   title='One')
-        self.spin.create_song_for(self.player1.user, artist='The Time',
+        self.spin.create_song_for(self.player1, artist='The Time',
                                   title='Jungle Love')
         player = self.player1
         player.auto_mode = True

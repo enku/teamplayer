@@ -91,10 +91,10 @@ class LibSongs(TestCase):
     def test_find_a_song(self):
         """Test that it can find songs in the queue"""
         station = teamplayer.models.Station.main_station()
-        song = teamplayer.lib.songs.find_a_song([self.user], station)
+        song = teamplayer.lib.songs.find_a_song([self.player], station)
         self.assertEqual(type(song), teamplayer.models.Entry)
         song.delete()
-        song = teamplayer.lib.songs.find_a_song([self.user], station)
+        song = teamplayer.lib.songs.find_a_song([self.player], station)
         self.assertEqual(song, None)
 
 

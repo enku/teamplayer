@@ -21,7 +21,7 @@ LOGGER = logging.getLogger('teamplayer.models')
 
 class Queue(models.Model):
 
-    """A user's queue containing song entries"""
+    """A player's queue containing song entries"""
     objects = models.Manager()
     active = models.BooleanField(default=True)
 
@@ -264,8 +264,8 @@ class Station(models.Model):
             station=self,
             queue__active=True
         )
-        return User.objects.filter(
-            player__queue__entry__in=entries_qs,
+        return Player.objects.filter(
+            queue__entry__in=entries_qs,
         ).distinct()
 
     @classmethod
@@ -410,10 +410,6 @@ class Player(models.Model):
         DJ_ANGO = cls.objects.get(user__username='DJ Ango')
         return DJ_ANGO
 
-
-@classmethod
-def active_users(cls):
-    players = Player.objects.values_list('user__pk', flat=True)
-    return cls.objects.filter(is_active=True,
-                              pk__in=players)
-User.add_to_class('active_users', active_users)
+    @classmethod
+    def active_players(cls):
+        return cls.objects.filter(user__is_active=True)

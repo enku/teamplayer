@@ -10,6 +10,7 @@ from django.conf import settings as django_settings
 from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User
 from django.utils.timezone import utc
+from django.core.exceptions import ObjectDoesNotExist
 
 CHUNKSIZE = 64 * 1024
 LOGGER = logging.getLogger('teamplayer.lib')
@@ -57,22 +58,22 @@ def mktemp_file_from_request(request):
     return temp_file
 
 
-def get_user_from_session_id(session_id):
+def get_player_from_session_id(session_id):
     """Given the session_id, return the user associated with it.
 
-    Raise User.DoesNotExist if session_id does not associate with a user.
+    Raise ObjectDoesNotExist if session_id does not associate with a user.
     """
     try:
         session = Session.objects.get(session_key=session_id)
     except Session.DoesNotExist:
-        raise User.DoesNotExist
+        raise ObjectDoesNotExist
 
     try:
         user_id = session.get_decoded().get('_auth_user_id')
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
-        raise
-    return user
+        raise ObjectDoesNotExist
+    return user.player
 
 
 def get_station_id_from_session_id(session_id):
@@ -96,11 +97,11 @@ def copy_entry_to_queue(entry, mpc):
     possible.
     """
     song = entry.song
-    user = entry.queue.user
+    player = entry.queue.player
     filename = os.path.join(django_settings.MEDIA_ROOT, song.name)
     basename = os.path.basename(filename)
 
-    new_filename = '{0}-{1}'.format(user.pk, basename)
+    new_filename = '{0}-{1}'.format(player.pk, basename)
     LOGGER.debug('copying to %s', new_filename)
 
     new_path = os.path.join(mpc.queue_dir, new_filename)

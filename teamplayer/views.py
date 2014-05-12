@@ -115,7 +115,7 @@ def home(request, station_id=None):
             'home': Station.main_station().pk,
             'stations': Station.get_stations(),
             'user_owned_station': Station.from_player(request.player),
-            'username': request.user.username,
+            'username': request.player.username,
         },
         context_instance=RequestContext(request)
     )
@@ -133,7 +133,7 @@ def register(request):
 @login_required
 def show_queue(request):
     """
-    View to display the titles in the user's queue.
+    View to display the titles in the player's queue.
     """
     station = get_station_from_session(request)
 
@@ -148,9 +148,7 @@ def show_entry(request, entry_id):
     """
     View to show an entry
     """
-    entry = get_object_or_404(Entry,
-                              pk=entry_id,
-                              queue__player__user=request.user)
+    entry = get_object_or_404(Entry, pk=entry_id, queue__player=request.player)
     data = EntrySerializer(entry).data
     entry_id = entry.pk
     if request.method == 'DELETE':
@@ -163,7 +161,7 @@ def show_entry(request, entry_id):
 @api_view(['GET'])
 @login_required
 def show_players(request):
-    """view to show user stats/settings"""
+    """view to show player stats/settings"""
     players = Player.objects.all()
     serializer = PlayerSerializer(players, many=True)
     return Response(serializer.data)
@@ -208,7 +206,7 @@ def add_to_queue(request):
 
 @login_required
 def randomize_queue(request):
-    """Randomize the user's queue"""
+    """Randomize the player's queue"""
     station = get_station_from_session(request)
     request.player.queue.randomize(station)
     return redirect(reverse('teamplayer.views.show_queue'))
@@ -225,12 +223,12 @@ def order_by_rank(request):
 @login_required
 @require_POST
 def toggle_queue_status(request):
-    """Toggle user's queue's active status"""
+    """Toggle player's queue's active status"""
     new_status = bool(request.player.queue.toggle_status())
     IPCHandler.send_message(
         'queue_status',
         {
-            'user': request.user.username,
+            'user': request.player.username,
             'status': new_status,
         }
     )
@@ -243,7 +241,7 @@ def toggle_queue_status(request):
 @login_required
 @require_POST
 def toggle_auto_mode(request):
-    """Toggle user's auto_mode flag"""
+    """Toggle player's auto_mode flag"""
     request.player.toggle_auto_mode()
     return HttpResponseNoContent()
 
@@ -293,8 +291,8 @@ def reorder_queue(request):
 @login_required()
 @require_POST
 def change_dj_name(request):
-    """Change user's "dj name" according to dj_name field"""
-    form = ChangeDJNameForm(request.POST, user=request.user)
+    """Change player's "dj name" according to dj_name field"""
+    form = ChangeDJNameForm(request.POST, player=request.player)
 
     if not form.is_valid():
         return HttpResponse(form.errors.values()[0])
@@ -306,7 +304,7 @@ def change_dj_name(request):
     IPCHandler.send_message(
         message_type='dj_name_change',
         data={
-            'user_id': request.user.pk,
+            'user_id': request.player.pk,
             'previous_dj_name': previous_dj_name,
             'dj_name': form.cleaned_data['dj_name'],
         }
@@ -315,7 +313,7 @@ def change_dj_name(request):
 
 
 def logout(request):
-    """Log out the user from TP"""
+    """Log out the player from TP"""
     auth_logout(request)
     messages.info(request, 'Thanks for playing.')
     return HttpResponseRedirect(reverse('django.contrib.auth.views.login'))
@@ -502,7 +500,7 @@ def js_object(request):
             'mpd_hostname': http_host,
             'mpd_http_port': settings.HTTP_PORT,
             'home': Station.main_station().pk,
-            'username': request.user.username,
+            'username': request.player.username,
         },
         context_instance=RequestContext(request),
         content_type='application/javascript'

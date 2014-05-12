@@ -31,7 +31,7 @@ class Command(BaseCommand):
         print(self.created)
 
     def _handle_files(self, dirpath, dirnames, filenames):
-        user = self.dj_ango
+        player = self.dj_ango
         station_id = self.station.pk
 
         for filename in filenames:
@@ -47,7 +47,7 @@ class Command(BaseCommand):
             songfile, created = SongFile.metadata_get_or_create(
                 fullpath,
                 metadata,
-                user,
+                player,
                 station_id
             )
             if created:

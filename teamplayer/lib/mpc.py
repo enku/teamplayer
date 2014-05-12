@@ -9,11 +9,12 @@ from threading import Event, Thread
 from time import sleep, time
 
 import mpd
-from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 
 from teamplayer.conf import settings
 from teamplayer.lib import songs
+from teamplayer.models import Player
+
+from django.core.urlresolvers import reverse
 
 MPD_UPDATE_MAX = 20  # seconds
 MPD_UPDATE_WAIT = 0.5  # seconds
@@ -211,13 +212,13 @@ class MPC(object):
 
     def dj_from_filename(self, filename):
         """Return the DJ name from the filename or ''."""
-        user_id, sep, _ = filename.partition('-')
+        player_id, sep, _ = filename.partition('-')
         if not sep:
             return ''
 
         try:
-            return User.objects.get(pk=user_id).player.dj_name
-        except User.DoesNotExist:
+            return Player.objects.get(pk=player_id).dj_name
+        except Player.DoesNotExist:
             return ''
 
     def idle_or_wait(self, secs):

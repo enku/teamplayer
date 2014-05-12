@@ -54,7 +54,7 @@ class ChangeDJNameForm(forms.Form):
                             + ' _-')
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user')
+        self.player = kwargs.pop('player')
         super(ChangeDJNameForm, self).__init__(*args, **kwargs)
 
     def clean_dj_name(self):
@@ -70,7 +70,7 @@ class ChangeDJNameForm(forms.Form):
 
         try:
             player = models.Player.objects.get(dj_name__iexact=name)
-            if player.pk != self.user.player.pk:
+            if player.pk != self.player.pk:
                 raise forms.ValidationError(already_taken)
         except models.Player.DoesNotExist:
             pass

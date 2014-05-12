@@ -163,22 +163,22 @@ def get_similar_artists(artist):
     return similar
 
 
-def best_song_from_user(user, station, previous_artist=None):
+def best_song_from_player(player, station, previous_artist=None):
     """
-    Given the user and station, get the best song from the user's queue,
-    taking into account the user's auto_mode and previous_artist.
+    Given the player and station, get the best song from the player's queue,
+    taking into account the player's auto_mode and previous_artist.
 
     If no relevant song is found, return None.
     """
     try:
-        queue = user.player.queue
+        queue = player.queue
     except models.Player.DoesNotExist:
         return None
 
     if not queue.active:
         return None
 
-    if user.player.auto_mode:
+    if player.auto_mode:
         entry = auto_find_song(previous_artist, queue, station)
         if entry:
             return entry
@@ -190,14 +190,14 @@ def best_song_from_user(user, station, previous_artist=None):
     return None
 
 
-def find_a_song(users, station, previous_user=None, previous_artist=None):
+def find_a_song(players, station, previous_player=None, previous_artist=None):
     """
-    Rotate through the user list until you find a song.  If no one
-    has a song in their station/queue after one loop then return None
+    Rotate through the players list until you find a song.  If no one has a
+    song in their station/queue after one loop then return None
 
-    If previous_artist is defined, and user.player.auto_mode is True,
-    try to find a song in the user's queue whose artist is similar to
-    the current mood without repeating the previous_artist.
+    If previous_artist is defined, and player.auto_mode is True, try to find a
+    song in the player's queue whose artist is similar to the current mood
+    without repeating the previous_artist.
     """
     wants_dj_ango = (settings.SHAKE_THINGS_UP
                      and station == models.Station.main_station())
@@ -210,15 +210,15 @@ def find_a_song(users, station, previous_user=None, previous_artist=None):
             minimum=1,
         )
 
-    for user in list_iter(users, previous_user):
-        entry = best_song_from_user(user, station, previous_artist)
+    for player in list_iter(players, previous_player):
+        entry = best_song_from_player(player, station, previous_artist)
         if entry:
             return entry
 
     if wants_dj_ango:
         return auto_find_song(
             previous_artist,
-            dj_ango.player.queue,
+            dj_ango.queue,
             station
         )
     return None

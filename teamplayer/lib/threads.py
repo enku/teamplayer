@@ -98,7 +98,7 @@ class StationThread(threading.Thread):
 
         self.running = False
         self.mpc = MPC(self.station)
-        self.previous_user = None
+        self.previous_player = None
         self.previous_song = None
 
         # set up the Mood thread
@@ -187,20 +187,20 @@ class StationThread(threading.Thread):
 
             artist = self.mpc.get_last_artist(playlist)
             artist = None if artist == 'TeamPlayer' else artist
-            users = self.station.participants()
+            players = self.station.participants()
             entry = songs.find_a_song(
-                users,
+                players,
                 self.station,
-                self.previous_user,
+                self.previous_player,
                 artist,
             )
 
             if entry is None:
-                LOGGER.info('%s: No users with any queued titles', self.name)
+                LOGGER.info('%s: No players with any queued titles', self.name)
                 QUEUE_CHANGE_EVENT.wait()
                 continue
 
-            self.previous_user = entry.queue.player.user
+            self.previous_player = entry.queue.player
             song = entry.song
             try:
                 new_filename = copy_entry_to_queue(entry, self.mpc)
@@ -216,16 +216,16 @@ class StationThread(threading.Thread):
             LOGGER.info(
                 u"%s: Adding %s's %s",
                 self.name,
-                self.previous_user,
+                self.previous_player,
                 entry
             )
             self.mpc.add_file_to_playlist(new_filename)
             entry_dict = EntrySerializer(entry).data
             entry.delete()
-            SocketHandler.message(entry.queue.user, 'song_removed', entry_dict)
+            SocketHandler.message(entry.queue.player, 'song_removed', entry_dict)
 
             # log "mood"
-            if entry.queue.user != self.dj_ango:
+            if entry.queue.player != self.dj_ango:
                 self.mooder.queue.put(entry.artist)
 
             # delete files not in playlist

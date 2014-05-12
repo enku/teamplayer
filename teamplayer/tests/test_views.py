@@ -2,7 +2,6 @@
 import json
 import re
 
-import django.contrib.auth.models
 import django.core.urlresolvers
 import django.test
 
@@ -14,7 +13,6 @@ from teamplayer.tests import utils
 SpinDoctor = utils.SpinDoctor
 TestCase = django.test.TestCase
 reverse = django.core.urlresolvers.reverse
-User = django.contrib.auth.models.User
 
 
 class HomePageView(TestCase):
@@ -46,13 +44,12 @@ class HomePageView(TestCase):
         url = reverse('teamplayer.views.change_dj_name')
         response = self.client.post(url, {'dj_name': 'Liquid X'})
         self.assertEqual(response.status_code, 204)
-        user = User.objects.get(username='test')
-        player = user.player
+        player = Player.objects.get(user__username='test')
         self.assertEqual(player.dj_name, u'Liquid X')
         mock.assert_called_with(message_type='dj_name_change',
                                 data={'dj_name': u'Liquid X',
                                       'previous_dj_name': '',
-                                      'user_id': user.pk})
+                                      'user_id': player.pk})
 
     @patch('teamplayer.views.MPC.currently_playing')
     def test_song_display(self, mock):
@@ -126,7 +123,7 @@ class ShowQueueView(TestCase):
     def test_queue_with_songs(self):
         """Test that songs added show up in the list"""
         spin = SpinDoctor()
-        spin.create_song_for(self.player.user, 'Prince', 'Purple Rain')
+        spin.create_song_for(self.player, 'Prince', 'Purple Rain')
         response = self.client.get(self.url)
         self.assertContains(response, 'Prince')
         self.assertContains(response, 'Purple Rain')
@@ -135,12 +132,11 @@ class ShowQueueView(TestCase):
         """Test that after re-ordering the queue it shows up in the new
         order Also tests that the reorder_queue view works"""
         spin = SpinDoctor()
-        spin.create_song_for(self.player.user, 'Prince', 'Purple Rain')
-        spin.create_song_for(self.player.user, 'Metallica', 'One')
-        spin.create_song_for(self.player.user, 'Arcade Fire', 'Rococo')
+        spin.create_song_for(self.player, 'Prince', 'Purple Rain')
+        spin.create_song_for(self.player, 'Metallica', 'One')
+        spin.create_song_for(self.player, 'Arcade Fire', 'Rococo')
 
-        user = User.objects.get(username='test')
-        player = user.player
+        player = Player.objects.get(user__username='test')
         current_order = [x.id for x in player.queue.entry_set.all()]
         new_order = list(reversed(current_order))
         new_order_str = ','.join([str(i) for i in new_order])
@@ -159,7 +155,7 @@ class ShowQueueView(TestCase):
         """Tests that removing a song from the queue makes it no longer
         show in the list"""
         spin = SpinDoctor()
-        spin.create_song_for(self.player.user, 'Prince', 'Purple Rain')
+        spin.create_song_for(self.player, 'Prince', 'Purple Rain')
 
         response = self.client.get(self.url)
         self.assertContains(response, 'Purple Rain')
@@ -176,7 +172,7 @@ class ShowQueueView(TestCase):
     def test_queue_after_song_plays(self, mock_call):
         """Test that song is removed from songlist when it plays"""
         spin = SpinDoctor()
-        spin.create_song_for(self.player.user, 'Prince', 'Purple Rain')
+        spin.create_song_for(self.player, 'Prince', 'Purple Rain')
         response = self.client.get(self.url)
         self.assertContains(response, 'Prince')
         self.assertContains(response, 'Purple Rain')
@@ -208,11 +204,12 @@ class AddUserView(TestCase):
             reverse('teamplayer.views.registration'), self.form_data)
 
         # check that the user exists
-        test_user = User.objects.get(username=self.form_data['username'])
+        test_player = Player.objects.get(
+            user__username=self.form_data['username'])
 
         # check that the user has a player and a queue
-        self.assertTrue(test_user.player)
-        self.assertTrue(hasattr(test_user.player, 'queue'))
+        self.assertTrue(test_player)
+        self.assertTrue(hasattr(test_player, 'queue'))
 
     @patch('teamplayer.lib.websocket.IPCHandler.send_message')
     def test_user_already_exists(self, mock):
