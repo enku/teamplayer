@@ -20,7 +20,6 @@ from teamplayer.conf import settings
 from teamplayer.lib import first_or_none, list_iter, now, remove_pedantic
 
 from django.conf import settings as django_settings
-from django.contrib.auth.models import User
 from django.db.models import Count
 
 LOGGER = logging.getLogger('teamplayer.songlib')
@@ -203,8 +202,8 @@ def find_a_song(users, station, previous_user=None, previous_artist=None):
     wants_dj_ango = (settings.SHAKE_THINGS_UP
                      and station == models.Station.main_station())
     if wants_dj_ango:
-        dj_ango = User.dj_ango()
-        dj_ango.player.queue.auto_fill(
+        dj_ango = models.Player.dj_ango()
+        dj_ango.queue.auto_fill(
             settings.SHAKE_THINGS_UP,
             station=station,
             qs_filter=settings.SHAKE_THINGS_UP_FILTER,

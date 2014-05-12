@@ -1,13 +1,13 @@
 import json
 import os
 
-from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
-from django.test import TestCase
+from mock import patch
 
 from teamplayer.models import Entry, Player
 from tp_library.models import SongFile
-from mock import patch
+
+from django.core.urlresolvers import reverse
+from django.test import TestCase
 
 __dir__ = os.path.dirname(__file__)
 SILENCE = os.path.join(__dir__, '..', 'teamplayer', 'tests', 'data',
@@ -62,7 +62,7 @@ class AddToQueueTest(TestCase):
             filesize=3000,
             station_id=1,
             mimetype='audio/mp3',
-            added_by=User.objects.get(username='DJ Ango'),
+            added_by=Player.dj_ango(),
         )
         self.url = reverse('tp_library.views.add_to_queue')
         self.player = Player.objects.create_player('test', password='test')
@@ -100,7 +100,7 @@ class AddSongWithUTF8Filename(TestCase):
             filesize=3000,
             station_id=1,
             mimetype='audio/mp3',
-            added_by=User.objects.get(username='DJ Ango'),
+            added_by=Player.dj_ango(),
         )
         self.url = reverse('tp_library.views.add_to_queue')
         self.player = Player.objects.create_player('test', password='test')

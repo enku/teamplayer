@@ -10,8 +10,6 @@ from json import dumps, loads
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
-from django.conf import settings as django_settings
-from django.core.exceptions import ObjectDoesNotExist
 from mutagenx import File
 from tornado.ioloop import IOLoop
 
@@ -26,6 +24,9 @@ from teamplayer.lib import (
 from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.serializers import StationSerializer
 from tp_library.models import SongFile
+
+from django.conf import settings as django_settings
+from django.core.exceptions import ObjectDoesNotExist
 
 LOGGER = logging.getLogger('teamplayer.websockets')
 
@@ -283,7 +284,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
             os.unlink(fullpath)
 
         songfile, created = SongFile.metadata_get_or_create(
-            fullpath, metadata, entry.queue.user, entry.station.pk)
+            fullpath, metadata, entry.queue.player, entry.station.pk)
 
         if not created:
             os.unlink(fullpath)

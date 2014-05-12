@@ -1,11 +1,11 @@
 import logging
 import os
 
-from django.contrib.auth.models import User
+from teamplayer.lib import first_or_none, songs
+from teamplayer.models import Player
+
 from django.core.urlresolvers import reverse
 from django.db import models
-
-from teamplayer.lib import first_or_none, songs
 
 LOGGER = logging.getLogger('teamplayer.library')
 
@@ -23,7 +23,7 @@ class SongFile(models.Model):
     genre = models.TextField()
     date_added = models.DateTimeField(auto_now_add=True)
     station_id = models.IntegerField()
-    added_by = models.ForeignKey(User, related_name='library_songs')
+    added_by = models.ForeignKey(Player, related_name='library_songs')
 
     class Meta:
         unique_together = (('artist', 'title', 'album'),)

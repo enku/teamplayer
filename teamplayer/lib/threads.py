@@ -7,14 +7,13 @@ from time import sleep
 
 import mpd
 import tornado.web
-from django.contrib.auth.models import User
 
 from teamplayer.conf import settings
 from teamplayer.lib import copy_entry_to_queue, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.signals import QUEUE_CHANGE_EVENT, SONG_CHANGE
 from teamplayer.lib.websocket import IPCHandler, SocketHandler
-from teamplayer.models import Mood
+from teamplayer.models import Mood, Player
 from teamplayer.serializers import EntrySerializer
 
 LOGGER = logging.getLogger('teamplayer.threads')
@@ -162,7 +161,7 @@ class StationThread(threading.Thread):
         self.mooder.start()
         self.event_thread.start()
         self.running = True
-        self.dj_ango = User.dj_ango()
+        self.dj_ango = Player.dj_ango()
 
         while not self.event_thread.running:
             sleep(1)

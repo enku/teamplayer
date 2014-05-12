@@ -7,13 +7,13 @@ import os
 import random
 import uuid
 
+from . import lib
+from .conf import settings
+
 from django.conf import settings as django_settings
 from django.contrib.auth.models import User
 from django.core.files import File
 from django.db import models, transaction
-
-from . import lib
-from . conf import settings
 
 DJ_ANGO = None
 LOGGER = logging.getLogger('teamplayer.models')
@@ -401,16 +401,14 @@ class Player(models.Model):
             'stations': Station.get_stations().count(),
         }
 
+    @classmethod
+    def dj_ango(cls):
+        global DJ_ANGO
+        if DJ_ANGO:
+            return DJ_ANGO
 
-@classmethod
-def dj_ango(cls):
-    global DJ_ANGO
-    if DJ_ANGO:
+        DJ_ANGO = cls.objects.get(user__username='DJ Ango')
         return DJ_ANGO
-
-    DJ_ANGO = User.objects.get(username='DJ Ango')
-    return DJ_ANGO
-User.add_to_class('dj_ango', dj_ango)
 
 
 @classmethod

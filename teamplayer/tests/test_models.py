@@ -2,15 +2,16 @@
 import os
 from tempfile import TemporaryDirectory
 
-import django.contrib.auth.models
-import django.core.files.uploadedfile
-import django.core.urlresolvers
-import django.test
 import mock
 
 from teamplayer.models import Entry, Player, Station
 from teamplayer.tests import utils
 from tp_library.models import SongFile
+
+import django.contrib.auth.models
+import django.core.files.uploadedfile
+import django.core.urlresolvers
+import django.test
 
 SILENCE = utils.SILENCE
 METALLICA_SIMILAR_TXT = utils.METALLICA_SIMILAR_TXT
@@ -18,7 +19,6 @@ PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
 SpinDoctor = utils.SpinDoctor
 TestCase = django.test.TestCase
 UploadedFile = django.core.files.uploadedfile.UploadedFile
-User = django.contrib.auth.models.User
 
 patch = mock.patch
 reverse = django.core.urlresolvers.reverse
@@ -109,7 +109,7 @@ class QueueAutoFill(TestCase):
     Demonstrate the auto_fill() method.
     """
     def setUp(self):
-        self.dj_ango = User.dj_ango()
+        self.dj_ango = Player.dj_ango()
         self.station = Station.main_station()
 
         # create a SongFile
@@ -122,7 +122,7 @@ class QueueAutoFill(TestCase):
         )
 
     def test_auto_fill(self):
-        queue = self.dj_ango.player.queue
+        queue = self.dj_ango.queue
 
         # when we filter songs < 5 minutes
         queue.auto_fill(
@@ -136,7 +136,7 @@ class QueueAutoFill(TestCase):
 
     def test_multiple_files(self):
         """We can have multiple files and get back as many as we ask for"""
-        queue = self.dj_ango.player.queue
+        queue = self.dj_ango.queue
         with TemporaryDirectory() as tempdir:
             silence = open(SILENCE, 'rb').read()
             filesize = len(silence)

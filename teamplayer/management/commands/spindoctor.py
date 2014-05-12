@@ -10,9 +10,6 @@ import signal
 from optparse import make_option
 from time import sleep
 
-from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand
-
 from teamplayer import models
 from teamplayer.conf import settings
 from teamplayer.lib import songs
@@ -20,6 +17,8 @@ from teamplayer.lib.daemon import createDaemon
 from teamplayer.lib.signals import SONG_CHANGE
 from teamplayer.lib.threads import SocketServer, StationThread
 from teamplayer.lib.websocket import SocketHandler
+
+from django.core.management.base import BaseCommand
 
 try:
     from setproctitle import setproctitle
@@ -110,7 +109,7 @@ class Command(BaseCommand):
                 self.shutdown()
 
     def update_dj_ango_queue(self):
-        queue = User.dj_ango().player.queue
+        queue = models.Player.dj_ango().queue
         queue.active = settings.ALWAYS_SHAKE_THINGS_UP
         queue.save()
 
