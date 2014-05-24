@@ -21,8 +21,11 @@ def list_iter(list_, previous=None):
 
     my_list = list_[:]
     if previous is not None:
-        index = my_list.index(previous)
-        my_list = my_list[index + 1:] + my_list[:index + 1]
+        try:
+            index = my_list.index(previous)
+            my_list = my_list[index + 1:] + my_list[:index + 1]
+        except ValueError:
+            pass
 
     for item in my_list:
         yield item
