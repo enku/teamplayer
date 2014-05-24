@@ -265,7 +265,15 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         try:
             os.link(entry_name, fullpath)
         except OSError:
-            shutil.copy(entry_name, fullpath)
+            try:
+                shutil.copy(entry_name, fullpath)
+            except Exception:
+                # Ok, I give up
+                logging.exception(
+                    'Error copying {0} to library.'.format(filename),
+                    exc_info=True
+                )
+                return
 
         # try to add it to the library
         metadata = File(fullpath, easy=True)

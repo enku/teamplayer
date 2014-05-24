@@ -134,3 +134,39 @@ class AutoFindSong(TestCase):
 
         # Then we should get happiness
         self.assertEqual(song, happiness)
+
+    @patch('teamplayer.lib.songs.urllib.request.urlopen')
+    def test_does_not_return_previous_artist(self, mock_open):
+        mock_open.return_value = open(PRINCE_SIMILAR_TXT, 'rb')
+
+        # Given the player's queue...
+        self.player.auto_mode = True
+        self.player.save()
+        queue = self.player.queue
+
+        # Current mood...
+        Mood.objects.create(
+            station=self.main_station,
+            artist='Prince',
+        )
+
+        # And the entries with a song that fits the mood
+        Entry.objects.create(
+            artist='Prince',
+            title='Purple Rain',
+            queue=queue,
+            station=self.main_station
+        )
+        metallica = Entry.objects.create(
+            artist='Metallica',
+            title='Fade to Black',
+            queue=queue,
+            station=self.main_station
+        )
+
+        # When we call auto_find_song with a previous artist being the one that
+        # fits the mood
+        song = songs.auto_find_song('Prince', queue, self.main_station)
+
+        # Then instead of Prince we should get Metallica
+        self.assertEqual(song, metallica)

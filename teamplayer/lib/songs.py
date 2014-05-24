@@ -232,7 +232,9 @@ def auto_find_song(previous_artist, queue, station):
     be found, return the first entry in *queue*. If *queue* is empty,
     return None
     """
-    entries = queue.entry_set.filter(station=station)
+    entries = (queue.entry_set.filter(station=station)
+               .exclude(artist=previous_artist))
+
     if entries.count() == 0:
         return None
 
@@ -244,6 +246,7 @@ def auto_find_song(previous_artist, queue, station):
     one_day = now() - datetime.timedelta(hours=24)
     mood_artists = (models.Mood.objects
                     .filter(timestamp__gt=one_day, station=station)
+                    .exclude(artist=previous_artist)
                     .values('artist')
                     .order_by()
                     .annotate(Count('artist'))
