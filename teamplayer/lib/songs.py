@@ -164,21 +164,6 @@ def get_similar_artists(artist):
     return similar
 
 
-def log_mood(artist, station):
-    """Log the artist and similar artists in the Mood database"""
-    models.Mood.objects.create(
-        artist=artist,
-        station=station
-    )
-
-    similar_artists = get_similar_artists(artist)
-    for artist in similar_artists:
-        models.Mood.objects.create(
-            artist=artist,
-            station=station,
-        )
-
-
 def best_song_from_user(user, station, previous_artist=None):
     """
     Given the user and station, get the best song from the user's queue,

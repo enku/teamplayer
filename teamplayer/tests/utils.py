@@ -59,7 +59,7 @@ class SpinDoctor:
 
         # log "mood"
         threading.Thread(
-            target=teamplayer.lib.songs.log_mood,
+            target=teamplayer.models.Mood.log_mood,
             args=(entry.artist, self.station)
         ).run()
         user = self.previous_user

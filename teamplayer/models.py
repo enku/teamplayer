@@ -226,6 +226,20 @@ class Mood(models.Model):
     class Meta:
         ordering = ('-timestamp', 'artist')
 
+    @classmethod
+    def log_mood(cls, artist, station):
+        """Log the artist and similar artists in the Mood database"""
+        cls.objects.create(
+            artist=artist,
+            station=station
+        )
+
+        similar_artists = lib.songs.get_similar_artists(artist)
+        for artist in similar_artists:
+            cls.objects.create(
+                artist=artist,
+                station=station,
+            )
 
 class Station(models.Model):
     __main_station = None

@@ -88,18 +88,6 @@ class LibSongs(TestCase):
         # then we get a clear image url
         self.assertEqual(result, teamplayer.lib.songs.CLEAR_IMAGE_URL)
 
-    @patch('teamplayer.lib.songs.urlopen')
-    def test_mood(self, mock):
-        mock.return_value = open(PRINCE_SIMILAR_TXT, 'rb')
-        station = teamplayer.models.Station.main_station()
-        self.assertEqual(Mood.objects.all().count(), 0)
-        teamplayer.lib.songs.log_mood('Prince', station)
-        self.assertNotEqual(Mood.objects.all().count(), 0)
-        prince = Mood.objects.filter(artist='Prince', station=station)
-        self.assertEqual(prince.count(), 1)
-        the_time = Mood.objects.filter(artist='The Time', station=station)
-        self.assertTrue(the_time.exists())
-
     def test_find_a_song(self):
         """Test that it can find songs in the queue"""
         station = teamplayer.models.Station.main_station()
@@ -108,6 +96,21 @@ class LibSongs(TestCase):
         song.delete()
         song = teamplayer.lib.songs.find_a_song([self.user], station)
         self.assertEqual(song, None)
+
+
+class MoodTestCase(TestCase):
+    """Test the Mood model."""
+    @patch('teamplayer.lib.songs.urlopen')
+    def test_mood(self, mock):
+        mock.return_value = open(PRINCE_SIMILAR_TXT, 'rb')
+        station = teamplayer.models.Station.main_station()
+        self.assertEqual(Mood.objects.all().count(), 0)
+        Mood.log_mood('Prince', station)
+        self.assertNotEqual(Mood.objects.all().count(), 0)
+        prince = Mood.objects.filter(artist='Prince', station=station)
+        self.assertEqual(prince.count(), 1)
+        the_time = Mood.objects.filter(artist='The Time', station=station)
+        self.assertTrue(the_time.exists())
 
 
 class FirstOrNoneTest(TestCase):

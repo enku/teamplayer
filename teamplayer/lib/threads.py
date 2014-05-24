@@ -14,6 +14,7 @@ from teamplayer.lib import copy_entry_to_queue, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.signals import QUEUE_CHANGE_EVENT, SONG_CHANGE
 from teamplayer.lib.websocket import IPCHandler, SocketHandler
+from teamplayer.models import Mood
 from teamplayer.serializers import EntrySerializer
 
 LOGGER = logging.getLogger('teamplayer.threads')
@@ -73,7 +74,7 @@ class Mooder(threading.Thread):
             if artist == 'Unknown':
                 continue
             LOGGER.debug(u'Logging mood for %s', artist)
-            songs.log_mood(artist, self.station)
+            Mood.log_mood(artist, self.station)
             self.queue.task_done()
 
     def stop(self):
