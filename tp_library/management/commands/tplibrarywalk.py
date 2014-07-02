@@ -1,7 +1,6 @@
 import os
 
 from mutagenx import File
-from mutagenx.mp3 import HeaderNotFoundError
 
 from teamplayer.lib import remove_pedantic
 from teamplayer.models import Player, Station
@@ -39,7 +38,7 @@ class Command(BaseCommand):
 
             try:
                 metadata = File(fullpath, easy=True)
-            except HeaderNotFoundError:
+            except IOError:
                 continue
             if not metadata:
                 continue

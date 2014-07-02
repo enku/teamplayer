@@ -1,11 +1,14 @@
 import json
 import os
+import shutil
+import tempfile
 
 from mock import patch
 
 from teamplayer.models import Entry, Player
 from tp_library.models import SongFile
 
+from django.core import management
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
@@ -116,3 +119,26 @@ class AddSongWithUTF8Filename(TestCase):
         # look in the user's queue, we should have that song
         song = Entry.objects.filter(queue=self.player.queue)
         self.assertEqual(song.count(), 1)
+
+
+class TpLibraryWalkTestCase(TestCase):
+    """Tests for the tplibrarywalk management command"""
+    def setUp(self):
+        self.directory = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.directory)
+        self.directory = None
+
+    def test_bad_flac_file(self):
+        """Bad FLAC file"""
+        # Given the bad flac file
+        filename = 'bad.flac'
+        filename = os.path.join(self.directory, filename)
+        open(filename, 'w').write('This is not a good FLAC file')
+
+        # When we run tplibrarywalk on the directory
+        management.call_command('tplibrarywalk', self.directory)
+
+        # Then it succeeds, but we just don't get any files
+        self.assertEqual(SongFile.objects.all().count(), 0)
