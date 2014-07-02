@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import shutil
 import tempfile
@@ -125,10 +126,14 @@ class TpLibraryWalkTestCase(TestCase):
     """Tests for the tplibrarywalk management command"""
     def setUp(self):
         self.directory = tempfile.mkdtemp()
+        self.logger = logging.getLogger('tplibrarywalk')
+        self.orig_loglevel = self.logger.getEffectiveLevel()
+        self.logger.setLevel(logging.CRITICAL)
 
     def tearDown(self):
         shutil.rmtree(self.directory)
         self.directory = None
+        self.logger.setLevel(self.orig_loglevel)
 
     def test_bad_flac_file(self):
         """Bad FLAC file"""

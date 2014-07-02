@@ -1,3 +1,4 @@
+import logging
 import os
 
 from mutagenx import File
@@ -10,6 +11,8 @@ from django.core.management.base import BaseCommand
 
 # Because Python 3 sucks:
 os.environ.setdefault('LANG', 'en_US.UTF-8')
+
+logger = logging.getLogger('tplibrarywalk')
 
 
 class Command(BaseCommand):
@@ -27,7 +30,7 @@ class Command(BaseCommand):
             for tup in os.walk(path):
                 self._handle_files(*tup)
 
-        print(self.created)
+        logger.info('%s file(s) were added to the library.', self.created)
 
     def _handle_files(self, dirpath, dirnames, filenames):
         player = self.dj_ango
@@ -39,6 +42,8 @@ class Command(BaseCommand):
             try:
                 metadata = File(fullpath, easy=True)
             except IOError:
+                logger.exception('Error adding %s to library', fullpath,
+                                 exc_info=True)
                 continue
             if not metadata:
                 continue
