@@ -30,7 +30,7 @@ setup(
         'django-haystack==2.1.0',
         'mutagenx',
         'python-mpd2',
-        'tornado',
+        'tornado>=3.2,<4.0',
         'djangorestframework==2.3.10'
     ],
     setup_requires=[
