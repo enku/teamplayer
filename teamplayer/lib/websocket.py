@@ -66,6 +66,9 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     def on_pong(self, message):
         pass
 
+    def check_origin(self, origin):
+        return True
+
     @classmethod
     def message(cls, player, message_type, data):
         """Send a message to all connections associated with player"""
