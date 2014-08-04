@@ -12,7 +12,7 @@ from django.core.management.base import BaseCommand
 # Because Python 3 sucks:
 os.environ.setdefault('LANG', 'en_US.UTF-8')
 
-logger = logging.getLogger('tplibrarywalk')
+logger = logging.getLogger('teamplayer.library.walk')
 
 
 class Command(BaseCommand):
@@ -22,6 +22,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.created = 0
+        self.skipped = 0
+        self.errors = 0
         self.station = Station.main_station()
         self.dj_ango = Player.dj_ango()
 
@@ -30,7 +32,9 @@ class Command(BaseCommand):
             for tup in os.walk(path):
                 self._handle_files(*tup)
 
-        logger.info('%s file(s) were added to the library.', self.created)
+        logger.info('added:   %s', self.created)
+        logger.info('errors:  %s', self.errors)
+        logger.info('skipped: %s', self.skipped)
 
     def _handle_files(self, dirpath, dirnames, filenames):
         player = self.dj_ango
@@ -44,6 +48,7 @@ class Command(BaseCommand):
             except IOError:
                 logger.exception('Error adding %s to library', fullpath,
                                  exc_info=True)
+                self.errors += 1
                 continue
             if not metadata:
                 continue
@@ -55,7 +60,10 @@ class Command(BaseCommand):
                 station_id
             )
             if created:
+                logger.info('added "%s" by %s', songfile.title, songfile.artist)
                 self.created += 1
+            else:
+                self.skipped += 1
 
 
 remove_pedantic()
