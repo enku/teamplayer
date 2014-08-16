@@ -5,7 +5,6 @@ import datetime
 import logging
 import os
 import random
-import uuid
 
 from . import lib
 from .conf import settings
@@ -241,6 +240,7 @@ class Mood(models.Model):
                 station=station,
             )
 
+
 class Station(models.Model):
     __main_station = None
 
@@ -314,28 +314,6 @@ class Station(models.Model):
         return cls.__main_station
 
 
-class AuthToken(models.Model):
-
-    """XMLRPC Authentication token"""
-
-    life_span = datetime.timedelta(seconds=1800)
-    timestamp = models.DateTimeField()
-    string = models.CharField(max_length=36, unique=True)
-
-    def save(self, *args, **kwargs):
-        self.timestamp = datetime.datetime.now()
-        if not self.string:
-            self.string = str(uuid.uuid4(), encoding='ascii')
-        return super(AuthToken, self).save(*args, **kwargs)
-
-    def is_valid(self):
-        """Return True iff the token is still valid"""
-        return datetime.datetime.now() - self.timestamp <= self.life_span
-
-    def __str__(self):
-        return self.string
-
-
 class PlayerManager(models.Manager):
 
     def create_player(self, username, **kwargs):
@@ -363,7 +341,6 @@ class Player(models.Model):
     objects = PlayerManager()
     user = models.OneToOneField(User, unique=True, related_name='player')
     queue = models.OneToOneField(Queue)
-    auth_token = models.OneToOneField(AuthToken, null=True, blank=True)
     dj_name = models.CharField(blank=True, max_length=25)
     auto_mode = models.BooleanField(default=False)
 

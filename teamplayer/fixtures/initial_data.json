@@ -29,7 +29,6 @@
     "model": "teamplayer.player", 
     "fields": {
         "auto_mode": true, 
-        "auth_token": null, 
         "dj_name": "", 
         "queue": 1, 
         "user": [
