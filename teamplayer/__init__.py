@@ -8,8 +8,8 @@ VERSION = (2, 2, 0, 'final')
 REVISION = None
 
 
-def version_string(show_revision=True):
-    """Return VERSION as a string.
+def version_string(version=VERSION, show_revision=True):
+    """Return *version* as a string.
 
     If inside a mercurial repo and "hg" is available, also append the revision
     hash.
@@ -29,10 +29,10 @@ def version_string(show_revision=True):
         except OSError:
             REVISION = ''
 
-    string = '.'.join(str(i) for i in VERSION[:3])
+    string = '.'.join(str(i) for i in version[:3])
 
-    if VERSION[3] != 'final':
-        string = '{0}-{1}'.format(string, VERSION[3])
+    if version[3] != 'final':
+        string = '{0}-{1}'.format(string, version[3])
 
     if REVISION:
         string = '{0} ({1})'.format(string, REVISION)

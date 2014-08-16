@@ -4,6 +4,19 @@ Views for the teamplayer django app
 import json
 from urllib.parse import quote_plus
 
+import django
+from django.contrib import messages
+from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.core.files import File
+from django.core.urlresolvers import reverse
+from django.db import transaction
+from django.db.models import Count, Sum
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render_to_response
+from django.template import RequestContext
+from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -24,20 +37,6 @@ from teamplayer.serializers import (
     StationSerializer
 )
 from tp_library.models import SongFile
-
-import django
-from django.contrib import messages
-from django.contrib.auth import logout as auth_logout
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
-from django.core.files import File
-from django.core.urlresolvers import reverse
-from django.db import transaction
-from django.db.models import Count, Sum
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect, render_to_response
-from django.template import RequestContext
-from django.views.decorators.http import require_POST
 
 YEAR_IN_SECS = 365 * 24 * 60 * 60
 
@@ -487,6 +486,7 @@ def crash(_request):
     raise Exception('crash forced')
 
 
+@login_required
 def js_object(request):
     """Exposes the TeamPlayer JavaScript namespace"""
 

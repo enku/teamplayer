@@ -4,7 +4,6 @@ import re
 
 import django.core.urlresolvers
 import django.test
-
 from mock import patch
 
 from teamplayer.models import Player
@@ -240,3 +239,24 @@ class RegistrationTest(TestCase):
 
         # Then it doesn't show up.
         self.assertNotContains(response, 'next station')
+
+
+class JSObjectTest(TestCase):
+    """Tests for the js_object() view"""
+    view = 'teamplayer.views.js_object'
+
+    def setUp(self):
+        # create a player
+        self.player = Player.objects.create_player(username='test',
+                                                   password='test')
+        self.client.login(username='test', password='test')
+
+    def test_view(self):
+        # Given the js_object url
+        url = reverse(self.view)
+
+        # When we view it
+        response = self.client.get(url)
+
+        # Then we get a big javascript object
+        self.assertContains(response, 'var TeamPlayer =')

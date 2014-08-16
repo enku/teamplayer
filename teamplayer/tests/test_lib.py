@@ -1,12 +1,11 @@
 """Unit tests for TeamPlayer lib functions"""
-import django.test
-import django.core.urlresolvers
 import django.contrib.auth.models
-
+import django.core.urlresolvers
+import django.test
 import mock
 
 import teamplayer.models
-
+from teamplayer import version_string
 from teamplayer.tests import utils
 
 ARTIST_XML = utils.ARTIST_XML
@@ -166,3 +165,40 @@ class FirstOrNoneTest(TestCase):
             ),
             'there'
         )
+
+
+class VersionStringTest(TestCase):
+    """Tests for version_string()"""
+    # While not a part of lib., per-se, this is probably the best place to put
+    # it instead of creating a new module just for one function
+    def test_show_revision(self):
+        # Given the version tuple
+        version = (2, 0, 0, 'final')
+
+        # When we call version_string() on it
+        result = version_string(version, show_revision=True)
+
+        # Then we get the expected string
+        self.assertRegex(result, r'^2\.0\.0 \([0-9a-f]+')
+
+    def test_final(self):
+        # Given the version tuple with "final" in it
+        version = (2, 0, 0, 'final')
+
+        # When we call version_string() on it
+        result = version_string(version, show_revision=False)
+
+        # Then we get the expected string
+        expected = '2.0.0'
+        self.assertEqual(result, expected)
+
+    def test_not_final(self):
+        # Given the version tuple without "final" in it
+        version = (2, 0, 0, 'beta1')
+
+        # When we call version_string() on it
+        result = version_string(version, show_revision=False)
+
+        # Then we get the expected string
+        expected = '2.0.0-beta1'
+        self.assertEqual(result, expected)

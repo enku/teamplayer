@@ -2,16 +2,15 @@
 import os
 from tempfile import TemporaryDirectory
 
+import django.contrib.auth.models
+import django.core.files.uploadedfile
+import django.core.urlresolvers
+import django.test
 import mock
 
 from teamplayer.models import Entry, Player, Station
 from teamplayer.tests import utils
 from tp_library.models import SongFile
-
-import django.contrib.auth.models
-import django.core.files.uploadedfile
-import django.core.urlresolvers
-import django.test
 
 SILENCE = utils.SILENCE
 METALLICA_SIMILAR_TXT = utils.METALLICA_SIMILAR_TXT
@@ -25,13 +24,58 @@ reverse = django.core.urlresolvers.reverse
 
 
 class PlayerTestCase(TestCase):
+    def setUp(self):
+        self.player = Player.objects.create_player('test_player',
+                                                   password='test')
+
     def test_create_player(self):
-        player = Player.objects.create_player('test_player', password='test')
+        player = self.player
         self.assertEqual(player.username, 'test_player')
         self.assertTrue(hasattr(player, 'queue'))
 
         logged_in = self.client.login(username='test_player', password='test')
         self.assertTrue(logged_in)
+
+    def test_str(self):
+        # Given the player
+        player = self.player
+
+        # When we str() it
+        result = str(player)
+
+        # Then we get the username
+        self.assertEqual(result, player.user.username)
+
+    def test_toggle_auto_mode(self):
+        # Given the player
+        player = self.player
+
+        # When toggle_auto_mode is called
+        result = player.toggle_auto_mode()
+
+        # Then auto mode is turned on
+        self.assertTrue(result)
+        self.assertTrue(player.auto_mode)
+
+        # When toggle_auto_mode is called again
+        result = player.toggle_auto_mode()
+
+        # Then auto mode is turned off
+        self.assertFalse(result)
+        self.assertFalse(player.auto_mode)
+
+    def test_player_stats_property(self):
+        # Given the Player class
+        # When we access the player_stats classmethod
+        result = Player.player_stats()
+
+        expected = {
+            'active_queues': 1,
+            'songs': 0,
+            'stations': 1,
+        }
+        # Then we get stats
+        self.assertEqual(result, expected)
 
 
 class QueueTestCase(TestCase):
@@ -102,6 +146,56 @@ class Queue(TestCase):
         new_order = list(reversed(order))
         result = self.player.queue.reorder(new_order)
         self.assertEqual(new_order, [x['id'] for x in result])
+
+    def test_str(self):
+        """str()"""
+        # Given the queue
+        queue = self.player.queue
+
+        result = str(queue)
+        self.assertEqual(result, "test's Queue")
+
+    def test_add_song_with_extension(self):
+        queue = self.player.queue
+
+        with open(SILENCE, 'rb') as fp:
+            # Given the song_file with no extension
+            song_file = UploadedFile(fp, 'silence.mp3')
+
+            # When we add the file to our queue
+            result = queue.add_song(song_file, self.station)
+
+            # Then we get an entry whos filename has the same extension
+            self.assertTrue(isinstance(result, Entry))
+            self.assertTrue(result.song.name.endswith('.mp3'))
+
+    def test_add_song_with_no_extension(self):
+        queue = self.player.queue
+
+        with open(SILENCE, 'rb') as fp:
+            # Given the song_file with no extension
+            song_file = UploadedFile(fp, 'test_no_extension')
+
+            # When we add the file to our queue
+            result = queue.add_song(song_file, self.station)
+
+            # Then we get an entry, but the entry's file has no extension
+            self.assertTrue(isinstance(result, Entry))
+            self.assertFalse('.' in result.song.name)
+
+    def test_queue_user_property(self):
+        queue = self.player.queue
+        user = self.player.user
+        self.assertEqual(queue.user, user)
+
+    def test_toggle_status(self):
+        queue = self.player.queue
+        original_status = queue.active
+
+        queue.toggle_status()
+
+        new_status = queue.active
+        self.assertNotEqual(new_status, original_status)
 
 
 class QueueAutoFill(TestCase):
