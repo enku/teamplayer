@@ -10,7 +10,7 @@ except ImportError:
     AppConfig = object
 
 
-VERSION = (2, 2, 0, 'final')
+VERSION = (2, 3, 0, 'final')
 REVISION = None
 
 
