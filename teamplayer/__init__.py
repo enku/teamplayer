@@ -4,6 +4,12 @@ Welcome to TeamPlayer: The Democratic Internet Radio Station
 import os
 import subprocess
 
+try:
+    from django.apps import AppConfig
+except ImportError:
+    AppConfig = object
+
+
 VERSION = (2, 2, 0, 'final')
 REVISION = None
 
@@ -38,3 +44,11 @@ def version_string(version=VERSION, show_revision=True):
         string = '{0} ({1})'.format(string, REVISION)
 
     return string
+
+
+class TeamPlayerConfig(AppConfig):
+    name = 'teamplayer'
+    label = 'teamplayer'
+    verbose_name = 'TeamPlayer'
+
+default_app_config = 'teamplayer.TeamPlayerConfig'

@@ -271,7 +271,7 @@ def currently_playing(request):
 
 @login_required
 @require_POST
-@transaction.commit_on_success
+@transaction.atomic
 def reorder_queue(request):
     """
     Given comma-delimited string (of integers), re-order queue

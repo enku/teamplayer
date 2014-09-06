@@ -56,7 +56,7 @@ class Queue(models.Model):
         entry.save()
         return entry
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def randomize(self, station):
         """Randomize entries in the queue """
         for entry in self.entry_set.filter(station=station):
@@ -64,7 +64,7 @@ class Queue(models.Model):
             entry.save()
         return
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def reorder(self, id_list):
         """Reorder entries in queue accoring to entry.ids in id_list"""
         for order, i in enumerate(reversed(id_list)):
@@ -80,7 +80,7 @@ class Queue(models.Model):
 
         return self.entry_set.values('id', 'artist', 'title')
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def order_by_rank(self, station):
         """Set the each Entry's .place field by it's artist rank"""
         for entry in self.entry_set.filter(station=station):
