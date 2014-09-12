@@ -32,6 +32,31 @@ class ScrobbleSongError(TestCase):
         # Then the exception is not propogated and we just get a False return
         self.assertEqual(status, False)
 
+    @patch('teamplayer.lib.songs.scrobbler.submit')
+    @patch('teamplayer.lib.songs.scrobbler.login')
+    def test_timeout_error(self, mock_login, mock_submit):
+        # given the "song"
+        song = {
+            'artist': 'Prince',
+            'title': 'Purple Rain',
+            'total_time': 500,
+        }
+
+        # when we scrobble it and the scrobbler raises TimeoutError
+        calls = 0
+
+        def side_effect(*args, **kwargs):
+            nonlocal calls
+            calls = calls + 1
+            if calls == 1:  # first call
+                raise TimeoutError
+            return
+        mock_submit.side_effect = side_effect
+        status = songs.scrobble_song(song)
+
+        # Then the exception is not propogated and it just logs in again
+        self.assertEqual(status, True)
+
 
 class AutoFindSong(TestCase):
     def setUp(self):

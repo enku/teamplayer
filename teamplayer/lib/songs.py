@@ -294,7 +294,7 @@ def scrobble_song(song, now_playing=False):
     except (URLError, HTTPException, scrobbler.ProtocolError):
         LOGGER.error('Error scrobbing song: %s', song, exc_info=True)
         return False
-    except (scrobbler.SessionError, scrobbler.BackendError):
+    except (scrobbler.SessionError, scrobbler.BackendError, OSError):
         # usually this means our session timed out, just log in again
         try:
             scrobbler.login(settings.SCROBBLER_USER,
