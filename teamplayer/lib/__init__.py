@@ -7,10 +7,10 @@ import tempfile
 import uuid
 
 from django.conf import settings as django_settings
-from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User
-from django.utils.timezone import utc
+from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.timezone import utc
 
 CHUNKSIZE = 64 * 1024
 LOGGER = logging.getLogger('teamplayer.lib')
@@ -140,6 +140,6 @@ def remove_pedantic():
     """
     Set the PEDANTIC attribute on the ID3 class to False.
     """
-    from mutagenx import id3
+    from mutagen import id3
 
     id3.ID3.PEDANTIC = False

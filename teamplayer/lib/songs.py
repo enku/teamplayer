@@ -13,14 +13,13 @@ from urllib.error import URLError
 from urllib.request import urlopen
 from xml.etree import ElementTree
 
-from mutagenx import File
+from django.conf import settings as django_settings
+from django.db.models import Count
+from mutagen import File
 
 from teamplayer import models, scrobbler
 from teamplayer.conf import settings
 from teamplayer.lib import first_or_none, list_iter, now, remove_pedantic
-
-from django.conf import settings as django_settings
-from django.db.models import Count
 
 LOGGER = logging.getLogger('teamplayer.songlib')
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'

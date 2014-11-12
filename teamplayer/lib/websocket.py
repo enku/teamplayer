@@ -10,7 +10,9 @@ from json import dumps, loads
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
-from mutagenx import File
+from django.conf import settings as django_settings
+from django.core.exceptions import ObjectDoesNotExist
+from mutagen import File
 from tornado.ioloop import IOLoop
 
 from teamplayer import models
@@ -24,9 +26,6 @@ from teamplayer.lib import (
 from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.serializers import StationSerializer
 from tp_library.models import SongFile
-
-from django.conf import settings as django_settings
-from django.core.exceptions import ObjectDoesNotExist
 
 LOGGER = logging.getLogger('teamplayer.websockets')
 
