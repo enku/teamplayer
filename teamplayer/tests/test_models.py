@@ -1,12 +1,12 @@
 """Unit tests for the TeamPlayer Django app"""
 import os
 from tempfile import TemporaryDirectory
+from unittest import mock
 
 import django.contrib.auth.models
 import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
-import mock
 
 from teamplayer.models import Entry, Player, Station
 from teamplayer.tests import utils

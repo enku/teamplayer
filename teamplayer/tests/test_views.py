@@ -1,10 +1,10 @@
 """Unit tests for teamplayer views."""
 import json
 import re
+from unittest.mock import patch
 
 import django.core.urlresolvers
 import django.test
-from mock import patch
 
 from teamplayer.models import Player
 from teamplayer.tests import utils

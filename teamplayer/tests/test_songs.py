@@ -1,14 +1,13 @@
 from io import BytesIO
+from unittest.mock import patch
 
-from mock import patch
+from django.core.urlresolvers import reverse
+from django.test import TestCase
 
 from teamplayer import scrobbler
 from teamplayer.lib import songs
 from teamplayer.models import Entry, Mood, Player, Station
 from teamplayer.tests import utils
-
-from django.core.urlresolvers import reverse
-from django.test import TestCase
 
 PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
 

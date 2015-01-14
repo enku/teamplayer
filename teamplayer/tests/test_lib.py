@@ -1,8 +1,9 @@
 """Unit tests for TeamPlayer lib functions"""
+from unittest import mock
+
 import django.contrib.auth.models
 import django.core.urlresolvers
 import django.test
-import mock
 
 import teamplayer.models
 from teamplayer import version_string

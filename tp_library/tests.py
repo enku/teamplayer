@@ -3,15 +3,14 @@ import logging
 import os
 import shutil
 import tempfile
-
-from mock import patch
-
-from teamplayer.models import Entry, Player
-from tp_library.models import SongFile
+from unittest.mock import patch
 
 from django.core import management
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+
+from teamplayer.models import Entry, Player
+from tp_library.models import SongFile
 
 __dir__ = os.path.dirname(__file__)
 SILENCE = os.path.join(__dir__, '..', 'teamplayer', 'tests', 'data',
