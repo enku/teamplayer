@@ -78,7 +78,7 @@ class PlayerTestCase(TestCase):
         self.assertEqual(result, expected)
 
 
-class QueueTestCase(TestCase):
+class QueueViewsTestCase(TestCase):
 
     def setUp(self):
         self.user_data = {
@@ -124,7 +124,7 @@ class QueueTestCase(TestCase):
         self.assertEqual(self.player.queue.entry_set.count(), 0)
 
 
-class Queue(TestCase):
+class QueueTestCase(TestCase):
 
     """
     Test various operations on the Queue model
