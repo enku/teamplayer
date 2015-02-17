@@ -220,7 +220,7 @@ class Mood(models.Model):
     timestamp = models.DateTimeField(auto_now=True, auto_now_add=True)
 
     def __str__(self):
-        return u'%s: %s' % (self.artist, self.date)
+        return u'%s: %s' % (self.artist, self.timestamp)
 
     class Meta:
         ordering = ('-timestamp', 'artist')

@@ -8,7 +8,7 @@ import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
 
-from teamplayer.models import Entry, Player, Station
+from teamplayer.models import Entry, Mood, Player, Station
 from teamplayer.tests import utils
 from tp_library.models import SongFile
 
@@ -515,3 +515,17 @@ class QueueMasterTestCase(TestCase):
         current = self.spin.next(
         )  # should preempt Metallica and play The Time
         self.assertEqual(current[1], 'Metallica')
+
+
+class MoodTestCase(TestCase):
+    """Tests for the Mood model"""
+    def test_str(self):
+        # Given the Mood object
+        station = Station.main_station()
+        mood = Mood.objects.create(station=station, artist='Sleigh Bells')
+
+        # then when we call str() on it
+        result = str(mood)
+
+        # then we get the expected result
+        self.assertTrue('Sleigh Bells' in result)
