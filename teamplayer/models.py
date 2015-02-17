@@ -194,7 +194,7 @@ class Queue(models.Model):
 
         liked_songs = []
         for artist in top_artists:
-            song = queryset.filter(artist=artist)
+            song = queryset.filter(artist__iexact=artist)
             if not song.exists():
                 continue
             index = random.randint(1, song.count()) - 1
@@ -242,7 +242,7 @@ class Entry(models.Model):
         Return the artist's Mood.count for this artist
         """
         qs = Mood.objects.filter(
-            artist=self.artist,
+            artist__iexact=self.artist,
             station=station,
             timestamp__gt=lib.now() - datetime.timedelta(hours=24)
         )
