@@ -125,6 +125,9 @@ class Queue(models.Model):
 
         if settings.AUTOFILL_STRATEGY == 'contiguous':
             song_files = self.auto_fill_contiguous(song_files, entries_needed)
+        elif settings.AUTOFILL_STRATEGY == 'mood':
+            song_files = self.auto_fill_mood(song_files, entries_needed,
+                                             station=station)
         else:
             song_files = self.auto_fill_random(song_files, entries_needed)
 
