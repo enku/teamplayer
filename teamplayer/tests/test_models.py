@@ -8,7 +8,7 @@ import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
 
-from teamplayer.models import Entry, Mood, Player, Station
+from teamplayer.models import Entry, Mood, Player, Queue, Station
 from teamplayer.tests import utils
 from tp_library.models import SongFile
 
@@ -196,6 +196,54 @@ class QueueTestCase(TestCase):
 
         new_status = queue.active
         self.assertNotEqual(new_status, original_status)
+
+    def test_auto_fill_mood(self):
+        # given the set of songs in our library
+        songs = (
+            ('Madonna', 'True Blue'),
+            ('Sleigh Bells', 'End of the Line'),
+            ('The Love Language', 'Heart to Tell'),
+            ('Pace is the Trick', 'Interpol'),
+            ('Wander (Through the Night)', 'The B of the Bang'),
+            ('Lord We Ganstas', 'Slipstick'),
+            ('Grammy', 'Purity Ring'),
+            ('Bullet in the Head', 'Gvcci Hvcci')
+        )
+        dj_ango = Player.dj_ango()
+        main_station = Station.main_station()
+        for song in songs:
+            SongFile.objects.create(
+                artist=song[0],
+                title=song[1],
+                filename='{0}-{1}.mp3'.format(*song),
+                filesize=80000,
+                album="Marduk's Mix Tape",
+                genre="Unknown",
+                station_id=main_station.pk,
+                added_by=dj_ango,
+            )
+
+        # and the current mood
+        Mood.objects.create(station=main_station, artist='Sleigh Bells')
+        Mood.objects.create(station=main_station, artist='Crystal Castles')
+        Mood.objects.create(station=main_station, artist='Sleigh Bells')
+        Mood.objects.create(station=main_station, artist='Prince')
+        Mood.objects.create(station=main_station, artist='Prince')
+        Mood.objects.create(station=main_station, artist='Prince')
+
+        # when we call Queue.auto_fill_mood()
+        qs = SongFile.objects.all()
+        needed = 2
+        result = list(Queue.auto_fill_mood(qs, needed))
+
+        # Then we get the expected two songs
+        self.assertEqual(len(result), 2)
+
+        # And the first song should be Sleigh Bells
+        self.assertEqual(result[0].artist, 'Sleigh Bells')
+
+        # And the second artists should be random but not the sleigh bells song
+        self.assertNotEqual(result[1].artist, 'Sleigh Bells')
 
 
 class QueueAutoFill(TestCase):

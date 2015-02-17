@@ -10,6 +10,7 @@ from django.conf import settings as django_settings
 from django.contrib.auth.models import User
 from django.core.files import File
 from django.db import models, transaction
+from django.db.models import Count
 
 from . import lib
 from .conf import settings
@@ -169,6 +170,43 @@ class Queue(models.Model):
         first_song_idx = random.randint(0, min_first_song)
         song_files = queryset[first_song_idx:first_song_idx + entries_needed]
         return set(song_files)
+
+    @staticmethod
+    def auto_fill_mood(queryset, entries_needed, station=None):
+        """Return at most *entries_needed* SongFIles from the *queryset*.
+
+        The songs are selected depending on the current "mood".
+        """
+        onehourago = datetime.datetime.now() - datetime.timedelta(seconds=3600)
+        station = station or Station.main_station()
+        top_artists = Mood.objects.filter(timestamp__gte=onehourago,
+                                          station=station)
+        top_artists = Mood.objects.exclude(artist='')
+        top_artists = top_artists.values('artist')
+        top_artists = top_artists.annotate(Count('id'))
+        top_artists = top_artists.order_by('-id__count')
+        top_artists = top_artists[:250]
+        top_artists = [i['artist'] for i in top_artists]
+
+        liked_songs = []
+        for artist in top_artists:
+            song = queryset.filter(artist=artist)
+            song.order_by('?')
+            if not song.exists():
+                continue
+            liked_songs.append(song[0])
+
+            if len(liked_songs) == entries_needed:
+                break
+
+        still_needed = entries_needed - len(liked_songs)
+        if still_needed:
+            # just get some random stuff
+            q = queryset.exclude(pk__in=[i.pk for i in liked_songs])
+            additional = Queue.auto_fill_random(q, still_needed)
+        else:
+            additional = []
+        return liked_songs + list(additional)
 
 
 class Entry(models.Model):
