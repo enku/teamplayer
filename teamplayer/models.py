@@ -6,13 +6,13 @@ import logging
 import os
 import random
 
-from . import lib
-from .conf import settings
-
 from django.conf import settings as django_settings
 from django.contrib.auth.models import User
 from django.core.files import File
 from django.db import models, transaction
+
+from . import lib
+from .conf import settings
 
 DJ_ANGO = None
 LOGGER = logging.getLogger('teamplayer.models')
