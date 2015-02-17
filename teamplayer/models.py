@@ -190,14 +190,15 @@ class Queue(models.Model):
         top_artists = top_artists.order_by('-id__count')
         top_artists = top_artists[:250]
         top_artists = [i['artist'] for i in top_artists]
+        random.shuffle(top_artists)
 
         liked_songs = []
         for artist in top_artists:
             song = queryset.filter(artist=artist)
-            song.order_by('?')
             if not song.exists():
                 continue
-            liked_songs.append(song[0])
+            index = random.randint(1, song.count()) - 1
+            liked_songs.append(song[index])
 
             if len(liked_songs) == entries_needed:
                 break
