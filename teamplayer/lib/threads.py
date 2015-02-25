@@ -1,6 +1,5 @@
 """Thread classes and helpers for TeamPlayer."""
 import logging
-import queue
 import shutil
 import threading
 from time import sleep
@@ -28,31 +27,13 @@ def scrobble_song(song, now_playing=False):
         songs.scrobble_song(song, now_playing=now_playing)
 
 
-class Mooder(threading.Thread):
-    """Thread for handling the mood
-
-    This Thread will listen on a queue for artist to set moods for and set
-    update the mood database indefinately
-    """
-    def __init__(self, *args, **kwargs):
-        self.station = kwargs.pop('station')
-        super(Mooder, self).__init__(*args, **kwargs)
-
-    def run(self):
-        LOGGER.info('%s has started', self.name)
-        self.running = True
-        while self.running:
-            artist = self.queue.get()
-            if artist == 'Unknown':
-                continue
-            LOGGER.debug(u'Logging mood for %s', artist)
-            Mood.log_mood(artist, self.station)
-            self.queue.task_done()
-
-    def stop(self):
-        LOGGER.info('%s shutting down.' % self.name)
-        self.running = False
-        self.queue.put('Unknown')
+@tornado.gen.coroutine
+def log_mood(artist, station):
+    """Record the mood for the given artist and station"""
+    if artist == 'Unknown':
+        return
+    LOGGER.debug(u'Logging mood for %s', artist)
+    Mood.log_mood(artist, station)
 
 
 class StationThread(threading.Thread):
@@ -67,7 +48,6 @@ class StationThread(threading.Thread):
     def __init__(self, *args, **kwargs):
         self.station = kwargs.pop('station')
         super(StationThread, self).__init__(*args, **kwargs)
-        name = 'Station %s' % (self.name if self.station else '0')
 
         self.running = False
         self.mpc = MPC(self.station)
@@ -75,14 +55,6 @@ class StationThread(threading.Thread):
                          and self.station == Station.main_station())
         self.previous_player = None
         self.previous_song = None
-
-        # set up the Mood thread
-        self.mooder = Mooder(
-            name='Mooder for %s' % name,
-            station=self.station,
-        )
-        self.mooder.daemon = True
-        self.mooder.queue = queue.Queue()
 
     @classmethod
     def create(cls, station):
@@ -128,7 +100,6 @@ class StationThread(threading.Thread):
     def run(self):
         LOGGER.debug('Starting %s', self.name)
         self.mpc.create_config().start()
-        self.mooder.start()
         self.running = True
         self.dj_ango = Player.dj_ango()
 
@@ -199,7 +170,7 @@ class StationThread(threading.Thread):
 
             # log "mood"
             if entry.queue.player != self.dj_ango:
-                self.mooder.queue.put(entry.artist)
+                log_mood(entry.artist, self.station)
 
             # delete files not in playlist
             self.mpc.purge_queue_dir()
@@ -207,7 +178,6 @@ class StationThread(threading.Thread):
     def stop(self):
         LOGGER.critical('%s Shutting down' % self.name)
         self.mpc.stop()
-        self.mooder.stop()
         self.running = False
 
 
