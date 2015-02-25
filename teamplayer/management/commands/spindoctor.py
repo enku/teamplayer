@@ -10,15 +10,12 @@ import signal
 from optparse import make_option
 from time import sleep
 
+from django.core.management.base import BaseCommand
+
 from teamplayer import models
 from teamplayer.conf import settings
-from teamplayer.lib import songs
 from teamplayer.lib.daemon import createDaemon
-from teamplayer.lib.signals import SONG_CHANGE
 from teamplayer.lib.threads import SocketServer, StationThread
-from teamplayer.lib.websocket import SocketHandler
-
-from django.core.management.base import BaseCommand
 
 try:
     from setproctitle import setproctitle
@@ -30,29 +27,6 @@ PLAYING_REGEX = re.compile(
     r'^\[playing\] #\d+/\d+ +(\d+:\d{2})/(\d+:\d{2}) .*')
 
 LOGGER = logging.getLogger('teamplayer.spindoctor')
-
-
-def scrobble_song(sender, **kwargs):
-    """Signal handler to scrobble when a song changes."""
-    station_id = kwargs['station_id']
-
-    # only the Main Station scrobbles
-    if station_id != models.Station.main_station().id:
-        return
-
-    previous_song = kwargs['previous_song']
-    current_song = kwargs['current_song']
-
-    if previous_song and previous_song['artist'] != 'DJ Ango':
-        LOGGER.debug(u'Scrobbling “%s” by %s',
-                     previous_song['title'],
-                     previous_song['artist'])
-        songs.scrobble_song(previous_song)
-    if current_song['artist'] != 'DJ Ango':
-        LOGGER.debug(u'Currently playing “%s” by %s',
-                     current_song['title'],
-                     current_song['artist'])
-        songs.scrobble_song(current_song, now_playing=True)
 
 
 class Command(BaseCommand):
@@ -76,13 +50,6 @@ class Command(BaseCommand):
         self.previous_user = None
         self.previous_song = None
         self.running = False
-
-        SONG_CHANGE.connect(SocketHandler.notify_clients)
-
-        if settings.SCROBBLER_USER:
-            # Set up the Scrobber
-            SONG_CHANGE.connect(scrobble_song)
-
         self.socket_server = SocketServer(name='Socket Server')
 
     def handle(self, *args, **options):

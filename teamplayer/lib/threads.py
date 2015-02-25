@@ -5,54 +5,27 @@ import shutil
 import threading
 from time import sleep
 
-import mpd
+import tornado.gen
 import tornado.web
 
 from teamplayer.conf import settings
 from teamplayer.lib import copy_entry_to_queue, songs
 from teamplayer.lib.mpc import MPC
-from teamplayer.lib.signals import QUEUE_CHANGE_EVENT, SONG_CHANGE
+from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.lib.websocket import IPCHandler, SocketHandler
-from teamplayer.models import Mood, Player
+from teamplayer.models import Mood, Player, Station
 from teamplayer.serializers import EntrySerializer
 
 LOGGER = logging.getLogger('teamplayer.threads')
 
 
-class EventThread(threading.Thread):
-    """Thread to events.
-
-    Currently it only supports sending the SONG_CHANGE signal.
-
-    This Thread will listen on a queue and emit a signal whenever a new
-    song starts.
-    """
-    def __init__(self, *args, **kwargs):
-        self.mpc = kwargs.pop('mpc')
-        super(EventThread, self).__init__(*args, **kwargs)
-        self.running = False
-
-    def run(self):
-        LOGGER.info('%s has started', self.name)
-        self.running = True
-        previous_song = None
-        while self.running:
-            try:
-                self.mpc.call('idle', 'player')
-            except mpd.ConnectionError:
-                if self.running:
-                    LOGGER.error('%s: mpd connection lost.', self.name)
-                    sleep(30)
-                continue
-            current_song = self.mpc.currently_playing()
-            SONG_CHANGE.send(sender=self,
-                             station_id=self.mpc.station_id,
-                             previous_song=previous_song,
-                             current_song=current_song)
-            previous_song = current_song
-
-    def stop(self):
-        self.running = False
+@tornado.gen.coroutine
+def scrobble_song(song, now_playing=False):
+    """Signal handler to scrobble when a song changes."""
+    # only the Main Station scrobbles
+    if song and song['artist'] != 'DJ Ango':
+        LOGGER.debug(u'Scrobbling “%s” by %s', song['title'], song['artist'])
+        songs.scrobble_song(song, now_playing=now_playing)
 
 
 class Mooder(threading.Thread):
@@ -98,6 +71,8 @@ class StationThread(threading.Thread):
 
         self.running = False
         self.mpc = MPC(self.station)
+        self.scrobble = (settings.SCROBBLER_USER
+                         and self.station == Station.main_station())
         self.previous_player = None
         self.previous_song = None
 
@@ -108,11 +83,6 @@ class StationThread(threading.Thread):
         )
         self.mooder.daemon = True
         self.mooder.queue = queue.Queue()
-
-        self.event_thread = EventThread(
-            name='EventThread for %s' % name,
-            mpc=self.mpc,
-        )
 
     @classmethod
     def create(cls, station):
@@ -159,12 +129,8 @@ class StationThread(threading.Thread):
         LOGGER.debug('Starting %s', self.name)
         self.mpc.create_config().start()
         self.mooder.start()
-        self.event_thread.start()
         self.running = True
         self.dj_ango = Player.dj_ango()
-
-        while not self.event_thread.running:
-            sleep(1)
 
         while self.running:
             playlist = self.mpc.call('playlist')
@@ -183,7 +149,13 @@ class StationThread(threading.Thread):
                 secs = (current_song['remaining_time']
                         - self.secs_to_inject_new_song)
                 LOGGER.debug('%s: Waiting %s seconds', self.name, secs)
+                SocketHandler.notify_clients(current_song=current_song)
+                if self.scrobble:
+                    scrobble_song(current_song, True)
                 self.mpc.idle_or_wait(secs)
+
+            if self.scrobble:
+                scrobble_song(current_song, False)
 
             artist = self.mpc.get_last_artist(playlist)
             artist = None if artist == 'TeamPlayer' else artist
@@ -222,7 +194,8 @@ class StationThread(threading.Thread):
             self.mpc.add_file_to_playlist(new_filename)
             entry_dict = EntrySerializer(entry).data
             entry.delete()
-            SocketHandler.message(entry.queue.player, 'song_removed', entry_dict)
+            SocketHandler.message(entry.queue.player, 'song_removed',
+                                  entry_dict)
 
             # log "mood"
             if entry.queue.player != self.dj_ango:
@@ -233,7 +206,6 @@ class StationThread(threading.Thread):
 
     def stop(self):
         LOGGER.critical('%s Shutting down' % self.name)
-        self.event_thread.stop()
         self.mpc.stop()
         self.mooder.stop()
         self.running = False
