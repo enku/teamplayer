@@ -97,6 +97,21 @@ class StationThread(threading.Thread):
         """Return a dict of all station threads."""
         return cls.__station_threads.copy()
 
+    def wait_for(self, song):
+        """Let clients and scrobbler know the song is playing and wait to end"""
+        SocketHandler.notify_clients(current_song=song)
+
+        if self.scrobble:
+            scrobble_song(song, True)
+
+        secs = song['remaining_time'] - self.secs_to_inject_new_song
+        secs = max(0, secs)
+        LOGGER.debug('%s: Waiting %s seconds', self.name, secs)
+        self.mpc.idle_or_wait(secs)
+
+        if self.scrobble:
+            scrobble_song(song, False)
+
     def run(self):
         LOGGER.debug('Starting %s', self.name)
         self.mpc.create_config().start()
@@ -105,28 +120,19 @@ class StationThread(threading.Thread):
 
         while self.running:
             playlist = self.mpc.call('playlist')
+            len_playlist = len(playlist)
             current_song = self.mpc.currently_playing()
 
             self.previous_song = current_song
 
-            if len(playlist) > 1:
+            if len_playlist > 1:
+                # Looks like we already added the next song
                 LOGGER.debug('%s: Waiting for playlist to change', self.name)
                 self.mpc.call('idle', 'playlist')
                 continue
 
-            if (len(playlist) == 1
-                and (current_song['remaining_time']
-                     > self.secs_to_inject_new_song)):
-                secs = (current_song['remaining_time']
-                        - self.secs_to_inject_new_song)
-                LOGGER.debug('%s: Waiting %s seconds', self.name, secs)
-                SocketHandler.notify_clients(current_song=current_song)
-                if self.scrobble:
-                    scrobble_song(current_song, True)
-                self.mpc.idle_or_wait(secs)
-
-            if self.scrobble:
-                scrobble_song(current_song, False)
+            if len_playlist == 1:
+                self.wait_for(current_song)
 
             artist = self.mpc.get_last_artist(playlist)
             artist = None if artist == 'TeamPlayer' else artist
