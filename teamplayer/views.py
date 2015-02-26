@@ -37,8 +37,6 @@ from teamplayer.serializers import (
 )
 from tp_library.models import SongFile
 
-YEAR_IN_SECS = 365 * 24 * 60 * 60
-
 
 class HttpResponseNoContent(HttpResponse):
 
