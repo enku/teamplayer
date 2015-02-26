@@ -48,18 +48,16 @@ class HttpResponseNoContent(HttpResponse):
 
 def get_mpd_url(request, station):
     http_host = request.META.get('HTTP_HOST', 'localhost')
+    http_host = http_host.partition(':')[0]
     station = get_station_from_session(request)
     station_id = station.pk
-    if ':' in http_host:
-        http_host = http_host.split(':', 1)[0]
-    return 'http://{0}:{1}/mpd.mp3'.format(http_host,
-                                           settings.HTTP_PORT + station_id)
+    port = settings.HTTP_PORT + station_id
+    return 'http://{0}:{1}/mpd.mp3'.format(http_host, port)
 
 
 def get_websocket_url(request):
     http_host = request.META.get('HTTP_HOST', 'localhost')
-    if ':' in http_host:
-        http_host = http_host.split(':', 1)[0]
+    http_host = http_host.partition(':')[0]
     return 'ws://{0}:{1}/'.format(http_host, settings.WEBSOCKET_PORT)
 
 
@@ -478,8 +476,7 @@ def js_object(request):
     """Exposes the TeamPlayer JavaScript namespace"""
 
     http_host = request.META.get('HTTP_HOST', 'localhost')
-    if ':' in http_host:
-        http_host = http_host.split(':', 1)[0]
+    http_host = http_host.partition(':')[0]
     return render(
         request,
         'teamplayer/teamplayer.js',
