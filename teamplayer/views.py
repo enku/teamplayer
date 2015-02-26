@@ -106,7 +106,6 @@ def home(request, station_id=None):
             'station': station,
             'home': MAIN_STATION.pk,
             'stations': Station.get_stations(),
-            'user_owned_station': Station.from_player(request.player),
             'username': request.player.username,
         },
     )
