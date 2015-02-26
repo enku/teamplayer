@@ -1,11 +1,12 @@
 import logging
 import os
 
-from teamplayer.lib import first_or_none, songs
-from teamplayer.models import Player
-
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
+
+from teamplayer.lib import first_or_none, songs
+from teamplayer.models import Player
 
 LOGGER = logging.getLogger('teamplayer.library')
 
@@ -61,7 +62,7 @@ class SongFile(models.Model):
         except cls.DoesNotExist:
             pass
 
-        songfile = cls.objects.create(
+        songfile = cls(
             filename=filename,
             filesize=os.stat(filename).st_size,
             mimetype=metadata.mime[0],
@@ -73,6 +74,8 @@ class SongFile(models.Model):
             station_id=st_id,
             added_by=contributer
         )
+        songfile.full_clean()  # callers should trap me
+        songfile.save()
 
         return (songfile, True)
 
@@ -87,3 +90,7 @@ class SongFile(models.Model):
 
     def get_absolute_url(self):
         return reverse('tp_library.views.get_song', args=[str(self.pk)])
+
+    def clean(self):
+        if self.artist.lower() in ('', 'unknown'):
+            raise ValidationError('Invalid artist: %s' % self.artist)

@@ -6,10 +6,12 @@ import tempfile
 from unittest.mock import patch
 
 from django.core import management
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from mutagen import File
 
-from teamplayer.models import Entry, Player
+from teamplayer.models import Entry, Player, Station
 from tp_library.models import SongFile
 
 __dir__ = os.path.dirname(__file__)
@@ -20,6 +22,10 @@ DATURA = os.path.join(__dir__, '..', 'teamplayer', 'tests', 'data',
 
 
 class SongFileTest(TestCase):
+    def setUp(self):
+        self.dj_ango = Player.dj_ango()
+        self.station = Station.main_station()
+
     def test_not_exists(self):
         """Demonstrate the exists() for nonexistant files method."""
         # given the song pointing to a non-existant file
@@ -51,6 +57,19 @@ class SongFileTest(TestCase):
 
         # then we get true
         self.assertTrue(exists)
+
+    def test_artist_is_unknown(self):
+        # given the songfile with artist='unknown'
+        metadata = File(SILENCE, easy=True)
+        metadata['artist'] = 'unknown'
+        contributor = self.dj_ango
+        station_id = self.station.pk
+
+        # then it raises ValidationError
+        with self.assertRaises(ValidationError):
+            # when we call metadata_get_or_create()
+            song, created = SongFile.metadata_get_or_create(
+                '/dev/null', metadata, contributor, station_id)
 
 
 class AddToQueueTest(TestCase):
