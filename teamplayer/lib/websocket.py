@@ -12,7 +12,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 from django.conf import settings as django_settings
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from mutagen import File
 
 from teamplayer import models
@@ -286,8 +286,13 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         if not metadata:
             os.unlink(fullpath)
 
-        songfile, created = SongFile.metadata_get_or_create(
-            fullpath, metadata, entry.queue.player, entry.station.pk)
+        try:
+            songfile, created = SongFile.metadata_get_or_create(
+                fullpath, metadata, entry.queue.player, entry.station.pk)
+        except ValidationError as error:
+            msg = 'Error adding file to library: %s' % str(error)
+            logging.debug(msg)
+            created = False
 
         if not created:
             os.unlink(fullpath)
