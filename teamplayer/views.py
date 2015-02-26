@@ -14,8 +14,7 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect, render_to_response
-from django.template import RequestContext
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -100,7 +99,8 @@ def home(request, station_id=None):
         return HttpResponse(json.dumps(serializer.data),
                             content_type='application/json')
 
-    return render_to_response(
+    return render(
+        request,
         'teamplayer/home.html',
         {
             'mpd_url': get_mpd_url(request, station),
@@ -115,16 +115,11 @@ def home(request, station_id=None):
             'user_owned_station': Station.from_player(request.player),
             'username': request.player.username,
         },
-        context_instance=RequestContext(request)
     )
 
 
 def register(request):
-    return render_to_response(
-        'teamplayer/home.html',
-        {'register': True},
-        context_instance=RequestContext(request)
-    )
+    return render(request, 'teamplayer/home.html', {'register': True})
 
 
 @api_view(['GET'])
@@ -321,7 +316,6 @@ def registration(request):
     """The view that handles the actual registration form"""
     context = dict()
     context['form'] = UserCreationForm()
-    context_instance = RequestContext(request)
 
     if request.method == "POST":
         context['form'] = form = UserCreationForm(request.POST)
@@ -342,8 +336,7 @@ def registration(request):
                                     reverse('teamplayer.views.home'))
 
     context['users'] = Player.objects.all()
-    return render_to_response('teamplayer/register.html', context,
-                              context_instance)
+    return render(request, 'teamplayer/register.html', context)
 
 
 def artist_page(_request, artist):
@@ -457,13 +450,10 @@ def create_station(request):
 
 def about(request):
     """about/copyright page"""
+    query = SongFile.objects.aggregate(Count('title'), Sum('filesize'))
 
-    query = SongFile.objects.aggregate(
-        Count('title'),
-        Sum('filesize')
-    )
-
-    return render_to_response(
+    return render(
+        request,
         'teamplayer/about.html',
         {
             'version': version_string(),
@@ -474,8 +464,7 @@ def about(request):
             'library_size': query['filesize__sum'],
             'scrobbler_id': getattr(settings, 'SCROBBLER_USER', ''),
             'users': Player.objects.count() - 1,
-        },
-        context_instance=RequestContext(request)
+        }
     )
 
 
@@ -491,7 +480,8 @@ def js_object(request):
     http_host = request.META.get('HTTP_HOST', 'localhost')
     if ':' in http_host:
         http_host = http_host.split(':', 1)[0]
-    return render_to_response(
+    return render(
+        request,
         'teamplayer/teamplayer.js',
         {
             'websocket_url': get_websocket_url(request),
@@ -500,7 +490,6 @@ def js_object(request):
             'home': MAIN_STATION.pk,
             'username': request.player.username,
         },
-        context_instance=RequestContext(request),
         content_type='application/javascript'
     )
 
@@ -508,12 +497,8 @@ def js_object(request):
 def player(request):
     """The audio player html"""
     station = get_station_from_session(request)
-    return render_to_response(
-        'teamplayer/player.html',
-        {
-            'mpd_url': get_mpd_url(request, station),
-        }
-    )
+    mpd_url = get_mpd_url(request, station)
+    return render(request, 'teamplayer/player.html', {'mpd_url': mpd_url})
 
 
 def redirect_to_home(request):
