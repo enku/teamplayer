@@ -105,7 +105,6 @@ def home(request, station_id=None):
             'name': request.player.dj_name or 'Anonymous',
             'show_player': True,
             'station': station,
-            'station_id': station.pk,
             'home': MAIN_STATION.pk,
             'stations': Station.get_stations(),
             'user_owned_station': Station.from_player(request.player),
