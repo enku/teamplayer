@@ -25,6 +25,7 @@ LOGGER = logging.getLogger('teamplayer.mpc')
 class MPC(object):
     """Interface to a mpc client."""
     def __init__(self, station):
+        self.mpd = None
         self.station = station
         self.station_id = station.id if station else 0
         self.address = settings.MPD_ADDRESS
@@ -46,9 +47,16 @@ class MPC(object):
         """
         Start the mpd deamon.  Insert a file and play
         """
-        self.stop()
-        subprocess.call(('mpd', self.conf_file))
-        sleep(5)
+        assert self.mpd is None
+        self.mpd = subprocess.Popen(('mpd', '--no-daemon', self.conf_file))
+
+        # this is terrible. basically we want to block until mpd is listening
+        while True:
+            try:
+                self.call('status')
+            except ConnectionRefusedError:  # NOQA
+                continue
+            break
 
         self.call('update')
         self.call('consume', 1)
@@ -58,11 +66,9 @@ class MPC(object):
         """
         Stop the mpd daemon.
         """
-
-        if os.path.exists(self.pid_file):
-            subprocess.call(('mpd', '--kill', self.conf_file))
-            os.remove(self.db_file)
-            sleep(1)
+        if self.mpd:
+            self.mpd.terminate()
+        self.mpd = None
 
     def create_config(self):
         """Create the mpd config file and write the config to it"""

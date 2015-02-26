@@ -1,7 +1,7 @@
 """Tests for the MPC client"""
 import os
 import time
-from unittest.mock import call, patch
+from unittest.mock import Mock, call, patch
 
 from django.test import TestCase
 from mpd import ConnectionError, MPDClient
@@ -31,12 +31,12 @@ class MPCTest(TestCase):
         mpc = self.mpc
 
         # when we call mpc.start()
-        with patch('teamplayer.lib.mpc.subprocess.call') as mock_spcall:
+        with patch('teamplayer.lib.mpc.subprocess.Popen') as mock_popen:
             mpc.start()
 
         # then it calls mpd with the appropriate config
-        expected = call(('mpd', mpc.conf_file))
-        self.assertEqual(mock_spcall.mock_calls, [expected])
+        expected = call(('mpd', '--no-daemon', mpc.conf_file))
+        self.assertEqual(mock_popen.mock_calls, [expected])
 
         # and it makes the expected calls to mpc
         self.assertTrue(call().update() in mpd_client.mock_calls)
@@ -44,21 +44,15 @@ class MPCTest(TestCase):
         self.assertTrue(call().play() in mpd_client.mock_calls)
 
     def test_stop(self, mpd_client):
-        # given the mpc instance
+        # given the mpc instance that is "running"
         mpc = self.mpc
+        mpc.mpd = mock_mpd = Mock()
 
         # when we call mpc.stop()
-        open(mpc.pid_file, 'w')
-        open(mpc.db_file, 'w')
-        with patch('teamplayer.lib.mpc.subprocess.call') as mock_spcall:
-            mpc.stop()
+        mpc.stop()
 
-        # then it calls mpd to kill itself
-        expected = call(('mpd', '--kill', mpc.conf_file))
-        self.assertEqual(mock_spcall.mock_calls, [expected])
-
-        # and removes the db file
-        self.assertFalse(os.path.exists(mpc.db_file))
+        # then it terminates the mpd process
+        self.assertTrue(mock_mpd.terminate.called)
 
     def test_create_config(self, mpd_client):
         # given the mpc instance
