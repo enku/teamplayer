@@ -103,7 +103,6 @@ def home(request, station_id=None):
         {
             'mpd_url': get_mpd_url(request, station),
             'name': request.player.dj_name or 'Anonymous',
-            'show_player': True,
             'station': station,
             'home': MAIN_STATION.pk,
             'stations': Station.get_stations(),
