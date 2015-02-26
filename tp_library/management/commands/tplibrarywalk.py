@@ -1,6 +1,7 @@
 import logging
 import os
 
+from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 from mutagen import File
 
@@ -61,12 +62,16 @@ class Command(BaseCommand):
             if not metadata:
                 continue
 
-            songfile, created = SongFile.metadata_get_or_create(
-                fullpath,
-                metadata,
-                player,
-                station_id
-            )
+            try:
+                songfile, created = SongFile.metadata_get_or_create(
+                    fullpath,
+                    metadata,
+                    player,
+                    station_id
+                )
+            except ValidationError:
+                created = False
+
             if created:
                 logger.info('added "%s" by %s', songfile.title, songfile.artist)
                 self.created += 1
