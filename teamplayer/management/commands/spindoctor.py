@@ -7,6 +7,7 @@ import logging
 import os
 import re
 import signal
+import sys
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
@@ -78,6 +79,8 @@ class Command(BaseCommand):
 
     def shutdown(self):
         """Shut down mpd servers and exit"""
+        csi = '\x1b['
+        sys.stderr.write('{csi}1G'.format(csi=csi))  # move to start of line
         LOGGER.critical('Shutting down')
         for station_thread in StationThread.get_all().values():
             station_thread.mpc.stop()
