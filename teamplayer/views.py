@@ -102,9 +102,7 @@ def home(request, station_id=None):
         'teamplayer/home.html',
         {
             'mpd_url': get_mpd_url(request, station),
-            'name': (request.player.dj_name
-                     if request.player.dj_name
-                     else 'Anonymous'),
+            'name': request.player.dj_name or 'Anonymous',
             'show_player': True,
             'station': station,
             'station_id': station.pk,
