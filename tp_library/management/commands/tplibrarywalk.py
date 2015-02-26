@@ -42,6 +42,15 @@ class Command(BaseCommand):
         for filename in filenames:
             fullpath = os.path.join(dirpath, filename)
 
+            # First we need to make sure that the fullpath is encodable, because
+            # if it's not then we can't even save it in the database
+            try:
+                fullpath.encode('utf-8')
+            except UnicodeEncodeError:
+                logger.exception('Filename cannot be used')
+                self.errors += 1
+                continue
+
             try:
                 metadata = File(fullpath, easy=True)
             except IOError:

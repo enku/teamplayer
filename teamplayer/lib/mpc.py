@@ -157,7 +157,10 @@ class MPC(object):
             client.connect(self.address, self.port)
             yield client
         finally:
-            client.disconnect()
+            try:
+                client.disconnect()
+            except mpd.ConnectionError:
+                pass
 
     def call(self, command, *args):
         """

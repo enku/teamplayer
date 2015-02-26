@@ -146,3 +146,21 @@ class TpLibraryWalkTestCase(TestCase):
 
         # Then it succeeds, but we just don't get any files
         self.assertEqual(SongFile.objects.all().count(), 0)
+
+    def test_unencodable_filename(self):
+        filename = 'Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3'
+        filename = os.path.join(self.directory, filename)
+
+        # encoding this as utf-8 causes the following error:
+        # UnicodeEncodeError: 'utf-8' codec can't encode character '\udce9' in
+        # position xx: surrogates not allowed
+
+        # This is because the filename is actually latin-1, encoded but
+        # Python(3) decodes it as UTF-8, but can't re-encode it.
+        shutil.copy(DATURA, filename)
+
+        # When we call the management command on it
+        management.call_command('tplibrarywalk', self.directory)
+
+        # Then it succeeds, but we just don't get any files
+        self.assertEqual(SongFile.objects.all().count(), 0)
