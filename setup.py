@@ -33,7 +33,4 @@ setup(
         'tornado',
         'djangorestframework>=2.3.10,<2.4'
     ],
-    setup_requires=[
-        'mock',
-    ],
 )
