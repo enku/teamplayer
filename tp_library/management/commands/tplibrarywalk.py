@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 from mutagen import File
 
 from teamplayer.lib import remove_pedantic
-from teamplayer.models import Player, Station
+from teamplayer.models import DJ_ANGO, Station
 from tp_library.models import SongFile
 
 # Because Python 3 sucks:
@@ -24,7 +24,6 @@ class Command(BaseCommand):
         self.skipped = 0
         self.errors = 0
         self.station = Station.main_station()
-        self.dj_ango = Player.dj_ango()
 
         for arg in args:
             path = os.path.realpath(arg)
@@ -36,7 +35,7 @@ class Command(BaseCommand):
         logger.info('skipped: %s', self.skipped)
 
     def _handle_files(self, dirpath, dirnames, filenames):
-        player = self.dj_ango
+        player = DJ_ANGO
         station_id = self.station.pk
 
         for filename in filenames:

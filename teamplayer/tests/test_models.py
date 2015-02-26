@@ -8,7 +8,7 @@ import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
 
-from teamplayer.models import Entry, Mood, Player, Queue, Station
+from teamplayer.models import Entry, Mood, Player, Queue, Station, DJ_ANGO
 from teamplayer.tests import utils
 from tp_library.models import SongFile
 
@@ -209,7 +209,6 @@ class QueueTestCase(TestCase):
             ('Grammy', 'Purity Ring'),
             ('Bullet in the Head', 'Gvcci Hvcci')
         )
-        dj_ango = Player.dj_ango()
         main_station = Station.main_station()
         for song in songs:
             SongFile.objects.create(
@@ -220,7 +219,7 @@ class QueueTestCase(TestCase):
                 album="Marduk's Mix Tape",
                 genre="Unknown",
                 station_id=main_station.pk,
-                added_by=dj_ango,
+                added_by=DJ_ANGO,
             )
 
         # and the current mood
@@ -251,7 +250,6 @@ class QueueAutoFill(TestCase):
     Demonstrate the auto_fill() method.
     """
     def setUp(self):
-        self.dj_ango = Player.dj_ango()
         self.station = Station.main_station()
 
         # create a SongFile
@@ -259,12 +257,12 @@ class QueueAutoFill(TestCase):
             filename=SILENCE,
             filesize=500,
             station_id=self.station.pk,
-            added_by=self.dj_ango,
+            added_by=DJ_ANGO,
             length=301,
         )
 
     def test_auto_fill(self):
-        queue = self.dj_ango.queue
+        queue = DJ_ANGO.queue
 
         # when we filter songs < 5 minutes
         queue.auto_fill(
@@ -278,7 +276,7 @@ class QueueAutoFill(TestCase):
 
     def test_multiple_files(self):
         """We can have multiple files and get back as many as we ask for"""
-        queue = self.dj_ango.queue
+        queue = DJ_ANGO.queue
         with TemporaryDirectory() as tempdir:
             silence = open(SILENCE, 'rb').read()
             filesize = len(silence)
@@ -293,7 +291,7 @@ class QueueAutoFill(TestCase):
                     album='Redundant',
                     filesize=filesize,
                     station_id=self.station.pk,
-                    added_by=self.dj_ango,
+                    added_by=DJ_ANGO,
                     length=301,
                 )
             self.assertEqual(SongFile.objects.count(), 11)

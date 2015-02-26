@@ -11,11 +11,12 @@ from django.contrib.auth.models import User
 from django.core.files import File
 from django.db import models, transaction
 from django.db.models import Count
+from django.utils.functional import SimpleLazyObject
 
 from . import lib
 from .conf import settings
 
-DJ_ANGO = None
+DJ_ANGO = SimpleLazyObject(lambda: Player.objects.get(user__username='DJ Ango'))
 LOGGER = logging.getLogger('teamplayer.models')
 
 
@@ -418,15 +419,6 @@ class Player(models.Model):
             'songs': len(songs_in_queue),
             'stations': Station.get_stations().count(),
         }
-
-    @classmethod
-    def dj_ango(cls):
-        global DJ_ANGO
-        if DJ_ANGO:
-            return DJ_ANGO
-
-        DJ_ANGO = cls.objects.get(user__username='DJ Ango')
-        return DJ_ANGO
 
     @classmethod
     def active_players(cls):

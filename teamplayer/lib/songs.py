@@ -21,6 +21,7 @@ from teamplayer import models, scrobbler
 from teamplayer.conf import settings
 from teamplayer.lib import first_or_none, list_iter, now, remove_pedantic
 
+DJ_ANGO = models.DJ_ANGO
 LOGGER = logging.getLogger('teamplayer.songlib')
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'
 MIME_MAP = {
@@ -201,8 +202,7 @@ def find_a_song(players, station, previous_player=None, previous_artist=None):
     wants_dj_ango = (settings.SHAKE_THINGS_UP
                      and station == models.Station.main_station())
     if wants_dj_ango:
-        dj_ango = models.Player.dj_ango()
-        dj_ango.queue.auto_fill(
+        DJ_ANGO.queue.auto_fill(
             settings.SHAKE_THINGS_UP,
             station=station,
             qs_filter=settings.SHAKE_THINGS_UP_FILTER,
@@ -217,7 +217,7 @@ def find_a_song(players, station, previous_player=None, previous_artist=None):
     if wants_dj_ango:
         return auto_find_song(
             previous_artist,
-            dj_ango.queue,
+            DJ_ANGO.queue,
             station
         )
     return None

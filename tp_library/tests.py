@@ -9,7 +9,7 @@ from django.core import management
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from teamplayer.models import Entry, Player
+from teamplayer.models import DJ_ANGO, Entry, Player
 from tp_library.models import SongFile
 
 __dir__ = os.path.dirname(__file__)
@@ -65,7 +65,7 @@ class AddToQueueTest(TestCase):
             filesize=3000,
             station_id=1,
             mimetype='audio/mp3',
-            added_by=Player.dj_ango(),
+            added_by=DJ_ANGO
         )
         self.url = reverse('tp_library.views.add_to_queue')
         self.player = Player.objects.create_player('test', password='test')
@@ -103,7 +103,7 @@ class AddSongWithUTF8Filename(TestCase):
             filesize=3000,
             station_id=1,
             mimetype='audio/mp3',
-            added_by=Player.dj_ango(),
+            added_by=DJ_ANGO,
         )
         self.url = reverse('tp_library.views.add_to_queue')
         self.player = Player.objects.create_player('test', password='test')
