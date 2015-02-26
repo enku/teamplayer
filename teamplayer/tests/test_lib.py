@@ -10,6 +10,7 @@ from teamplayer import version_string
 from teamplayer.tests import utils
 
 ARTIST_XML = utils.ARTIST_XML
+MAIN_STATION = teamplayer.models.MAIN_STATION
 SILENCE = utils.SILENCE
 PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
 Mood = teamplayer.models.Mood
@@ -90,7 +91,7 @@ class LibSongs(TestCase):
 
     def test_find_a_song(self):
         """Test that it can find songs in the queue"""
-        station = teamplayer.models.Station.main_station()
+        station = MAIN_STATION
         song = teamplayer.lib.songs.find_a_song([self.player], station)
         self.assertEqual(type(song), teamplayer.models.Entry)
         song.delete()
@@ -103,7 +104,7 @@ class MoodTestCase(TestCase):
     @patch('teamplayer.lib.songs.urlopen')
     def test_mood(self, mock):
         mock.return_value = open(PRINCE_SIMILAR_TXT, 'rb')
-        station = teamplayer.models.Station.main_station()
+        station = MAIN_STATION
         self.assertEqual(Mood.objects.all().count(), 0)
         Mood.log_mood('Prince', station)
         self.assertNotEqual(Mood.objects.all().count(), 0)

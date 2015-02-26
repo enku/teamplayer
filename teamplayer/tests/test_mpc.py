@@ -7,13 +7,13 @@ from django.test import TestCase
 from mpd import ConnectionError, MPDClient
 
 from teamplayer.lib.mpc import MPC
-from teamplayer.models import Player, Station
+from teamplayer.models import MAIN_STATION, Player
 
 
 @patch('teamplayer.lib.mpc.mpd.MPDClient', autospec=MPDClient)
 class MPCTest(TestCase):
     def setUp(self):
-        self.station = Station.main_station()
+        self.station = MAIN_STATION
         self.mpc = MPC(self.station)
         self.filename = os.path.join(
             os.path.dirname(__file__), 'data', 'silence.mp3')

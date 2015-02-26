@@ -17,6 +17,8 @@ from . import lib
 from .conf import settings
 
 DJ_ANGO = SimpleLazyObject(lambda: Player.objects.get(user__username='DJ Ango'))
+MAIN_STATION = SimpleLazyObject(
+    lambda: Station.objects.get(name='Main Station'))
 LOGGER = logging.getLogger('teamplayer.models')
 
 
@@ -115,7 +117,7 @@ class Queue(models.Model):
 
         qs_filter = qs_filter or {}
 
-        station = station or Station.main_station()
+        station = station or MAIN_STATION
         entries = Entry.objects.filter(queue=self, station=station)
         entries_count = entries.count()
         if entries.count() > minimum:
@@ -182,7 +184,7 @@ class Queue(models.Model):
         The songs are selected depending on the current "mood".
         """
         onehourago = datetime.datetime.now() - datetime.timedelta(seconds=3600)
-        station = station or Station.main_station()
+        station = station or MAIN_STATION
         top_artists = Mood.objects.filter(timestamp__gte=onehourago,
                                           station=station)
         top_artists = Mood.objects.exclude(artist='')
@@ -284,8 +286,6 @@ class Mood(models.Model):
 
 
 class Station(models.Model):
-    __main_station = None
-
     objects = models.Manager()
     name = models.CharField(max_length=128, unique=True)
     creator = models.ForeignKey('Player', unique=True)
@@ -348,12 +348,6 @@ class Station(models.Model):
         station.full_clean()
         station.save()
         return station
-
-    @classmethod
-    def main_station(cls):
-        if not cls.__main_station:
-            cls.__main_station = cls.objects.get(name=u'Main Station')
-        return cls.__main_station
 
 
 class PlayerManager(models.Manager):

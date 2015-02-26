@@ -24,6 +24,7 @@ from teamplayer.lib import first_or_none, list_iter, now, remove_pedantic
 DJ_ANGO = models.DJ_ANGO
 LOGGER = logging.getLogger('teamplayer.songlib')
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'
+MAIN_STATION = models.MAIN_STATION
 MIME_MAP = {
     'audio/ape': 'ape',
     'audio/flac': 'flac',
@@ -199,8 +200,7 @@ def find_a_song(players, station, previous_player=None, previous_artist=None):
     song in the player's queue whose artist is similar to the current mood
     without repeating the previous_artist.
     """
-    wants_dj_ango = (settings.SHAKE_THINGS_UP
-                     and station == models.Station.main_station())
+    wants_dj_ango = (settings.SHAKE_THINGS_UP and station == MAIN_STATION)
     if wants_dj_ango:
         DJ_ANGO.queue.auto_fill(
             settings.SHAKE_THINGS_UP,

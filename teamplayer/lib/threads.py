@@ -11,7 +11,7 @@ from teamplayer.lib import copy_entry_to_queue, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.lib.websocket import IPCHandler, SocketHandler
-from teamplayer.models import DJ_ANGO, Mood, Station
+from teamplayer.models import DJ_ANGO, MAIN_STATION, Mood
 from teamplayer.serializers import EntrySerializer
 
 LOGGER = logging.getLogger('teamplayer.threads')
@@ -52,7 +52,7 @@ class StationThread(threading.Thread):
         self.mpc = MPC(self.station)
         self.mpc.create_config().start()
         self.scrobble = (settings.SCROBBLER_USER
-                         and self.station == Station.main_station())
+                         and self.station == MAIN_STATION)
         self.previous_player = None
         self.previous_song = None
 
