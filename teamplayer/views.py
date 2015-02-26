@@ -269,9 +269,10 @@ def reorder_queue(request):
     Given comma-delimited string (of integers), re-order queue
     return the re-ordered list of ids in json format
     """
-    ids = [x['id'] for x in request.player.queue.reorder(
-        [int(i) for i in request.body.decode('utf-8').split(',')])
-    ]
+    queue = request.player.queue
+    new_order = request.body.decode('utf-8').split(',')
+    new_order = [int(i) for i in new_order]
+    ids = [i['id'] for i in queue.reorder(new_order)]
 
     return HttpResponse(
         json.dumps(ids),
