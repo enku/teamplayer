@@ -11,14 +11,11 @@ from django.contrib.auth.models import User
 from django.core.files import File
 from django.db import models, transaction
 from django.db.models import Count
-from django.utils.functional import SimpleLazyObject
 
 from . import lib
 from .conf import settings
 
-DJ_ANGO = SimpleLazyObject(lambda: Player.objects.get(user__username='DJ Ango'))
-MAIN_STATION = SimpleLazyObject(
-    lambda: Station.objects.get(name='Main Station'))
+DJ_ANGO = None
 LOGGER = logging.getLogger('teamplayer.models')
 
 
@@ -117,7 +114,7 @@ class Queue(models.Model):
 
         qs_filter = qs_filter or {}
 
-        station = station or MAIN_STATION
+        station = station or Station.main_station()
         entries = Entry.objects.filter(queue=self, station=station)
         entries_count = entries.count()
         if entries.count() > minimum:
@@ -184,7 +181,7 @@ class Queue(models.Model):
         The songs are selected depending on the current "mood".
         """
         onehourago = datetime.datetime.now() - datetime.timedelta(seconds=3600)
-        station = station or MAIN_STATION
+        station = station or Station.main_station()
         top_artists = Mood.objects.filter(timestamp__gte=onehourago,
                                           station=station)
         top_artists = Mood.objects.exclude(artist='')
@@ -286,6 +283,8 @@ class Mood(models.Model):
 
 
 class Station(models.Model):
+    __main_station = None
+
     objects = models.Manager()
     name = models.CharField(max_length=128, unique=True)
     creator = models.ForeignKey('Player', unique=True)
@@ -348,6 +347,12 @@ class Station(models.Model):
         station.full_clean()
         station.save()
         return station
+
+    @classmethod
+    def main_station(cls):
+        if not cls.__main_station:
+            cls.__main_station = cls.objects.get(name=u'Main Station')
+        return cls.__main_station
 
 
 class PlayerManager(models.Manager):
@@ -413,6 +418,15 @@ class Player(models.Model):
             'songs': len(songs_in_queue),
             'stations': Station.get_stations().count(),
         }
+
+    @classmethod
+    def dj_ango(cls):
+        global DJ_ANGO
+        if DJ_ANGO:
+            return DJ_ANGO
+
+        DJ_ANGO = cls.objects.get(user__username='DJ Ango')
+        return DJ_ANGO
 
     @classmethod
     def active_players(cls):

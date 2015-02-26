@@ -29,7 +29,7 @@ from teamplayer.forms import (
 from teamplayer.lib import mktemp_file_from_request, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.websocket import IPCHandler
-from teamplayer.models import MAIN_STATION, Entry, Player, Station
+from teamplayer.models import Entry, Player, Station
 from teamplayer.serializers import (
     EntrySerializer,
     PlayerSerializer,
@@ -60,18 +60,19 @@ def get_websocket_url(request):
 
 
 def get_station_from_session(request):
+    main_station = Station.main_station()
     try:
         station_id = request.session['station_id']
     except KeyError:
-        request.session['station_id'] = MAIN_STATION.pk
-        return MAIN_STATION
+        request.session['station_id'] = main_station.pk
+        return main_station
 
     try:
         station = Station.objects.get(pk=station_id)
         return station
     except Station.DoesNotExist:
-        request.session['station_id'] = MAIN_STATION.pk
-        return MAIN_STATION
+        request.session['station_id'] = main_station.pk
+        return main_station
 
 
 @login_required
@@ -102,7 +103,7 @@ def home(request, station_id=None):
             'mpd_url': get_mpd_url(request, station),
             'name': request.player.dj_name or 'Anonymous',
             'station': station,
-            'home': MAIN_STATION.pk,
+            'home': Station.main_station().pk,
             'stations': Station.get_stations(),
             'username': request.player.username,
         },
@@ -397,6 +398,7 @@ def next_station(request):
 @login_required
 @require_POST
 def edit_station(request):
+    main_station = Station.main_station()
     message = u''
     form = EditStationForm(request.POST)
     if form.is_valid():
@@ -413,7 +415,7 @@ def edit_station(request):
         elif action == 'remove':
             station.delete()
             if request.session['station_id'] == station_id:
-                request.session['station_id'] = MAIN_STATION.pk
+                request.session['station_id'] = main_station.pk
             IPCHandler.send_message('station_delete', station_id)
     else:
         message = u'\n'.join([i[0] for i in form.errors.values()])
@@ -472,7 +474,7 @@ def js_object(request):
             'websocket_url': get_websocket_url(request),
             'mpd_hostname': http_host,
             'mpd_http_port': settings.HTTP_PORT,
-            'home': MAIN_STATION.pk,
+            'home': Station.main_station().pk,
             'username': request.player.username,
         },
         content_type='application/javascript'
@@ -487,5 +489,6 @@ def player(request):
 
 
 def redirect_to_home(request):
-    request.session['station_id'] = MAIN_STATION.pk
-    return redirect(reverse(home, args=(MAIN_STATION.pk,)))
+    main_station = Station.main_station()
+    request.session['station_id'] = main_station.pk
+    return redirect(reverse(home, args=(main_station.pk,)))

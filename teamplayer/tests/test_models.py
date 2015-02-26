@@ -8,15 +8,7 @@ import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
 
-from teamplayer.models import (
-    DJ_ANGO,
-    MAIN_STATION,
-    Entry,
-    Mood,
-    Player,
-    Queue,
-    Station
-)
+from teamplayer.models import Entry, Mood, Player, Queue, Station
 from teamplayer.tests import utils
 from tp_library.models import SongFile
 
@@ -138,7 +130,7 @@ class QueueTestCase(TestCase):
     Test various operations on the Queue model
     """
     def setUp(self):
-        self.station = MAIN_STATION
+        self.station = Station.main_station()
         self.player = Player.objects.create_player('test', password='test')
 
         # add some songs
@@ -217,6 +209,8 @@ class QueueTestCase(TestCase):
             ('Grammy', 'Purity Ring'),
             ('Bullet in the Head', 'Gvcci Hvcci')
         )
+        dj_ango = Player.dj_ango()
+        main_station = Station.main_station()
         for song in songs:
             SongFile.objects.create(
                 artist=song[0],
@@ -225,17 +219,17 @@ class QueueTestCase(TestCase):
                 filesize=80000,
                 album="Marduk's Mix Tape",
                 genre="Unknown",
-                station_id=MAIN_STATION.pk,
-                added_by=DJ_ANGO,
+                station_id=main_station.pk,
+                added_by=dj_ango,
             )
 
         # and the current mood
-        Mood.objects.create(station=MAIN_STATION, artist='Sleigh Bells')
-        Mood.objects.create(station=MAIN_STATION, artist='Crystal Castles')
-        Mood.objects.create(station=MAIN_STATION, artist='Sleigh Bells')
-        Mood.objects.create(station=MAIN_STATION, artist='Prince')
-        Mood.objects.create(station=MAIN_STATION, artist='Prince')
-        Mood.objects.create(station=MAIN_STATION, artist='Prince')
+        Mood.objects.create(station=main_station, artist='Sleigh Bells')
+        Mood.objects.create(station=main_station, artist='Crystal Castles')
+        Mood.objects.create(station=main_station, artist='Sleigh Bells')
+        Mood.objects.create(station=main_station, artist='Prince')
+        Mood.objects.create(station=main_station, artist='Prince')
+        Mood.objects.create(station=main_station, artist='Prince')
 
         # when we call Queue.auto_fill_mood()
         qs = SongFile.objects.all()
@@ -257,19 +251,20 @@ class QueueAutoFill(TestCase):
     Demonstrate the auto_fill() method.
     """
     def setUp(self):
-        self.station = MAIN_STATION
+        self.dj_ango = Player.dj_ango()
+        self.station = Station.main_station()
 
         # create a SongFile
         self.songfile = SongFile.objects.create(
             filename=SILENCE,
             filesize=500,
             station_id=self.station.pk,
-            added_by=DJ_ANGO,
+            added_by=self.dj_ango,
             length=301,
         )
 
     def test_auto_fill(self):
-        queue = DJ_ANGO.queue
+        queue = self.dj_ango.queue
 
         # when we filter songs < 5 minutes
         queue.auto_fill(
@@ -283,7 +278,7 @@ class QueueAutoFill(TestCase):
 
     def test_multiple_files(self):
         """We can have multiple files and get back as many as we ask for"""
-        queue = DJ_ANGO.queue
+        queue = self.dj_ango.queue
         with TemporaryDirectory() as tempdir:
             silence = open(SILENCE, 'rb').read()
             filesize = len(silence)
@@ -298,7 +293,7 @@ class QueueAutoFill(TestCase):
                     album='Redundant',
                     filesize=filesize,
                     station_id=self.station.pk,
-                    added_by=DJ_ANGO,
+                    added_by=self.dj_ango,
                     length=301,
                 )
             self.assertEqual(SongFile.objects.count(), 11)
@@ -354,7 +349,7 @@ class StationTest(TestCase):
         station1 = Station.create_station('station1', self.player)
 
         # and the "built-in" station
-        station0 = MAIN_STATION
+        station0 = Station.main_station()
 
         # when we call get_stations()
         stations = Station.get_stations()
@@ -415,6 +410,7 @@ class StationTest(TestCase):
         """Station.participants()"""
         # given the stations
         station = Station.create_station('My Station', self.player)
+        main = Station.main_station()
 
         # and players
         player1 = self.player
@@ -425,7 +421,7 @@ class StationTest(TestCase):
             artist='Elliott Smith',
             title='Happiness',
             queue=player1.queue,
-            station=MAIN_STATION
+            station=main
         )
         Entry.objects.create(
             artist='Prince',
@@ -437,17 +433,17 @@ class StationTest(TestCase):
             artist='Prince',
             title='Purple Rain',
             queue=player1.queue,
-            station=MAIN_STATION
+            station=main
         )
         Entry.objects.create(
             artist='Elliott Smith',
             title='Happiness',
             queue=player2.queue,
-            station=MAIN_STATION
+            station=main
         )
 
         # When we call .participants() on main
-        participants = MAIN_STATION.participants()
+        participants = main.participants()
 
         # Then we get both users
         self.assertEqual(participants.count(), 2)
@@ -573,7 +569,7 @@ class MoodTestCase(TestCase):
     """Tests for the Mood model"""
     def test_str(self):
         # Given the Mood object
-        station = MAIN_STATION
+        station = Station.main_station()
         mood = Mood.objects.create(station=station, artist='Sleigh Bells')
 
         # then when we call str() on it

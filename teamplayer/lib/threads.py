@@ -11,7 +11,7 @@ from teamplayer.lib import copy_entry_to_queue, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.lib.websocket import IPCHandler, SocketHandler
-from teamplayer.models import DJ_ANGO, MAIN_STATION, Mood
+from teamplayer.models import Mood, Player, Station
 from teamplayer.serializers import EntrySerializer
 
 LOGGER = logging.getLogger('teamplayer.threads')
@@ -52,7 +52,7 @@ class StationThread(threading.Thread):
         self.mpc = MPC(self.station)
         self.mpc.create_config().start()
         self.scrobble = (settings.SCROBBLER_USER
-                         and self.station == MAIN_STATION)
+                         and self.station == Station.main_station())
         self.previous_player = None
         self.previous_song = None
 
@@ -114,6 +114,7 @@ class StationThread(threading.Thread):
     def run(self):
         LOGGER.debug('Starting %s', self.name)
         self.running = True
+        self.dj_ango = Player.dj_ango()
 
         while self.running:
             playlist = self.mpc.call('playlist')
@@ -168,7 +169,7 @@ class StationThread(threading.Thread):
                                   entry_dict)
 
             # log "mood"
-            if entry.queue.player != DJ_ANGO:
+            if entry.queue.player != self.dj_ango:
                 log_mood(entry.artist, self.station)
 
             # delete files not in playlist

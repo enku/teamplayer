@@ -73,7 +73,7 @@ class Command(BaseCommand):
                 self.shutdown()
 
     def update_dj_ango_queue(self):
-        queue = models.DJ_ANGO.queue
+        queue = models.Player.dj_ango().queue
         queue.active = settings.ALWAYS_SHAKE_THINGS_UP
         queue.save()
 

@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from teamplayer import scrobbler
 from teamplayer.lib import songs
-from teamplayer.models import MAIN_STATION, Entry, Mood, Player
+from teamplayer.models import Entry, Mood, Player, Station
 from teamplayer.tests import utils
 
 PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
@@ -41,6 +41,8 @@ class AutoFindSong(TestCase):
         self.url = reverse('teamplayer.views.home')
         self.client.get(self.url)
 
+        self.main_station = Station.main_station()
+
     @patch('teamplayer.lib.songs.urllib.request.urlopen')
     def test(self, mock_open):
         mock_open.return_value = open(PRINCE_SIMILAR_TXT, 'rb')
@@ -52,7 +54,7 @@ class AutoFindSong(TestCase):
 
         # Current mood...
         Mood.objects.create(
-            station=MAIN_STATION,
+            station=self.main_station,
             artist='Prince',
         )
 
@@ -61,17 +63,17 @@ class AutoFindSong(TestCase):
             artist='Elliott Smith',
             title='Happiness',
             queue=queue,
-            station=MAIN_STATION
+            station=self.main_station
         )
         purple_rain = Entry.objects.create(
             artist='Prince',
             title='Purple Rain',
             queue=queue,
-            station=MAIN_STATION
+            station=self.main_station
         )
 
         # When we call auto_find_song
-        song = songs.auto_find_song(None, queue, MAIN_STATION)
+        song = songs.auto_find_song(None, queue, self.main_station)
 
         # Then we should get purple_rain
         self.assertEqual(song, purple_rain)
@@ -87,12 +89,12 @@ class AutoFindSong(TestCase):
 
         # And Current mood
         Mood.objects.create(
-            station=MAIN_STATION,
+            station=self.main_station,
             artist='Prince',
         )
 
         # When we call auto_find_song
-        song = songs.auto_find_song(None, queue, MAIN_STATION)
+        song = songs.auto_find_song(None, queue, self.main_station)
 
         # Then we get nothing
         self.assertEqual(song, None)
@@ -108,7 +110,7 @@ class AutoFindSong(TestCase):
 
         # Current mood...
         Mood.objects.create(
-            station=MAIN_STATION,
+            station=self.main_station,
             artist='Prince',
         )
 
@@ -117,17 +119,17 @@ class AutoFindSong(TestCase):
             artist='Elliott Smith',
             title='Happiness',
             queue=queue,
-            station=MAIN_STATION
+            station=self.main_station
         )
         Entry.objects.create(
             artist='Metallica',
             title='Fade to Black',
             queue=queue,
-            station=MAIN_STATION
+            station=self.main_station
         )
 
         # When we call auto_find_song
-        song = songs.auto_find_song(None, queue, MAIN_STATION)
+        song = songs.auto_find_song(None, queue, self.main_station)
 
         # Then we should get happiness
         self.assertEqual(song, happiness)
@@ -143,7 +145,7 @@ class AutoFindSong(TestCase):
 
         # Current mood...
         Mood.objects.create(
-            station=MAIN_STATION,
+            station=self.main_station,
             artist='Prince',
         )
 
@@ -152,18 +154,18 @@ class AutoFindSong(TestCase):
             artist='Prince',
             title='Purple Rain',
             queue=queue,
-            station=MAIN_STATION
+            station=self.main_station
         )
         metallica = Entry.objects.create(
             artist='Metallica',
             title='Fade to Black',
             queue=queue,
-            station=MAIN_STATION
+            station=self.main_station
         )
 
         # When we call auto_find_song with a previous artist being the one that
         # fits the mood
-        song = songs.auto_find_song('Prince', queue, MAIN_STATION)
+        song = songs.auto_find_song('Prince', queue, self.main_station)
 
         # Then instead of Prince we should get Metallica
         self.assertEqual(song, metallica)

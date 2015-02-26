@@ -1,12 +1,12 @@
 """Utilities for TeamPlayer unit tests"""
+from io import StringIO
 import os
 import threading
-from io import StringIO
 
 import django.core.files.uploadedfile
 
-import teamplayer.lib
 import teamplayer.models
+import teamplayer.lib
 
 Entry = teamplayer.models.Entry
 UploadedFile = django.core.files.uploadedfile.UploadedFile
@@ -32,7 +32,7 @@ class SpinDoctor:
         self.silence = ('DJ Ango', 'TeamPlayer', 'Station Break', 15, 0)
         self.current_song = self.previous_song = self.silence
         self.current_player = None
-        self.station = teamplayer.models.MAIN_STATION
+        self.station = teamplayer.models.Station.main_station()
 
     def next(self):
         """Emulate one interation of the spin management command loop"""
