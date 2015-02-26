@@ -8,14 +8,13 @@ import os
 import re
 import signal
 from optparse import make_option
-from time import sleep
 
 from django.core.management.base import BaseCommand
 
 from teamplayer import models
 from teamplayer.conf import settings
 from teamplayer.lib.daemon import createDaemon
-from teamplayer.lib.threads import SocketServer, StationThread
+from teamplayer.lib.threads import StationThread, start_socket_server
 
 try:
     from setproctitle import setproctitle
@@ -50,7 +49,6 @@ class Command(BaseCommand):
         self.previous_user = None
         self.previous_song = None
         self.running = False
-        self.socket_server = SocketServer(name='Socket Server')
 
     def handle(self, *args, **options):
         if options['daemonize']:
@@ -61,17 +59,15 @@ class Command(BaseCommand):
         for station in models.Station.get_stations():
             StationThread.create(station)
 
-        self.socket_server.start()
-
         self.running = True
         while self.running:
             try:
-                signal.pause()
+                start_socket_server()
             except Exception:
-                LOGGER.error('Error inside main loop', exc_info=True)
-                LOGGER.error('Attempting to continue...')
-                sleep(3)
-                continue
+                LOGGER.exception('Error inside main loop')
+                LOGGER.error('Attempting to shutdown...')
+                self.shutdown()
+                return
             except KeyboardInterrupt:
                 self.shutdown()
 

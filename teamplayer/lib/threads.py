@@ -187,23 +187,13 @@ class StationThread(threading.Thread):
         self.running = False
 
 
-class SocketServer(threading.Thread):
-    """
-    Tornado web server in a thread.
+def start_socket_server():
+    """Start the tornado event loop"""
+    LOGGER.debug('Tornado has started')
+    application = tornado.web.Application([
+        (r"/", SocketHandler),
+        (r"/ipc", IPCHandler),
+    ])
+    application.listen(settings.WEBSOCKET_PORT)
 
-    This server will handle WebSocket requests
-    """
-    def run(self):
-        LOGGER.debug('%s has started', self.name)
-        self.application = tornado.web.Application([
-            (r"/", SocketHandler),
-            (r"/ipc", IPCHandler),
-        ])
-        self.application.listen(settings.WEBSOCKET_PORT)
-
-        tornado.ioloop.IOLoop.instance().start()
-
-    @staticmethod
-    def shutdown():
-        LOGGER.critical('Shutting down.')
-        tornado.ioloop.IOLoop.current().stop()
+    tornado.ioloop.IOLoop.instance().start()
