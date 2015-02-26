@@ -2,7 +2,6 @@
 import logging
 import shutil
 import threading
-from time import sleep
 
 import tornado.gen
 import tornado.web
@@ -51,6 +50,7 @@ class StationThread(threading.Thread):
 
         self.running = False
         self.mpc = MPC(self.station)
+        self.mpc.create_config().start()
         self.scrobble = (settings.SCROBBLER_USER
                          and self.station == Station.main_station())
         self.previous_player = None
@@ -71,7 +71,6 @@ class StationThread(threading.Thread):
                                            station=station)
             cls.__station_threads[station.pk] = station_thread
             station_thread.start()
-            sleep(3)
             return station_thread
 
     @classmethod
@@ -114,7 +113,6 @@ class StationThread(threading.Thread):
 
     def run(self):
         LOGGER.debug('Starting %s', self.name)
-        self.mpc.create_config().start()
         self.running = True
         self.dj_ango = Player.dj_ango()
 
