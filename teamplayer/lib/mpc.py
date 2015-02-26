@@ -85,6 +85,7 @@ class MPC(object):
             'QUEUE_DIR': self.queue_dir,
             'STREAM_BITRATE': settings.STREAM_BITRATE,
             'STREAM_FORMAT': settings.STREAM_FORMAT,
+            'ZEROCONF_NAME': 'TeamPlayer Station #%s' % self.station.pk
         }
 
         mpd_file.write("""# Automatically generated.  Do not edit.
@@ -97,6 +98,7 @@ class MPC(object):
     log_file                "{MPD_LOG}"
     max_connections         "{MPD_MAX_CONNECTIONS}"
     max_output_buffer_size  "{MAX_OUTPUT_BUFFER_SIZE}"
+    zeroconf_name           "{ZEROCONF_NAME}"
 
     audio_output {{
         enabled             "yes"
