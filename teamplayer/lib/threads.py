@@ -150,23 +150,19 @@ class StationThread(threading.Thread):
             self.previous_player = entry.queue.player
             song = entry.song
             try:
-                new_filename = copy_entry_to_queue(entry, self.mpc)
+                filename = copy_entry_to_queue(entry, self.mpc)
             except (IOError, shutil.Error):
                 LOGGER.error('IOError copying %s.', song.name, exc_info=True)
                 entry.delete()
                 continue
 
-            if not self.mpc.wait_for_song(new_filename):
+            if not self.mpc.wait_for_song(filename):
                 entry.delete()
                 continue
 
-            LOGGER.info(
-                u"%s: Adding %s's %s",
-                self.name,
-                self.previous_player,
-                entry
-            )
-            self.mpc.add_file_to_playlist(new_filename)
+            msg = "%s: Adding %s's %s"
+            LOGGER.info(msg, self.name, self.previous_player, entry)
+            self.mpc.add_file_to_playlist(filename)
             entry_dict = EntrySerializer(entry).data
             entry.delete()
             SocketHandler.message(entry.queue.player, 'song_removed',
