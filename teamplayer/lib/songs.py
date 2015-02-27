@@ -181,10 +181,7 @@ def best_song_from_player(player, station, previous_artist=None):
 
     If no relevant song is found, return None.
     """
-    try:
-        queue = player.queue
-    except models.Player.DoesNotExist:
-        return None
+    queue = player.queue
 
     if not queue.active:
         return None
