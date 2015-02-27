@@ -135,9 +135,7 @@ def get_image_url_for(artist):
 
     try:
         root = ElementTree.parse(response)
-    except:
-        # FIXME: This needs to be fixed, but different versions of Python
-        # raise different exceptions, so we use a catch-all for now
+    except ElementTree.ParseError:
         LOGGER.error('Error parsing response from %s', api_url)
         return CLEAR_IMAGE_URL
     images = root.findall('./artist/image')
