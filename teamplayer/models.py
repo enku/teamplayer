@@ -46,14 +46,13 @@ class Queue(models.Model):
 
         try:
             metadata = lib.songs.get_song_metadata(entry.song.path)
-            artist, title, filetype = metadata
         except lib.songs.SongMetadataError:
             entry.song.delete()
             entry.delete()
             raise
-        entry.artist = artist
-        entry.title = title
-        entry.filetype = filetype
+        entry.artist = metadata['artist']
+        entry.title = metadata['title']
+        entry.filetype = metadata['type']
         entry.save()
         return entry
 

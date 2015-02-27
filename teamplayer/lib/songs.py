@@ -52,16 +52,30 @@ class SongMetadataError(Exception):
 
 
 def get_song_metadata(filename):
-    """Given filename, return (artist, title, type)"""
+    """Return a dict of song metadata for filename
 
+    Given the filename, return a dict of metadata consisting of:
+
+        * artist: the song artist
+        * title: the song title
+        * type: the song's type
+        * mimetype: the song's mimetype
+
+    Raise SongMetaDataError if this cannot be determined.
+    """
     try:
-        metadata = File(filename, easy=True)
-        artist = first_or_none(metadata, 'artist') or 'Unknown'
-        title = first_or_none(metadata, 'title') or 'Unknown'
-        mimetype = metadata.mime[0]
+        mutagen_data = File(filename, easy=True)
+        artist = first_or_none(mutagen_data, 'artist') or 'Unknown'
+        title = first_or_none(mutagen_data, 'title') or 'Unknown'
+        mimetype = mutagen_data.mime[0]
         filetype = MIME_MAP[mimetype]
 
-        return (artist, title, filetype)
+        return {
+            'artist': artist,
+            'title': title,
+            'type': filetype,
+            'mimetype': mimetype
+        }
 
     except Exception as error:
         raise SongMetadataError(str(error))

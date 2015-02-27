@@ -218,7 +218,7 @@ class MPC(object):
             if basename.startswith('file: '):
                 basename = basename[6:]
             filename = os.path.join(self.queue_dir, basename)
-            return songs.get_song_metadata(filename)[0]
+            return songs.get_song_metadata(filename)['artist']
         return None
 
     def dj_from_filename(self, filename):

@@ -54,7 +54,10 @@ class LibSongs(TestCase):
         metadata = teamplayer.lib.songs.get_song_metadata(SILENCE)
         self.assertEqual(
             metadata,
-            (u'TeamPlayer', u'Station Break', 'mp3')
+            {'artist': 'TeamPlayer',
+             'title': 'Station Break',
+             'type': 'mp3',
+             'mimetype': 'audio/mp3'}
         )
 
     def test_invalid_file(self):
