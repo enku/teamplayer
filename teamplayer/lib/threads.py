@@ -22,7 +22,7 @@ def scrobble_song(song, now_playing=False):
     """Signal handler to scrobble when a song changes."""
     # only the Main Station scrobbles
     if song and song['artist'] != 'DJ Ango':
-        LOGGER.debug(u'Scrobbling “%s” by %s', song['title'], song['artist'])
+        LOGGER.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
         songs.scrobble_song(song, now_playing=now_playing)
 
 
@@ -31,7 +31,7 @@ def log_mood(artist, station):
     """Record the mood for the given artist and station"""
     if artist == 'Unknown':
         return
-    LOGGER.debug(u'Logging mood for %s', artist)
+    LOGGER.debug('Logging mood for %s', artist)
     Mood.log_mood(artist, station)
 
 

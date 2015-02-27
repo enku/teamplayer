@@ -85,7 +85,7 @@ class SongFile(models.Model):
 
     def __str__(self):
         if self.title:
-            return u'"{0}" by {1}'.format(self.title, self.artist)
+            return '"{0}" by {1}'.format(self.title, self.artist)
         return self.filename
 
     def get_absolute_url(self):

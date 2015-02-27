@@ -266,7 +266,7 @@ def auto_find_song(previous_artist, queue, station):
     for mood_artist in mood_artists:
         a = mood_artist['artist'].lower()
         if a in artists:
-            LOGGER.info(u'“%s” fits the mood', mood_artist['artist'])
+            LOGGER.info('“%s” fits the mood', mood_artist['artist'])
             return entries.filter(artist__iexact=a)[0]
 
     return entries[0]
@@ -286,7 +286,6 @@ def scrobble_song(song, now_playing=False):
         except (URLError, HTTPException, scrobbler.ProtocolError):
             return False
 
-    # song => (u'DJ', 'Purity Ring', 'Ungirthed', 169, 19, 0)
     artist = song['artist']
     title = song['title']
     length = song['total_time']

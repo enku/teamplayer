@@ -174,7 +174,7 @@ def add_to_queue(request):
         else:
             extra = ''
         status = {'fail': ('%sThe song was not added because I did '
-                           u'not recognize the type of file you sent' % extra)
+                           'not recognize the type of file you sent' % extra)
                   }
         return HttpResponse(json.dumps(status),
                             content_type='application/json')
@@ -399,7 +399,7 @@ def next_station(request):
 @require_POST
 def edit_station(request):
     main_station = Station.main_station()
-    message = u''
+    message = ''
     form = EditStationForm(request.POST)
     if form.is_valid():
         name = form.cleaned_data['name']
@@ -418,7 +418,7 @@ def edit_station(request):
                 request.session['station_id'] = main_station.pk
             IPCHandler.send_message('station_delete', station_id)
     else:
-        message = u'\n'.join([i[0] for i in form.errors.values()])
+        message = '\n'.join([i[0] for i in form.errors.values()])
 
     return HttpResponse(message)
 

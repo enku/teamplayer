@@ -225,7 +225,7 @@ class Entry(models.Model):
     filetype = models.CharField(max_length=4, blank=False)
 
     def __str__(self):
-        return u'“%s” by %s' % (self.title, self.artist)
+        return '“%s” by %s' % (self.title, self.artist)
 
     def delete(self, *args, **kwargs):
         if self.song:
@@ -261,7 +261,7 @@ class Mood(models.Model):
     timestamp = models.DateTimeField(auto_now=True, auto_now_add=True)
 
     def __str__(self):
-        return u'%s: %s' % (self.artist, self.timestamp)
+        return '%s: %s' % (self.artist, self.timestamp)
 
     class Meta:
         ordering = ('-timestamp', 'artist')
@@ -351,7 +351,7 @@ class Station(models.Model):
     @classmethod
     def main_station(cls):
         if not cls.__main_station:
-            cls.__main_station = cls.objects.get(name=u'Main Station')
+            cls.__main_station = cls.objects.get(name='Main Station')
         return cls.__main_station
 
 
