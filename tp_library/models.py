@@ -21,7 +21,7 @@ class SongFile(models.Model):
     title = models.TextField()
     album = models.TextField()
     length = models.IntegerField(null=True)  # in seconds
-    genre = models.TextField()
+    genre = models.TextField(null=True, blank=True)
     date_added = models.DateTimeField(auto_now_add=True)
     station_id = models.IntegerField()
     added_by = models.ForeignKey(Player, related_name='library_songs')
@@ -41,7 +41,7 @@ class SongFile(models.Model):
             artist = first_or_none(metadata, 'artist') or ''
             title = first_or_none(metadata, 'title') or ''
             album = first_or_none(metadata, 'album') or ''
-            genre = first_or_none(metadata, 'genre') or ''
+            genre = first_or_none(metadata, 'genre') or None
             length = metadata.info.length
 
             if length:
@@ -94,3 +94,6 @@ class SongFile(models.Model):
     def clean(self):
         if self.artist.lower() in ('', 'unknown'):
             raise ValidationError('Invalid artist: %s' % self.artist)
+
+        self.genre = self.genre or None
+        self.length = self.length or None
