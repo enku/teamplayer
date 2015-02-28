@@ -70,7 +70,8 @@ class Command(BaseCommand):
                     station_id
                 )
             except ValidationError:
-                created = False
+                self.errors += 1
+                continue
 
             if created:
                 logger.info('added "%s" by %s', songfile.title, songfile.artist)
