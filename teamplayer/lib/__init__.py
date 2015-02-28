@@ -143,3 +143,47 @@ def remove_pedantic():
     from mutagen import id3
 
     id3.ID3.PEDANTIC = False
+
+
+def attempt_file_rename(fullpath):
+    """Attempt to rename a non-UTF-8 filename
+
+    This only attempts to rename the basename.  If the directory name is not
+    valid UTF-8 then no attempt is made.
+
+    If the filename could be renamed, the new name is returned.  Otherwise None
+    is returned.
+
+    If the filename was not changed None is returned.
+
+    ``fullpath`` is str, not bytes.
+    """
+    dirname, filename = os.path.split(fullpath)
+
+    if not filename:
+        return None
+
+    try:
+        dirname.encode('utf-8')
+    except UnicodeEncodeError:
+        return None
+
+    original_filename = filename
+    filename = filename.encode(errors='surrogateescape')
+
+    re_decoded = False
+    for encoding in ['latin-1', 'windows-1252']:
+        try:
+            filename = filename.decode(encoding)
+            re_decoded = True
+            break
+        except UnicodeDecodeError:
+            continue
+
+    if not re_decoded:
+        return None
+
+    if filename == original_filename:
+        return None
+
+    return os.path.join(dirname, filename)
