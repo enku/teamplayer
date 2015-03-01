@@ -179,15 +179,17 @@ class Queue(models.Model):
 
         The songs are selected depending on the current "mood".
         """
-        onehourago = datetime.datetime.now() - datetime.timedelta(seconds=3600)
+        num_top_artists = settings.AUTO_FILL_MOOD_TOP_ARTISTS
+        seconds = settings.AUTO_FILL_MOOD_HISTORY
+        history = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
         station = station or Station.main_station()
-        top_artists = Mood.objects.filter(timestamp__gte=onehourago,
+        top_artists = Mood.objects.filter(timestamp__gte=history,
                                           station=station)
         top_artists = Mood.objects.exclude(artist='')
         top_artists = top_artists.values('artist')
         top_artists = top_artists.annotate(Count('id'))
         top_artists = top_artists.order_by('-id__count')
-        top_artists = top_artists[:250]
+        top_artists = top_artists[:num_top_artists]
         top_artists = [i['artist'] for i in top_artists]
         random.shuffle(top_artists)
 
