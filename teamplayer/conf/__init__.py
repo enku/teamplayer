@@ -34,6 +34,8 @@ DEFAULTS = {
     'SHAKE_THINGS_UP_FILTER': {'length__lt': 300, 'length__gt': 0},
     'ALWAYS_SHAKE_THINGS_UP': False,
     'AUTOFILL_STRATEGY': 'random',
+    'AUTO_FILL_MOOD_HISTORY': 3600,
+    'AUTO_FILL_MOOD_TOP_ARTISTS': 50,
     'UPLOADED_LIBRARY_DIR': '',
 }
 

@@ -44,9 +44,9 @@ class HomePageView(TestCase):
         response = self.client.post(url, {'dj_name': 'Liquid X'})
         self.assertEqual(response.status_code, 204)
         player = Player.objects.get(user__username='test')
-        self.assertEqual(player.dj_name, u'Liquid X')
+        self.assertEqual(player.dj_name, 'Liquid X')
         mock.assert_called_with(message_type='dj_name_change',
-                                data={'dj_name': u'Liquid X',
+                                data={'dj_name': 'Liquid X',
                                       'previous_dj_name': '',
                                       'user_id': player.pk})
 

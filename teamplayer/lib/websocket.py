@@ -7,13 +7,13 @@ import sys
 import time
 from json import dumps, loads
 
+import tornado.gen
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 from django.conf import settings as django_settings
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from mutagen import File
-from tornado.ioloop import IOLoop
 
 from teamplayer import models
 from teamplayer.conf import settings
@@ -113,7 +113,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             }))
 
     @classmethod
-    def notify_clients(cls, sender, **kwargs):
+    @tornado.gen.coroutine
+    def notify_clients(cls, **kwargs):
         """Signal handler to send a message to clients when the song changes.
         """
         current_song = kwargs['current_song']
@@ -155,7 +156,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     @staticmethod
     def get_conn():
         url = 'ws://localhost:%s/ipc' % settings.WEBSOCKET_PORT
-        ioloop = IOLoop.current()
+        ioloop = tornado.ioloop.IOLoop.current()
         conn = ioloop.run_sync(functools.partial(
             tornado.websocket.websocket_connect, url))
         return conn
@@ -285,8 +286,13 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         if not metadata:
             os.unlink(fullpath)
 
-        songfile, created = SongFile.metadata_get_or_create(
-            fullpath, metadata, entry.queue.player, entry.station.pk)
+        try:
+            songfile, created = SongFile.metadata_get_or_create(
+                fullpath, metadata, entry.queue.player, entry.station.pk)
+        except ValidationError as error:
+            msg = 'Error adding file to library: %s' % str(error)
+            logging.debug(msg)
+            created = False
 
         if not created:
             os.unlink(fullpath)

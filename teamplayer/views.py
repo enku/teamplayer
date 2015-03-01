@@ -14,8 +14,7 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect, render_to_response
-from django.template import RequestContext
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -38,8 +37,6 @@ from teamplayer.serializers import (
 )
 from tp_library.models import SongFile
 
-YEAR_IN_SECS = 365 * 24 * 60 * 60
-
 
 class HttpResponseNoContent(HttpResponse):
 
@@ -49,18 +46,16 @@ class HttpResponseNoContent(HttpResponse):
 
 def get_mpd_url(request, station):
     http_host = request.META.get('HTTP_HOST', 'localhost')
+    http_host = http_host.partition(':')[0]
     station = get_station_from_session(request)
     station_id = station.pk
-    if ':' in http_host:
-        http_host = http_host.split(':', 1)[0]
-    return 'http://{0}:{1}/mpd.mp3'.format(http_host,
-                                           settings.HTTP_PORT + station_id)
+    port = settings.HTTP_PORT + station_id
+    return 'http://{0}:{1}/mpd.mp3'.format(http_host, port)
 
 
 def get_websocket_url(request):
     http_host = request.META.get('HTTP_HOST', 'localhost')
-    if ':' in http_host:
-        http_host = http_host.split(':', 1)[0]
+    http_host = http_host.partition(':')[0]
     return 'ws://{0}:{1}/'.format(http_host, settings.WEBSOCKET_PORT)
 
 
@@ -101,31 +96,22 @@ def home(request, station_id=None):
         return HttpResponse(json.dumps(serializer.data),
                             content_type='application/json')
 
-    return render_to_response(
+    return render(
+        request,
         'teamplayer/home.html',
         {
             'mpd_url': get_mpd_url(request, station),
-            'name': (request.player.dj_name
-                     if request.player.dj_name
-                     else 'Anonymous'),
-            'show_player': True,
+            'name': request.player.dj_name or 'Anonymous',
             'station': station,
-            'station_id': station.pk,
             'home': Station.main_station().pk,
             'stations': Station.get_stations(),
-            'user_owned_station': Station.from_player(request.player),
             'username': request.player.username,
         },
-        context_instance=RequestContext(request)
     )
 
 
 def register(request):
-    return render_to_response(
-        'teamplayer/home.html',
-        {'register': True},
-        context_instance=RequestContext(request)
-    )
+    return render(request, 'teamplayer/home.html', {'register': True})
 
 
 @api_view(['GET'])
@@ -188,7 +174,7 @@ def add_to_queue(request):
         else:
             extra = ''
         status = {'fail': ('%sThe song was not added because I did '
-                           u'not recognize the type of file you sent' % extra)
+                           'not recognize the type of file you sent' % extra)
                   }
         return HttpResponse(json.dumps(status),
                             content_type='application/json')
@@ -226,15 +212,9 @@ def toggle_queue_status(request):
     new_status = bool(request.player.queue.toggle_status())
     IPCHandler.send_message(
         'queue_status',
-        {
-            'user': request.player.username,
-            'status': new_status,
-        }
+        {'user': request.player.username, 'status': new_status}
     )
-    return HttpResponse(
-        json.dumps(new_status),
-        content_type='application/json'
-    )
+    return HttpResponse(json.dumps(new_status), content_type='application/json')
 
 
 @login_required
@@ -277,9 +257,10 @@ def reorder_queue(request):
     Given comma-delimited string (of integers), re-order queue
     return the re-ordered list of ids in json format
     """
-    ids = [x['id'] for x in request.player.queue.reorder(
-        [int(i) for i in request.body.decode('utf-8').split(',')])
-    ]
+    queue = request.player.queue
+    new_order = request.body.decode('utf-8').split(',')
+    new_order = [int(i) for i in new_order]
+    ids = [i['id'] for i in queue.reorder(new_order)]
 
     return HttpResponse(
         json.dumps(ids),
@@ -322,7 +303,6 @@ def registration(request):
     """The view that handles the actual registration form"""
     context = dict()
     context['form'] = UserCreationForm()
-    context_instance = RequestContext(request)
 
     if request.method == "POST":
         context['form'] = form = UserCreationForm(request.POST)
@@ -343,8 +323,7 @@ def registration(request):
                                     reverse('teamplayer.views.home'))
 
     context['users'] = Player.objects.all()
-    return render_to_response('teamplayer/register.html', context,
-                              context_instance)
+    return render(request, 'teamplayer/register.html', context)
 
 
 def artist_page(_request, artist):
@@ -420,7 +399,7 @@ def next_station(request):
 @require_POST
 def edit_station(request):
     main_station = Station.main_station()
-    message = u''
+    message = ''
     form = EditStationForm(request.POST)
     if form.is_valid():
         name = form.cleaned_data['name']
@@ -439,7 +418,7 @@ def edit_station(request):
                 request.session['station_id'] = main_station.pk
             IPCHandler.send_message('station_delete', station_id)
     else:
-        message = u'\n'.join([i[0] for i in form.errors.values()])
+        message = '\n'.join([i[0] for i in form.errors.values()])
 
     return HttpResponse(message)
 
@@ -459,13 +438,10 @@ def create_station(request):
 
 def about(request):
     """about/copyright page"""
+    query = SongFile.objects.aggregate(Count('title'), Sum('filesize'))
 
-    query = SongFile.objects.aggregate(
-        Count('title'),
-        Sum('filesize')
-    )
-
-    return render_to_response(
+    return render(
+        request,
         'teamplayer/about.html',
         {
             'version': version_string(),
@@ -476,8 +452,7 @@ def about(request):
             'library_size': query['filesize__sum'],
             'scrobbler_id': getattr(settings, 'SCROBBLER_USER', ''),
             'users': Player.objects.count() - 1,
-        },
-        context_instance=RequestContext(request)
+        }
     )
 
 
@@ -491,9 +466,9 @@ def js_object(request):
     """Exposes the TeamPlayer JavaScript namespace"""
 
     http_host = request.META.get('HTTP_HOST', 'localhost')
-    if ':' in http_host:
-        http_host = http_host.split(':', 1)[0]
-    return render_to_response(
+    http_host = http_host.partition(':')[0]
+    return render(
+        request,
         'teamplayer/teamplayer.js',
         {
             'websocket_url': get_websocket_url(request),
@@ -502,7 +477,6 @@ def js_object(request):
             'home': Station.main_station().pk,
             'username': request.player.username,
         },
-        context_instance=RequestContext(request),
         content_type='application/javascript'
     )
 
@@ -510,16 +484,11 @@ def js_object(request):
 def player(request):
     """The audio player html"""
     station = get_station_from_session(request)
-    return render_to_response(
-        'teamplayer/player.html',
-        {
-            'mpd_url': get_mpd_url(request, station),
-        }
-    )
+    mpd_url = get_mpd_url(request, station)
+    return render(request, 'teamplayer/player.html', {'mpd_url': mpd_url})
 
 
 def redirect_to_home(request):
     main_station = Station.main_station()
-
     request.session['station_id'] = main_station.pk
     return redirect(reverse(home, args=(main_station.pk,)))

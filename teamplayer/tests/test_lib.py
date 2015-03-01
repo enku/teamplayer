@@ -54,7 +54,10 @@ class LibSongs(TestCase):
         metadata = teamplayer.lib.songs.get_song_metadata(SILENCE)
         self.assertEqual(
             metadata,
-            (u'TeamPlayer', u'Station Break', 'mp3')
+            {'artist': 'TeamPlayer',
+             'title': 'Station Break',
+             'type': 'mp3',
+             'mimetype': 'audio/mp3'}
         )
 
     def test_invalid_file(self):
@@ -203,3 +206,39 @@ class VersionStringTest(TestCase):
         # Then we get the expected string
         expected = '2.0.0-beta1'
         self.assertEqual(result, expected)
+
+
+class AttemptFileRenameTest(TestCase):
+    """Tests for the attempt_file_rename() function"""
+
+    def test_call(self):
+        # given the filename which cannot be encoded as utf-8
+        filename = '/tmp/Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3'
+
+        # when we call attempt_file_rename() on it
+        new_name = teamplayer.lib.attempt_file_rename(filename)
+
+        # then we get the expected result
+        self.assertEqual(
+            new_name, '/tmp/Kassé Mady Diabaté - Ko Kuma Magni.mp3')
+
+    def test_original_name_is_ok(self):
+        # given the filename which is already fine as utf-8
+        filename = '/tmp/nothing_wrong_with_me.mp3'
+
+        # when we call attempt_file_rename() on it
+        new_name = teamplayer.lib.attempt_file_rename(filename)
+
+        # then it returns None because the file was not renamed
+        self.assertEqual(new_name, None)
+
+    def test_dirname_is_bad(self):
+        # given the filename with a directory path that is unencodable
+        filename = '/tmp/t\udce9st/fil\udce9.mp3'
+
+        # when we call attempt_file_rename() on it
+        new_name = teamplayer.lib.attempt_file_rename(filename)
+
+        # then it returns None because the directory is still bad and we don't
+        # rename directories
+        self.assertEqual(new_name, None)

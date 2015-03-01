@@ -6,13 +6,14 @@ import logging
 import os
 import random
 
-from . import lib
-from .conf import settings
-
 from django.conf import settings as django_settings
 from django.contrib.auth.models import User
 from django.core.files import File
 from django.db import models, transaction
+from django.db.models import Count
+
+from . import lib
+from .conf import settings
 
 DJ_ANGO = None
 LOGGER = logging.getLogger('teamplayer.models')
@@ -45,14 +46,13 @@ class Queue(models.Model):
 
         try:
             metadata = lib.songs.get_song_metadata(entry.song.path)
-            artist, title, filetype = metadata
         except lib.songs.SongMetadataError:
             entry.song.delete()
             entry.delete()
             raise
-        entry.artist = artist
-        entry.title = title
-        entry.filetype = filetype
+        entry.artist = metadata['artist']
+        entry.title = metadata['title']
+        entry.filetype = metadata['type']
         entry.save()
         return entry
 
@@ -124,6 +124,9 @@ class Queue(models.Model):
 
         if settings.AUTOFILL_STRATEGY == 'contiguous':
             song_files = self.auto_fill_contiguous(song_files, entries_needed)
+        elif settings.AUTOFILL_STRATEGY == 'mood':
+            song_files = self.auto_fill_mood(song_files, entries_needed,
+                                             station=station)
         else:
             song_files = self.auto_fill_random(song_files, entries_needed)
 
@@ -170,6 +173,46 @@ class Queue(models.Model):
         song_files = queryset[first_song_idx:first_song_idx + entries_needed]
         return set(song_files)
 
+    @staticmethod
+    def auto_fill_mood(queryset, entries_needed, station=None):
+        """Return at most *entries_needed* SongFIles from the *queryset*.
+
+        The songs are selected depending on the current "mood".
+        """
+        num_top_artists = settings.AUTO_FILL_MOOD_TOP_ARTISTS
+        seconds = settings.AUTO_FILL_MOOD_HISTORY
+        history = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
+        station = station or Station.main_station()
+        top_artists = Mood.objects.filter(timestamp__gte=history,
+                                          station=station)
+        top_artists = Mood.objects.exclude(artist='')
+        top_artists = top_artists.values('artist')
+        top_artists = top_artists.annotate(Count('id'))
+        top_artists = top_artists.order_by('-id__count')
+        top_artists = top_artists[:num_top_artists]
+        top_artists = [i['artist'] for i in top_artists]
+        random.shuffle(top_artists)
+
+        liked_songs = []
+        for artist in top_artists:
+            song = queryset.filter(artist__iexact=artist)
+            if not song.exists():
+                continue
+            index = random.randint(1, song.count()) - 1
+            liked_songs.append(song[index])
+
+            if len(liked_songs) == entries_needed:
+                break
+
+        still_needed = entries_needed - len(liked_songs)
+        if still_needed:
+            # just get some random stuff
+            q = queryset.exclude(pk__in=[i.pk for i in liked_songs])
+            additional = Queue.auto_fill_random(q, still_needed)
+        else:
+            additional = []
+        return liked_songs + list(additional)
+
 
 class Entry(models.Model):
 
@@ -184,7 +227,7 @@ class Entry(models.Model):
     filetype = models.CharField(max_length=4, blank=False)
 
     def __str__(self):
-        return u'“%s” by %s' % (self.title, self.artist)
+        return '“%s” by %s' % (self.title, self.artist)
 
     def delete(self, *args, **kwargs):
         if self.song:
@@ -200,7 +243,7 @@ class Entry(models.Model):
         Return the artist's Mood.count for this artist
         """
         qs = Mood.objects.filter(
-            artist=self.artist,
+            artist__iexact=self.artist,
             station=station,
             timestamp__gt=lib.now() - datetime.timedelta(hours=24)
         )
@@ -220,7 +263,7 @@ class Mood(models.Model):
     timestamp = models.DateTimeField(auto_now=True, auto_now_add=True)
 
     def __str__(self):
-        return u'%s: %s' % (self.artist, self.timestamp)
+        return '%s: %s' % (self.artist, self.timestamp)
 
     class Meta:
         ordering = ('-timestamp', 'artist')
@@ -310,7 +353,7 @@ class Station(models.Model):
     @classmethod
     def main_station(cls):
         if not cls.__main_station:
-            cls.__main_station = cls.objects.get(name=u'Main Station')
+            cls.__main_station = cls.objects.get(name='Main Station')
         return cls.__main_station
 
 

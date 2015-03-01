@@ -25,6 +25,7 @@ LOGGER = logging.getLogger('teamplayer.mpc')
 class MPC(object):
     """Interface to a mpc client."""
     def __init__(self, station):
+        self.mpd = None
         self.station = station
         self.station_id = station.id if station else 0
         self.address = settings.MPD_ADDRESS
@@ -46,9 +47,16 @@ class MPC(object):
         """
         Start the mpd deamon.  Insert a file and play
         """
-        self.stop()
-        subprocess.call(('mpd', self.conf_file))
-        sleep(5)
+        assert self.mpd is None
+        self.mpd = subprocess.Popen(('mpd', '--no-daemon', self.conf_file))
+
+        # this is terrible. basically we want to block until mpd is listening
+        while True:
+            try:
+                self.call('status')
+            except ConnectionRefusedError:  # NOQA
+                continue
+            break
 
         self.call('update')
         self.call('consume', 1)
@@ -58,11 +66,9 @@ class MPC(object):
         """
         Stop the mpd daemon.
         """
-
-        if os.path.exists(self.pid_file):
-            subprocess.call(('mpd', '--kill', self.conf_file))
-            os.remove(self.db_file)
-            sleep(1)
+        if self.mpd:
+            self.mpd.terminate()
+        self.mpd = None
 
     def create_config(self):
         """Create the mpd config file and write the config to it"""
@@ -79,6 +85,7 @@ class MPC(object):
             'QUEUE_DIR': self.queue_dir,
             'STREAM_BITRATE': settings.STREAM_BITRATE,
             'STREAM_FORMAT': settings.STREAM_FORMAT,
+            'ZEROCONF_NAME': 'TeamPlayer Station #%s' % self.station.pk
         }
 
         mpd_file.write("""# Automatically generated.  Do not edit.
@@ -91,6 +98,7 @@ class MPC(object):
     log_file                "{MPD_LOG}"
     max_connections         "{MPD_MAX_CONNECTIONS}"
     max_output_buffer_size  "{MAX_OUTPUT_BUFFER_SIZE}"
+    zeroconf_name           "{ZEROCONF_NAME}"
 
     audio_output {{
         enabled             "yes"
@@ -210,7 +218,7 @@ class MPC(object):
             if basename.startswith('file: '):
                 basename = basename[6:]
             filename = os.path.join(self.queue_dir, basename)
-            return songs.get_song_metadata(filename)[0]
+            return songs.get_song_metadata(filename)['artist']
         return None
 
     def dj_from_filename(self, filename):

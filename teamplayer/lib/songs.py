@@ -52,16 +52,30 @@ class SongMetadataError(Exception):
 
 
 def get_song_metadata(filename):
-    """Given filename, return (artist, title, type)"""
+    """Return a dict of song metadata for filename
 
+    Given the filename, return a dict of metadata consisting of:
+
+        * artist: the song artist
+        * title: the song title
+        * type: the song's type
+        * mimetype: the song's mimetype
+
+    Raise SongMetaDataError if this cannot be determined.
+    """
     try:
-        metadata = File(filename, easy=True)
-        artist = first_or_none(metadata, 'artist') or 'Unknown'
-        title = first_or_none(metadata, 'title') or 'Unknown'
-        mimetype = metadata.mime[0]
+        mutagen_data = File(filename, easy=True)
+        artist = first_or_none(mutagen_data, 'artist') or 'Unknown'
+        title = first_or_none(mutagen_data, 'title') or 'Unknown'
+        mimetype = mutagen_data.mime[0]
         filetype = MIME_MAP[mimetype]
 
-        return (artist, title, filetype)
+        return {
+            'artist': artist,
+            'title': title,
+            'type': filetype,
+            'mimetype': mimetype
+        }
 
     except Exception as error:
         raise SongMetadataError(str(error))
@@ -121,9 +135,7 @@ def get_image_url_for(artist):
 
     try:
         root = ElementTree.parse(response)
-    except:
-        # FIXME: This needs to be fixed, but different versions of Python
-        # raise different exceptions, so we use a catch-all for now
+    except ElementTree.ParseError:
         LOGGER.error('Error parsing response from %s', api_url)
         return CLEAR_IMAGE_URL
     images = root.findall('./artist/image')
@@ -169,10 +181,7 @@ def best_song_from_player(player, station, previous_artist=None):
 
     If no relevant song is found, return None.
     """
-    try:
-        queue = player.queue
-    except models.Player.DoesNotExist:
-        return None
+    queue = player.queue
 
     if not queue.active:
         return None
@@ -231,7 +240,7 @@ def auto_find_song(previous_artist, queue, station):
     return None
     """
     entries = (queue.entry_set.filter(station=station)
-               .exclude(artist=previous_artist))
+               .exclude(artist__iexact=previous_artist))
 
     if entries.count() == 0:
         return None
@@ -244,7 +253,7 @@ def auto_find_song(previous_artist, queue, station):
     one_day = now() - datetime.timedelta(hours=24)
     mood_artists = (models.Mood.objects
                     .filter(timestamp__gt=one_day, station=station)
-                    .exclude(artist=previous_artist)
+                    .exclude(artist__iexact=previous_artist)
                     .values('artist')
                     .order_by()
                     .annotate(Count('artist'))
@@ -252,7 +261,7 @@ def auto_find_song(previous_artist, queue, station):
     for mood_artist in mood_artists:
         a = mood_artist['artist'].lower()
         if a in artists:
-            LOGGER.info(u'“%s” fits the mood', mood_artist['artist'])
+            LOGGER.info('“%s” fits the mood', mood_artist['artist'])
             return entries.filter(artist__iexact=a)[0]
 
     return entries[0]
@@ -272,7 +281,6 @@ def scrobble_song(song, now_playing=False):
         except (URLError, HTTPException, scrobbler.ProtocolError):
             return False
 
-    # song => (u'DJ', 'Purity Ring', 'Ungirthed', 169, 19, 0)
     artist = song['artist']
     title = song['title']
     length = song['total_time']

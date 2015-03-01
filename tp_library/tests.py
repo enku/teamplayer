@@ -6,10 +6,12 @@ import tempfile
 from unittest.mock import patch
 
 from django.core import management
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from mutagen import File
 
-from teamplayer.models import Entry, Player
+from teamplayer.models import Entry, Player, Station
 from tp_library.models import SongFile
 
 __dir__ = os.path.dirname(__file__)
@@ -20,6 +22,10 @@ DATURA = os.path.join(__dir__, '..', 'teamplayer', 'tests', 'data',
 
 
 class SongFileTest(TestCase):
+    def setUp(self):
+        self.dj_ango = Player.dj_ango()
+        self.station = Station.main_station()
+
     def test_not_exists(self):
         """Demonstrate the exists() for nonexistant files method."""
         # given the song pointing to a non-existant file
@@ -51,6 +57,19 @@ class SongFileTest(TestCase):
 
         # then we get true
         self.assertTrue(exists)
+
+    def test_artist_is_unknown(self):
+        # given the songfile with artist='unknown'
+        metadata = File(SILENCE, easy=True)
+        metadata['artist'] = 'unknown'
+        contributor = self.dj_ango
+        station_id = self.station.pk
+
+        # then it raises ValidationError
+        with self.assertRaises(ValidationError):
+            # when we call metadata_get_or_create()
+            song, created = SongFile.metadata_get_or_create(
+                '/dev/null', metadata, contributor, station_id)
 
 
 class AddToQueueTest(TestCase):
@@ -164,3 +183,23 @@ class TpLibraryWalkTestCase(TestCase):
 
         # Then it succeeds, but we just don't get any files
         self.assertEqual(SongFile.objects.all().count(), 0)
+
+    def test_unencodable_filename_rename(self):
+        filename = 'Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3'
+        filename = os.path.join(self.directory, filename)
+
+        # This is because the filename is actually latin-1, encoded but
+        # Python(3) decodes it as UTF-8, but can't re-encode it.
+        shutil.copy(DATURA, filename)
+
+        # When we call the management command on it with --rename
+        management.call_command(
+            'tplibrarywalk', self.directory, rename=True)
+
+        # Then it succeeds and the file is renamed
+        self.assertEqual(SongFile.objects.all().count(), 1)
+
+        songfile = SongFile.objects.all()[0]
+        expected = os.path.join(
+            self.directory, 'Kass\u00e9 Mady Diabat\u00e9 - Ko Kuma Magni.mp3')
+        self.assertEqual(songfile.filename, expected)

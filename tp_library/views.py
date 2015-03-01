@@ -1,7 +1,15 @@
 import json
 import os
 
-from haystack.views import search_view_factory, SearchView
+from django.contrib.auth.decorators import login_required
+from django.contrib.sites.models import get_current_site
+from django.contrib.syndication.views import Feed, add_domain
+from django.core.files import File
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_POST
+from haystack.views import SearchView, search_view_factory
 
 from teamplayer.lib.websocket import IPCHandler
 from teamplayer.models import Station
@@ -9,15 +17,6 @@ from teamplayer.serializers import EntrySerializer
 from teamplayer.views import get_station_from_session
 from tp_library.forms import AddToQueueForm
 from tp_library.models import SongFile
-
-from django.contrib.auth.decorators import login_required
-from django.contrib.sites.models import get_current_site
-from django.contrib.syndication.views import add_domain, Feed
-from django.core.files import File
-from django.core.urlresolvers import reverse
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_POST
 
 
 @login_required
