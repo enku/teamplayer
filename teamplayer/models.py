@@ -179,8 +179,8 @@ class Queue(models.Model):
 
         The songs are selected depending on the current "mood".
         """
-        num_top_artists = settings.AUTO_FILL_MOOD_TOP_ARTISTS
-        seconds = settings.AUTO_FILL_MOOD_HISTORY
+        num_top_artists = settings.AUTOFILL_MOOD_TOP_ARTISTS
+        seconds = settings.AUTOFILL_MOOD_HISTORY
         history = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
         station = station or Station.main_station()
         top_artists = Mood.objects.filter(timestamp__gte=history,
