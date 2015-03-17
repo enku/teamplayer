@@ -7,9 +7,8 @@ import tornado.gen
 import tornado.web
 
 from teamplayer.conf import settings
-from teamplayer.lib import copy_entry_to_queue, songs
+from teamplayer.lib import copy_entry_to_queue, signals, songs
 from teamplayer.lib.mpc import MPC
-from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.lib.websocket import IPCHandler, SocketHandler
 from teamplayer.models import Mood, Player, Station
 from teamplayer.serializers import EntrySerializer
@@ -130,6 +129,12 @@ class StationThread(threading.Thread):
                 continue
 
             if len_playlist == 1:
+                if self.previous_player:
+                    signals.song_change.send(
+                        Station,
+                        player=self.previous_player,
+                        song_info=current_song
+                    )
                 self.wait_for(current_song)
 
             artist = self.mpc.get_last_artist(playlist)
@@ -144,7 +149,7 @@ class StationThread(threading.Thread):
 
             if entry is None:
                 LOGGER.info('%s: No players with any queued titles', self.name)
-                QUEUE_CHANGE_EVENT.wait()
+                signals.QUEUE_CHANGE_EVENT.wait()
                 continue
 
             self.previous_player = entry.queue.player
