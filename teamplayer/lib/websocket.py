@@ -13,6 +13,7 @@ import tornado.web
 import tornado.websocket
 from django.conf import settings as django_settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.urlresolvers import reverse
 from mutagen import File
 
 from teamplayer import models
@@ -21,9 +22,9 @@ from teamplayer.lib import (
     get_player_from_session_id,
     get_random_filename,
     get_station_id_from_session_id,
-    remove_pedantic
+    remove_pedantic,
+    signals
 )
-from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.serializers import StationSerializer
 from tp_library.models import SongFile
 
@@ -184,8 +185,8 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         SocketHandler.broadcast_player_stats()
         SocketHandler.broadcast_station_stats()
 
-        QUEUE_CHANGE_EVENT.set()
-        QUEUE_CHANGE_EVENT.clear()
+        signals.QUEUE_CHANGE_EVENT.set()
+        signals.QUEUE_CHANGE_EVENT.clear()
 
     def handle_song_removed(self, song_id):
         SocketHandler.broadcast_player_stats()
@@ -197,8 +198,8 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         SocketHandler.broadcast_station_stats()
 
         # Send an event to the spindoctor
-        QUEUE_CHANGE_EVENT.set()
-        QUEUE_CHANGE_EVENT.clear()
+        signals.QUEUE_CHANGE_EVENT.set()
+        signals.QUEUE_CHANGE_EVENT.clear()
 
     def handle_shutdown(self, data):
         """Shut down all services"""
@@ -294,7 +295,22 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
             logging.debug(msg)
             created = False
 
-        if not created:
+        if created:
+            song_info = {
+                'station_id': songfile.station_id,
+                'title': songfile.title,
+                'artist': songfile.artist,
+                'artist_image': reverse('teamplayer.views.artist_image',
+                                        kwargs={'artist': songfile.artist}),
+                'total_time': songfile.length,
+                'path': songfile.filename,
+            }
+            signals.library_add.send(
+                models.Player,
+                player=entry.queue.player,
+                song_info=song_info,
+            )
+        else:
             os.unlink(fullpath)
 
     def handle_dj_name_change(self, data):
