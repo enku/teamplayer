@@ -232,6 +232,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         time.sleep(3)
 
         StationThread.remove(station_id)
+        signals.station_delete.send(models.Station, station_id=station_id)
 
     def handle_station_create(self, station_id):
         """A station was created. we need to start the Thread"""
@@ -245,6 +246,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
 
         LOGGER.debug('Creating thread for new station: %s', station)
         StationThread.create(station)
+        signals.station_create.send(models.Station, station_id=station_id)
 
         # Let 'em know
         for client in SocketHandler.clients:
