@@ -47,7 +47,7 @@ class HttpResponseNoContent(HttpResponse):
 def get_mpd_url(request, station):
     http_host = request.META.get('HTTP_HOST', 'localhost')
     http_host = http_host.partition(':')[0]
-    station = get_station_from_session(request)
+    station = request.station
     station_id = station.pk
     port = settings.HTTP_PORT + station_id
     return 'http://{0}:{1}/mpd.mp3'.format(http_host, port)
@@ -120,7 +120,7 @@ def show_queue(request):
     """
     View to display the titles in the player's queue.
     """
-    station = get_station_from_session(request)
+    station = request.station
 
     entries = request.player.queue.entry_set.filter(station=station)
     seralizer = EntrySerializer(entries, many=True)
@@ -158,7 +158,7 @@ def add_to_queue(request):
     """
     Add song to the queue
     """
-    station = get_station_from_session(request)
+    station = request.station
 
     if request.FILES:
         uploaded_file = next(request.FILES.values())
@@ -192,7 +192,7 @@ def add_to_queue(request):
 @login_required
 def randomize_queue(request):
     """Randomize the player's queue"""
-    station = get_station_from_session(request)
+    station = request.station
     request.player.queue.randomize(station)
     return redirect(reverse('teamplayer.views.show_queue'))
 
@@ -200,7 +200,7 @@ def randomize_queue(request):
 @login_required
 def order_by_rank(request):
     """Order your queue according to artist rank"""
-    station = get_station_from_session(request)
+    station = request.station
     request.player.queue.order_by_rank(station)
     return redirect(reverse('teamplayer.views.show_queue'))
 
@@ -236,7 +236,7 @@ def currently_playing(request):
     remaining_time
     artist_image
     """
-    station = get_station_from_session(request)
+    station = request.station
 
     output = MPC(station=station).currently_playing()
     response = HttpResponse(json.dumps(output),
@@ -360,7 +360,7 @@ def station_detail(request, station_id):
 
 def previous_station(request):
     """Redirect to the previous station"""
-    station = get_station_from_session(request)
+    station = request.station
     stations = Station.get_stations().order_by('pk').values_list('pk',
                                                                  flat=True)
     stations = list(stations)
@@ -378,7 +378,7 @@ def previous_station(request):
 
 def next_station(request):
     """Redirect to the next station"""
-    station = get_station_from_session(request)
+    station = request.station
     stations = Station.get_stations().order_by('pk').values_list('pk',
                                                                  flat=True)
     stations = list(stations)
@@ -483,7 +483,7 @@ def js_object(request):
 
 def player(request):
     """The audio player html"""
-    station = get_station_from_session(request)
+    station = request.station
     mpd_url = get_mpd_url(request, station)
     return render(request, 'teamplayer/player.html', {'mpd_url': mpd_url})
 
