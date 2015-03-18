@@ -59,22 +59,6 @@ def get_websocket_url(request):
     return 'ws://{0}:{1}/'.format(http_host, settings.WEBSOCKET_PORT)
 
 
-def get_station_from_session(request):
-    main_station = Station.main_station()
-    try:
-        station_id = request.session['station_id']
-    except KeyError:
-        request.session['station_id'] = main_station.pk
-        return main_station
-
-    try:
-        station = Station.objects.get(pk=station_id)
-        return station
-    except Station.DoesNotExist:
-        request.session['station_id'] = main_station.pk
-        return main_station
-
-
 @login_required
 def home(request, station_id=None):
     """This is the main page view for the teamplayer app"""
