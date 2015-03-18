@@ -182,6 +182,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         SocketHandler.broadcast('wall', message)
 
     def handle_song_added(self, song_id):
+        signals.song_added.send(models.Entry, song_id=song_id)
         SocketHandler.broadcast_player_stats()
         SocketHandler.broadcast_station_stats()
 
@@ -189,6 +190,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         signals.QUEUE_CHANGE_EVENT.clear()
 
     def handle_song_removed(self, song_id):
+        signals.song_removed.send(models.Entry, song_id=song_id)
         SocketHandler.broadcast_player_stats()
         SocketHandler.broadcast_station_stats()
 
