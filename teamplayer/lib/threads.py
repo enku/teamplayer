@@ -135,6 +135,11 @@ class StationThread(threading.Thread):
                     song_info=current_song
                 )
                 self.wait_for(current_song)
+                signals.song_end.send(
+                    Station,
+                    player=self.previous_player,
+                    song_info=current_song
+                )
 
             artist = self.mpc.get_last_artist(playlist)
             artist = None if artist == 'TeamPlayer' else artist
