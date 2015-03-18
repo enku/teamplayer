@@ -129,12 +129,11 @@ class StationThread(threading.Thread):
                 continue
 
             if len_playlist == 1:
-                if self.previous_player:
-                    signals.song_change.send(
-                        Station,
-                        player=self.previous_player,
-                        song_info=current_song
-                    )
+                signals.song_start.send(
+                    Station,
+                    player=self.previous_player,
+                    song_info=current_song
+                )
                 self.wait_for(current_song)
 
             artist = self.mpc.get_last_artist(playlist)
