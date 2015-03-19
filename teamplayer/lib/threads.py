@@ -2,6 +2,7 @@
 import logging
 import shutil
 import threading
+from functools import partial
 
 import tornado.gen
 import tornado.web
@@ -17,9 +18,10 @@ LOGGER = logging.getLogger('teamplayer.threads')
 
 
 @tornado.gen.coroutine
-def scrobble_song(song, now_playing=False):
+def scrobble_song(sender, now_playing=False, **kwargs):
     """Signal handler to scrobble when a song changes."""
     # only the Main Station scrobbles
+    song = kwargs['song_info']
     if song and song['artist'] != 'DJ Ango':
         LOGGER.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
         songs.scrobble_song(song, now_playing=now_playing)
@@ -50,10 +52,15 @@ class StationThread(threading.Thread):
         self.running = False
         self.mpc = MPC(self.station)
         self.mpc.create_config().start()
-        self.scrobble = (settings.SCROBBLER_USER
-                         and self.station == Station.main_station())
         self.previous_player = None
         self.previous_song = None
+
+        if (settings.SCROBBLER_USER and self.station == Station.main_station()):
+            # set up scrobbler signals
+            self.scrobble_start = partial(scrobble_song, now_playing=True)
+            signals.song_start.connect(self.scrobble_start)
+            self.scrobble_end = partial(scrobble_song, now_playing=False)
+            signals.song_end.connect(self.scrobble_end)
 
     @classmethod
     def create(cls, station):
@@ -99,16 +106,10 @@ class StationThread(threading.Thread):
         """Let clients and scrobbler know the song is playing and wait to end"""
         SocketHandler.notify_clients(current_song=song)
 
-        if self.scrobble:
-            scrobble_song(song, True)
-
         secs = song['remaining_time'] - self.secs_to_inject_new_song
         secs = max(0, secs)
         LOGGER.debug('%s: Waiting %s seconds', self.name, secs)
         self.mpc.idle_or_wait(secs)
-
-        if self.scrobble:
-            scrobble_song(song, False)
 
     def run(self):
         LOGGER.debug('Starting %s', self.name)
