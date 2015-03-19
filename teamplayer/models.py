@@ -174,13 +174,13 @@ class Queue(models.Model):
         return set(song_files)
 
     @staticmethod
-    def auto_fill_mood(queryset, entries_needed, station=None):
+    def auto_fill_mood(queryset, entries_needed, station=None, seconds=None):
         """Return at most *entries_needed* SongFIles from the *queryset*.
 
         The songs are selected depending on the current "mood".
         """
         num_top_artists = settings.AUTOFILL_MOOD_TOP_ARTISTS
-        seconds = settings.AUTOFILL_MOOD_HISTORY
+        seconds = seconds or settings.AUTOFILL_MOOD_HISTORY
         history = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
         station = station or Station.main_station()
         top_artists = Mood.objects.filter(timestamp__gte=history,
@@ -206,9 +206,15 @@ class Queue(models.Model):
 
         still_needed = entries_needed - len(liked_songs)
         if still_needed:
-            # just get some random stuff
-            q = queryset.exclude(pk__in=[i.pk for i in liked_songs])
-            additional = Queue.auto_fill_random(q, still_needed)
+            qs = queryset.exclude(pk__in=[i.pk for i in liked_songs])
+            # if we didn't get anything last time, just get some random stuff
+            if not liked_songs:
+                additional = Queue.auto_fill_random(qs, still_needed)
+            else:
+                # call ourself again with a larger timeframe, say 1 hour
+                seconds = seconds + 3600
+                additional = Queue.auto_fill_mood(
+                    qs, still_needed, station=station, seconds=seconds)
         else:
             additional = []
         return liked_songs + list(additional)
