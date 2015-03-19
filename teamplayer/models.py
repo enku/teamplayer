@@ -204,19 +204,19 @@ class Queue(models.Model):
             if len(liked_songs) == entries_needed:
                 break
 
+        additional = []
         still_needed = entries_needed - len(liked_songs)
-        if still_needed:
+        if still_needed > 0:
             qs = queryset.exclude(pk__in=[i.pk for i in liked_songs])
-            # if we didn't get anything last time, just get some random stuff
-            if not liked_songs:
-                additional = Queue.auto_fill_random(qs, still_needed)
-            else:
-                # call ourself again with a larger timeframe, say 1 hour
-                seconds = seconds + 3600
+            # keep going back in history up to 24 hours to find artists that fit
+            # the mood
+            if seconds < 86400:
+                seconds = seconds + settings.AUTOFILL_MOOD_HISTORY
                 additional = Queue.auto_fill_mood(
                     qs, still_needed, station=station, seconds=seconds)
-        else:
-            additional = []
+            else:
+                additional = Queue.auto_fill_random(qs, still_needed)
+
         return liked_songs + list(additional)
 
 
