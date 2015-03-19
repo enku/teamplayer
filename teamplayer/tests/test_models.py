@@ -392,6 +392,64 @@ class QueueAutoFill(TestCase):
             self.assertEqual(queue.entry_set.count(), 5)
 
 
+class StationManagerTest(TestCase):
+    def setUp(self):
+        self.player = Player.objects.create_player('test', password='***')
+
+    def test_create_station(self):
+        # given the player
+        player = self.player
+
+        # when we call Station.objects.create_station()
+        station = Station.objects.create_station(creator=player,
+                                                 name='test station')
+
+        # then we get a station with the player as creator
+        self.assertEqual(station.creator, player)
+        self.assertEqual(station.name, 'test station')
+
+    def test_create_station_with_songs(self):
+        # given the player
+        player = self.player
+
+        # given the songs in the library
+        song_data = (
+            ('Madonna', 'True Blue'),
+            ('Sleigh Bells', 'End of the Line'),
+            ('The Love Language', 'Heart to Tell'),
+            ('Pace is the Trick', 'Interpol'),
+            ('Wander (Through the Night)', 'The B of the Bang'),
+            ('Lord We Ganstas', 'Slipstick'),
+            ('Grammy', 'Purity Ring'),
+            ('Bullet in the Head', 'Gvcci Hvcci')
+        )
+        main_station = Station.main_station()
+        songs = []
+        with TemporaryDirectory() as tempdir:
+            silence = open(SILENCE, 'rb').read()
+            for data in song_data:
+                filename = os.path.join(tempdir, '{0}-{1}.mp3'.format(*data))
+                open(filename, 'wb').write(silence)
+                song = SongFile.objects.create(
+                    artist=data[0],
+                    title=data[1],
+                    filename=filename,
+                    filesize=80000,
+                    album="Marduk's Mix Tape",
+                    genre="Unknown",
+                    station_id=main_station.pk,
+                    added_by=player,
+                )
+                songs.append(song)
+
+            # when we call Station.objects.create_station() with those songs
+            station = Station.objects.create_station(creator=player,
+                                                     songs=songs)
+
+            # then the station is created and the song entries added
+            self.assertEqual(station.entries.count(), len(songs))
+
+
 class StationTest(TestCase):
 
     """Demonstrate the Station model"""

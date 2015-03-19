@@ -290,10 +290,26 @@ class Mood(models.Model):
             )
 
 
+class StationManager(models.Manager):
+    def create_station(self, **kwargs):
+        songs = kwargs.pop('songs', [])
+
+        station = self.model(**kwargs)
+        station.save()
+
+        queue = station.creator.queue
+        for songfile in songs:
+            with open(songfile.filename, 'rb') as fp:
+                django_file = File(fp)
+                queue.add_song(django_file, station)
+
+        return station
+
+
 class Station(models.Model):
     __main_station = None
 
-    objects = models.Manager()
+    objects = StationManager()
     name = models.CharField(max_length=128, unique=True)
     creator = models.ForeignKey('Player', unique=True)
 
