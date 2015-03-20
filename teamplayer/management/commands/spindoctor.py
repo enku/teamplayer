@@ -67,21 +67,22 @@ class Command(BaseCommand):
         except Exception:
             LOGGER.exception('Error inside main loop')
             LOGGER.error('Attempting to shutdown...')
-            self.shutdown()
+            shutdown()
             return
         except KeyboardInterrupt:
-            self.shutdown()
+            shutdown()
 
-    def shutdown(self):
-        """Shut down mpd servers and exit"""
-        csi = '\x1b['
-        sys.stderr.write('{csi}1G'.format(csi=csi))  # move to start of line
-        LOGGER.critical('Shutting down')
-        for station_thread in StationThread.get_all().values():
-            station_thread.mpc.stop()
 
-        # suicide
-        os.kill(os.getpid(), signal.SIGTERM)
+def shutdown():
+    """Shut down mpd servers and exit"""
+    csi = '\x1b['
+    sys.stderr.write('{csi}1G'.format(csi=csi))  # move to start of line
+    LOGGER.critical('Shutting down')
+    for station_thread in StationThread.get_all().values():
+        station_thread.mpc.stop()
+
+    # suicide
+    os.kill(os.getpid(), signal.SIGTERM)
 
 
 def start_socket_server():
