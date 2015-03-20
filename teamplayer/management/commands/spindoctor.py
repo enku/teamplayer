@@ -5,7 +5,6 @@ grabbing entries from users' queues and adding them to the mpd playlist
 """
 import logging
 import os
-import re
 import signal
 import sys
 from optparse import make_option
@@ -24,9 +23,6 @@ try:
 except ImportError:
     setproctitle = lambda x: None  # NOQA
 
-
-PLAYING_REGEX = re.compile(
-    r'^\[playing\] #\d+/\d+ +(\d+:\d{2})/(\d+:\d{2}) .*')
 
 LOGGER = logging.getLogger('teamplayer.spindoctor')
 
