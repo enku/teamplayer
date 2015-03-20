@@ -18,9 +18,11 @@ LOGGER = logging.getLogger('teamplayer.threads')
 
 
 @tornado.gen.coroutine
-def scrobble_song(sender, now_playing=False, **kwargs):
+def scrobble_song(station, now_playing=False, **kwargs):
     """Signal handler to scrobble when a song changes."""
     # only the Main Station scrobbles
+    if station != Station.main_station():
+        return
     song = kwargs['song_info']
     if song and song['artist'] != 'DJ Ango':
         LOGGER.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
@@ -131,13 +133,13 @@ class StationThread(threading.Thread):
 
             if len_playlist == 1:
                 signals.song_start.send(
-                    Station,
+                    self.station,
                     player=self.previous_player,
                     song_info=current_song
                 )
                 self.wait_for(current_song)
                 signals.song_end.send(
-                    Station,
+                    self.station,
                     player=self.previous_player,
                     song_info=current_song
                 )
