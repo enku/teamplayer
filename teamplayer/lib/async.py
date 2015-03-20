@@ -127,6 +127,17 @@ class StationThread(threading.Thread):
         LOGGER.debug('%s: Waiting %s seconds', self.name, secs)
         self.mpc.idle_or_wait(secs)
 
+    @classmethod
+    @tornado.gen.coroutine
+    def purge_queue_dir(cls, **kwargs):
+        station = kwargs.get('sender')
+
+        if not station:
+            return
+
+        mpc = cls.__station_threads[station.pk]
+        mpc.purge_queue_dir()
+
     def run(self):
         LOGGER.debug('Starting %s', self.name)
         self.running = True
@@ -194,10 +205,9 @@ class StationThread(threading.Thread):
             SocketHandler.message(entry.queue.player, 'song_removed',
                                   entry_dict)
 
-            # delete files not in playlist
-            self.mpc.purge_queue_dir()
-
     def stop(self):
         LOGGER.critical('%s Shutting down' % self.name)
         self.mpc.stop()
         self.running = False
+
+signals.song_end.connect(StationThread.purge_queue_dir)
