@@ -2,8 +2,6 @@ import functools
 import logging
 import os
 import shutil
-import signal
-import sys
 import time
 from json import dumps, loads
 
@@ -205,15 +203,9 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
 
     def handle_shutdown(self, data):
         """Shut down all services"""
-        from teamplayer.lib.async import StationThread
+        from teamplayer.management.commands.spindoctor import shutdown
 
-        LOGGER.critical('Shutting down')
-        for station_thread in StationThread.get_all().values():
-            station_thread.mpc.stop()
-
-        # suicide
-        os.kill(os.getpid(), signal.SIGTERM)
-        sys.exit(0)
+        shutdown()
 
     def handle_station_rename(self, data):
         """A station's name has changed"""
