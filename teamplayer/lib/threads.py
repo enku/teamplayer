@@ -21,12 +21,13 @@ LOGGER = logging.getLogger('teamplayer.threads')
 def scrobble_song(now_playing=False, **kwargs):
     """Signal handler to scrobble when a song changes."""
     station = kwargs['sender']
+    song = kwargs['song_info']
 
     # only the Main Station scrobbles
     if station != Station.main_station():
         return
-    song = kwargs['song_info']
-    if song and song['artist'] != 'DJ Ango':
+
+    if song['artist'] != 'DJ Ango':
         LOGGER.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
         songs.scrobble_song(song, now_playing=now_playing)
 
