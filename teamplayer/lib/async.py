@@ -16,39 +16,6 @@ from teamplayer.serializers import EntrySerializer
 LOGGER = logging.getLogger('teamplayer.async')
 
 
-@tornado.gen.coroutine
-def scrobble_song(now_playing=False, **kwargs):
-    """Signal handler to scrobble when a song changes."""
-    station = kwargs['sender']
-    song = kwargs['song_info']
-
-    # only the Main Station scrobbles
-    if station != Station.main_station():
-        return
-
-    if song['artist'] != 'DJ Ango':
-        LOGGER.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
-        songs.scrobble_song(song, now_playing=now_playing)
-
-
-@tornado.gen.coroutine
-def log_mood(**kwargs):
-    """Record the mood for the given artist and station"""
-    player = kwargs['player']
-    song = kwargs['song_info']
-    station = kwargs['sender']
-    artist = song['artist']
-
-    if artist in ('Unknown', 'DJ Ango'):
-        return
-
-    if player == Player.dj_ango():
-        return
-
-    LOGGER.debug('Logging mood for %s', artist)
-    Mood.log_mood(artist, station)
-
-
 class StationThread(threading.Thread):
     """Class to handle stations, starting/stopping their mpds
     and the creation/removal process.
@@ -57,8 +24,6 @@ class StationThread(threading.Thread):
     __lock = threading.Lock()
 
     secs_to_inject_new_song = settings.CROSSFADE + 1.5
-
-    signals.song_start.connect(log_mood)
 
     def __init__(self, *args, **kwargs):
         self.station = kwargs.pop('station')
@@ -70,13 +35,6 @@ class StationThread(threading.Thread):
         self.mpc.start()
         self.previous_player = None
         self.previous_song = None
-
-        if (settings.SCROBBLER_USER and self.station == Station.main_station()):
-            # set up scrobbler signals
-            self.scrobble_start = partial(scrobble_song, now_playing=True)
-            signals.song_start.connect(self.scrobble_start)
-            self.scrobble_end = partial(scrobble_song, now_playing=False)
-            signals.song_end.connect(self.scrobble_end)
 
     @classmethod
     def create(cls, station):
@@ -210,4 +168,48 @@ class StationThread(threading.Thread):
         self.mpc.stop()
         self.running = False
 
+
+###################
+# Signal Handlers #
+###################
+@tornado.gen.coroutine
+def scrobble_song(now_playing=False, **kwargs):
+    """Signal handler to scrobble when a song changes."""
+    station = kwargs['sender']
+    song = kwargs['song_info']
+
+    # only the Main Station scrobbles
+    if station != Station.main_station():
+        return
+
+    if song['artist'] != 'DJ Ango':
+        LOGGER.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
+        songs.scrobble_song(song, now_playing=now_playing)
+
+
+@tornado.gen.coroutine
+def log_mood(**kwargs):
+    """Record the mood for the given artist and station"""
+    player = kwargs['player']
+    song = kwargs['song_info']
+    station = kwargs['sender']
+    artist = song['artist']
+
+    if artist in ('Unknown', 'DJ Ango'):
+        return
+
+    if player == Player.dj_ango():
+        return
+
+    LOGGER.debug('Logging mood for %s', artist)
+    Mood.log_mood(artist, station)
+
+
+# Signal connections
+signals.song_start.connect(log_mood)
 signals.song_end.connect(StationThread.purge_queue_dir)
+if settings.SCROBBLER_USER:
+    scrobble_start = partial(scrobble_song, now_playing=True)
+    scrobble_end = partial(scrobble_song, now_playing=False)
+    signals.song_start.connect(scrobble_start)
+    signals.song_end.connect(scrobble_end)
