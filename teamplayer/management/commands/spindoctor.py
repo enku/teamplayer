@@ -22,7 +22,7 @@ from teamplayer.lib.websocket import IPCHandler, SocketHandler
 try:
     from setproctitle import setproctitle
 except ImportError:
-    setproctitle = lambda x: None
+    setproctitle = lambda x: None  # NOQA
 
 
 PLAYING_REGEX = re.compile(
