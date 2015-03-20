@@ -68,7 +68,6 @@ class Command(BaseCommand):
             LOGGER.exception('Error inside main loop')
             LOGGER.error('Attempting to shutdown...')
             shutdown()
-            return
         except KeyboardInterrupt:
             shutdown()
 
