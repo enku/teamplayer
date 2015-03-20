@@ -10,12 +10,14 @@ import signal
 import sys
 from optparse import make_option
 
+import tornado.web
 from django.core.management.base import BaseCommand
 
 from teamplayer import models
 from teamplayer.conf import settings
-from teamplayer.lib.async import StationThread, start_socket_server
+from teamplayer.lib.async import StationThread
 from teamplayer.lib.daemon import createDaemon
+from teamplayer.lib.websocket import IPCHandler, SocketHandler
 
 try:
     from setproctitle import setproctitle
@@ -88,5 +90,16 @@ class Command(BaseCommand):
         # suicide
         os.kill(os.getpid(), signal.SIGTERM)
 
+
+def start_socket_server():
+    """Start the tornado event loop"""
+    LOGGER.debug('Tornado has started')
+    application = tornado.web.Application([
+        (r"/", SocketHandler),
+        (r"/ipc", IPCHandler),
+    ])
+    application.listen(settings.WEBSOCKET_PORT)
+
+    tornado.ioloop.IOLoop.instance().start()
 
 LOGGER.info('TeamPlayer: DJ Ango at your service!')

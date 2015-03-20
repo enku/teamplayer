@@ -5,12 +5,11 @@ import threading
 from functools import partial
 
 import tornado.gen
-import tornado.web
 
 from teamplayer.conf import settings
 from teamplayer.lib import copy_entry_to_queue, signals, songs
 from teamplayer.lib.mpc import MPC
-from teamplayer.lib.websocket import IPCHandler, SocketHandler
+from teamplayer.lib.websocket import SocketHandler
 from teamplayer.models import Mood, Player, Station
 from teamplayer.serializers import EntrySerializer
 
@@ -194,15 +193,3 @@ class StationThread(threading.Thread):
         LOGGER.critical('%s Shutting down' % self.name)
         self.mpc.stop()
         self.running = False
-
-
-def start_socket_server():
-    """Start the tornado event loop"""
-    LOGGER.debug('Tornado has started')
-    application = tornado.web.Application([
-        (r"/", SocketHandler),
-        (r"/ipc", IPCHandler),
-    ])
-    application.listen(settings.WEBSOCKET_PORT)
-
-    tornado.ioloop.IOLoop.instance().start()
