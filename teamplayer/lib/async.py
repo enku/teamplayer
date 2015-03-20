@@ -1,4 +1,4 @@
-"""Thread classes and helpers for TeamPlayer."""
+"""Asynchronous threads and coroutines for TeamPlayer."""
 import logging
 import shutil
 import threading
@@ -14,7 +14,7 @@ from teamplayer.lib.websocket import IPCHandler, SocketHandler
 from teamplayer.models import Mood, Player, Station
 from teamplayer.serializers import EntrySerializer
 
-LOGGER = logging.getLogger('teamplayer.threads')
+LOGGER = logging.getLogger('teamplayer.async')
 
 
 @tornado.gen.coroutine

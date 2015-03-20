@@ -14,8 +14,8 @@ from django.core.management.base import BaseCommand
 
 from teamplayer import models
 from teamplayer.conf import settings
+from teamplayer.lib.async import StationThread, start_socket_server
 from teamplayer.lib.daemon import createDaemon
-from teamplayer.lib.threads import StationThread, start_socket_server
 
 try:
     from setproctitle import setproctitle
