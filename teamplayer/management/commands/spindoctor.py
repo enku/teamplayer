@@ -48,8 +48,6 @@ class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
         setproctitle('spindoctor')
-        self.options = {}
-        self.previous_user = None
 
     def handle(self, *args, **options):
         if options['daemonize']:
