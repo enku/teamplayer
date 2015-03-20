@@ -50,7 +50,6 @@ class Command(BaseCommand):
         setproctitle('spindoctor')
         self.options = {}
         self.previous_user = None
-        self.running = False
 
     def handle(self, *args, **options):
         if options['daemonize']:
@@ -61,17 +60,15 @@ class Command(BaseCommand):
         for station in models.Station.get_stations():
             StationThread.create(station)
 
-        self.running = True
-        while self.running:
-            try:
-                start_socket_server()
-            except Exception:
-                LOGGER.exception('Error inside main loop')
-                LOGGER.error('Attempting to shutdown...')
-                self.shutdown()
-                return
-            except KeyboardInterrupt:
-                self.shutdown()
+        try:
+            start_socket_server()
+        except Exception:
+            LOGGER.exception('Error inside main loop')
+            LOGGER.error('Attempting to shutdown...')
+            self.shutdown()
+            return
+        except KeyboardInterrupt:
+            self.shutdown()
 
     def update_dj_ango_queue(self):
         queue = models.Player.dj_ango().queue
