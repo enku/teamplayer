@@ -53,7 +53,11 @@ class Command(BaseCommand):
         if options['daemonize']:
             createDaemon()
 
-        self.update_dj_ango_queue()
+        # Update DJ Ango's queue according to ALWAYS_SHAKE_THINGS_UP
+        queue = models.Player.dj_ango().queue
+        queue.active = settings.ALWAYS_SHAKE_THINGS_UP
+        queue.save()
+
         LOGGER.info('Starting StationThreads')
         for station in models.Station.get_stations():
             StationThread.create(station)
@@ -67,11 +71,6 @@ class Command(BaseCommand):
             return
         except KeyboardInterrupt:
             self.shutdown()
-
-    def update_dj_ango_queue(self):
-        queue = models.Player.dj_ango().queue
-        queue.active = settings.ALWAYS_SHAKE_THINGS_UP
-        queue.save()
 
     def shutdown(self):
         """Shut down mpd servers and exit"""
