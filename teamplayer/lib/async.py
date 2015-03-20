@@ -55,7 +55,8 @@ class StationThread(threading.Thread):
 
         self.running = False
         self.mpc = MPC(self.station)
-        self.mpc.create_config().start()
+        self.mpc.create_config()
+        self.mpc.start()
         self.previous_player = None
         self.previous_song = None
 
