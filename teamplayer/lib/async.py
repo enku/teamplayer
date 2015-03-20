@@ -34,7 +34,6 @@ class StationThread(threading.Thread):
         self.mpc.create_config()
         self.mpc.start()
         self.previous_player = None
-        self.previous_song = None
 
     @classmethod
     def create(cls, station):
@@ -105,8 +104,6 @@ class StationThread(threading.Thread):
             playlist = self.mpc.call('playlist')
             len_playlist = len(playlist)
             current_song = self.mpc.currently_playing()
-
-            self.previous_song = current_song
 
             if len_playlist > 1:
                 # Looks like we already added the next song
