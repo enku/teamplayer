@@ -7,7 +7,6 @@ import logging
 import os
 import signal
 import sys
-from optparse import make_option
 
 import tornado.web
 from django.core.management.base import BaseCommand
@@ -15,7 +14,6 @@ from django.core.management.base import BaseCommand
 from teamplayer import models
 from teamplayer.conf import settings
 from teamplayer.lib.async import StationThread
-from teamplayer.lib.daemon import createDaemon
 from teamplayer.lib.websocket import IPCHandler, SocketHandler
 
 try:
@@ -31,23 +29,11 @@ class Command(BaseCommand):
     """The actual "spindoctor" admin command"""
     help = "Hey DJ play that song!"
 
-    option_list = BaseCommand.option_list + (
-        make_option(
-            '-d',
-            action='store_true',
-            dest='daemonize',
-            default=False,
-            help='Run in the background',
-        ),
-    )
-
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
         setproctitle('spindoctor')
 
     def handle(self, *args, **options):
-        if options['daemonize']:
-            createDaemon()
 
         # Update DJ Ango's queue according to ALWAYS_SHAKE_THINGS_UP
         queue = models.Player.dj_ango().queue
