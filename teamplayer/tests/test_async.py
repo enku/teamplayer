@@ -61,31 +61,38 @@ class ScrobbleSongTest(AsyncTestCase, TestCase):
 class LogMoodTest(AsyncTestCase, TestCase):
     """Tests for the async.log_mood function"""
     def test_call(self):
-        # given the artist
-        artist = 'Madonna'
-
+        # given the player
+        player = Player.objects.create_player('test_player', password='***')
         # given the station
         station = Station.main_station()
 
+        # given the song_info dict
+        song_info = {'artist': 'Madonna', 'title': 'True Blue',
+                     'station_id': station.pk}
+
         # when we call log_mood
-        async.log_mood(artist, station)
+        async.log_mood(sender=station, song_info=song_info, player=player)
 
         # then a mood is added
-        query = Mood.objects.filter(artist=artist, station=station)
+        query = Mood.objects.filter(artist='Madonna', station=station)
         self.assertEqual(query.count(), 1)
 
     def test_unknown(self):
-        # given the "unknown" artist
-        artist = 'Unknown'
+        # given the player
+        player = Player.objects.create_player('test_player', password='***')
 
         # given the station
         station = Station.main_station()
 
+        # given the song_info with "Unknown" artist
+        song_info = {'artist': 'Unknown', 'title': 'Hidden Track',
+                     'station_id': station.pk}
+
         # when we call log_mood
-        async.log_mood(artist, station)
+        async.log_mood(sender=station, song_info=song_info, player=player)
 
         # then a mood is not added
-        query = Mood.objects.filter(artist=artist, station=station)
+        query = Mood.objects.all()
         self.assertEqual(query.count(), 0)
 
 

@@ -32,10 +32,19 @@ def scrobble_song(now_playing=False, **kwargs):
 
 
 @tornado.gen.coroutine
-def log_mood(artist, station):
+def log_mood(**kwargs):
     """Record the mood for the given artist and station"""
-    if artist == 'Unknown':
+    player = kwargs['player']
+    song = kwargs['song_info']
+    station = kwargs['sender']
+    artist = song['artist']
+
+    if artist in ('Unknown', 'DJ Ango'):
         return
+
+    if player == Player.dj_ango():
+        return
+
     LOGGER.debug('Logging mood for %s', artist)
     Mood.log_mood(artist, station)
 
@@ -48,6 +57,8 @@ class StationThread(threading.Thread):
     __lock = threading.Lock()
 
     secs_to_inject_new_song = settings.CROSSFADE + 1.5
+
+    signals.song_start.connect(log_mood)
 
     def __init__(self, *args, **kwargs):
         self.station = kwargs.pop('station')
@@ -182,10 +193,6 @@ class StationThread(threading.Thread):
             entry.delete()
             SocketHandler.message(entry.queue.player, 'song_removed',
                                   entry_dict)
-
-            # log "mood"
-            if entry.queue.player != self.dj_ango:
-                log_mood(entry.artist, self.station)
 
             # delete files not in playlist
             self.mpc.purge_queue_dir()
