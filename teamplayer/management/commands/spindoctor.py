@@ -50,7 +50,6 @@ class Command(BaseCommand):
         setproctitle('spindoctor')
         self.options = {}
         self.previous_user = None
-        self.previous_song = None
         self.running = False
 
     def handle(self, *args, **options):
