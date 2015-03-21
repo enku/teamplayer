@@ -191,6 +191,12 @@ class MPC(object):
             return None
 
         self.call('add', filename)
+
+        # add some stickers
+        player = entry.queue.player
+        self.call('sticker_set', 'song', filename, 'player_id', player.pk)
+        self.call('sticker_set', 'song', filename, 'dj', player.dj_name)
+
         if settings.CROSSFADE:
             self.call('crossfade', settings.CROSSFADE)
         self.call('play')
