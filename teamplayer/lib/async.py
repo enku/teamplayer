@@ -188,10 +188,10 @@ def scrobble_song(sender, **kwargs):
     if station != Station.main_station():
         return
 
-    if previous_song and previous_song['title'] != 'Station Break':
+    if previous_song and previous_song['title'] and previous_song['artist']:
         songs.scrobble_song(previous_song, now_playing=False)
 
-    if current_song and current_song['title'] != 'Station Break':
+    if current_song and current_song['title'] and current_song['artist']:
         songs.scrobble_song(current_song, now_playing=True)
 
 
@@ -204,7 +204,7 @@ def log_mood(sender, **kwargs):
     if not song_info:
         return
 
-    if song_info['artist'] in ('Unknown', 'DJ Ango'):
+    if song_info['artist'] in ('Unknown', '', None):
         return
 
     player = Player.objects.from_filename(song_info['file'])

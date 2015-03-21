@@ -16,7 +16,7 @@ song_change: function(data) {
                  station_name +
                  '</a>');
 
-    if (data.station_id !== TeamPlayer.current_song.station_id) {
+    if (data.station_id !== TeamPlayer.current_song.station_id && data.title !== null) {
         $.pnotify({
             title: title,
             text: message,

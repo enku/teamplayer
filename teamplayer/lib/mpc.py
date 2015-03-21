@@ -128,33 +128,52 @@ class MPC(object):
         return self
 
     def currently_playing(self):
+        """Return a dict representing the currently playing song
+
+        The structure of the dict is as follows::
+
+            {
+                'artist': 'Spoon',
+                'title': 'New York Kiss',
+                'dj': 'DJ Scratch',
+                'total_time': 207,
+                'remaining_time': 46,
+                'station_id': 1,
+                'artist_image': '/artist/Spoon/image',
+            }
+
+        If the station is currently silent (station break) then "artist" and
+        "title" will be `None`.  Similarly "total_time" and "remaining_time"
+        will be `0`.
         """
-        Returns a dict representing the currently plaing song
-        """
-        data = dict(
-            artist='DJ Ango',
-            title='Station Break',
-            dj='DJ Ango',
-            total_time=0,
-            remaining_time=0,
-            station_id=self.station_id,
-            artist_image=songs.CLEAR_IMAGE_URL,
-        )
+        not_playing = {
+            'artist': None,
+            'title': None,
+            'dj': 'DJ Ango',
+            'total_time': 0,
+            'remaining_time': 0,
+            'station_id': self.station_id,
+            'artist_image': songs.CLEAR_IMAGE_URL
+        }
+        current_song = self.call('currentsong')
+
+        if not current_song:
+            return not_playing
 
         status = self.call('status')
-        if status['state'] != 'play':
-            return data
+        elapsed_time, total_time = (int(i) for i in status['time'].split(':'))
+        filename = current_song['file']
 
-        elapsed_time, total_time = (int(t) for t in status['time'].split(':'))
-        data['total_time'] = total_time
-        data['remaining_time'] = total_time - elapsed_time
-        current = self.call('currentsong')
-        filename = current.get('file', '')
-        data['dj'] = Player.objects.from_filename(filename).dj_name
-        data['artist'] = current.get('artist', '')
-        data['artist_image'] = reverse(
-            'teamplayer.views.artist_image', kwargs={'artist': data['artist']})
-        data['title'] = current.get('title', 'Unknown')
+        data = {
+            'artist': current_song['artist'],
+            'title': current_song['title'],
+            'dj': Player.objects.from_filename(filename).dj_name,
+            'total_time': total_time,
+            'remaining_time': total_time - elapsed_time,
+            'station_id': self.station_id,
+            'artist_image': reverse('teamplayer.views.artist_image',
+                                    kwargs={'artist': current_song['artist']})
+        }
         return data
 
     def add_entry_to_playlist(self, entry):
