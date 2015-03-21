@@ -227,9 +227,7 @@ def log_mood(sender, **kwargs):
     if song_info['artist'] in ('Unknown', 'DJ Ango'):
         return
 
-    player_id = song_info['file'].partition('-')[0]
-    player = Player.objects.get(pk=player_id)
-
+    player = Player.objects.from_filename(song_info['file'])
     if player == Player.dj_ango():
         return
 
