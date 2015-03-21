@@ -8,8 +8,6 @@ QUEUE_CHANGE_EVENT = Event()
 song_change = Signal(providing_args=('station_id',
                                      'previous_song',
                                      'current_song'))
-song_start = Signal(providing_args=('player', 'song_info'))
-song_end = Signal(providing_args=('player', 'song_info'))
 
 library_add = Signal(providing_args=('player', 'song_info', 'path'))
 
