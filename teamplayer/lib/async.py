@@ -85,7 +85,6 @@ class StationThread(threading.Thread):
         self.mpc.idle_or_wait(secs)
 
     @classmethod
-    @tornado.gen.coroutine
     def purge_queue_dir(cls, **kwargs):
         station = kwargs.get('sender')
 
@@ -248,7 +247,7 @@ def log_mood(sender, **kwargs):
 # Signal connections
 signals.song_change.connect(SocketHandler.notify_clients)
 signals.song_change.connect(log_mood)
-signals.song_end.connect(StationThread.purge_queue_dir)
+signals.song_change.connect(StationThread.purge_queue_dir)
 if settings.SCROBBLER_USER:
     scrobble_start = partial(scrobble_song, now_playing=True)
     scrobble_end = partial(scrobble_song, now_playing=False)
