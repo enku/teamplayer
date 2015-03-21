@@ -273,6 +273,7 @@ def scrobble_song(song, now_playing=False):
 
     Return True if the song was successfully scrobbled, else return False.
     """
+    LOGGER.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
     if not scrobbler.POST_URL:
         # we are not logged in
         try:

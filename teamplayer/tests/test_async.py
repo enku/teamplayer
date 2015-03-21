@@ -2,14 +2,13 @@
 from unittest.mock import patch
 
 from django.test import TestCase
-from tornado.testing import AsyncTestCase
 
 from teamplayer.lib import async
 from teamplayer.lib.mpc import MPC
 from teamplayer.models import Mood, Player, Station
 
 
-class ScrobbleSongTest(AsyncTestCase, TestCase):
+class ScrobbleSongTest(TestCase):
     """Tests for the async.scrobble_song function"""
 
     def test_calls_scrobbler(self):
@@ -28,7 +27,7 @@ class ScrobbleSongTest(AsyncTestCase, TestCase):
         # when we call scrobble_song
         with patch('teamplayer.lib.async.songs.scrobble_song') as mock_scrob:
             async.scrobble_song(
-                now_playing=False, sender=main_station, song_info=song_info)
+                sender=main_station, previous_song=song_info, current_song=None)
 
         # then the scrobbler is called with the expected args
         mock_scrob.assert_called_with(song_info, now_playing=False)
@@ -52,7 +51,7 @@ class ScrobbleSongTest(AsyncTestCase, TestCase):
         # when we call scrobble_song
         with patch('teamplayer.lib.async.songs.scrobble_song') as mock_scrob:
             async.scrobble_song(
-                now_playing=False, sender=station, song_info=song_info)
+                sender=station, previous_song=None, current_song=song_info)
 
         # then the scrobbler is not called
         self.assertEqual(mock_scrob.mock_calls, [])

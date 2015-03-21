@@ -2,10 +2,8 @@
 import logging
 import shutil
 import threading
-from functools import partial
 
 import mpd
-import tornado.gen
 
 from teamplayer.conf import settings
 from teamplayer.lib import copy_entry_to_queue, signals, songs
@@ -210,19 +208,21 @@ class EventThread(threading.Thread):
 ###################
 # Signal Handlers #
 ###################
-@tornado.gen.coroutine
-def scrobble_song(now_playing=False, **kwargs):
+def scrobble_song(sender, **kwargs):
     """Signal handler to scrobble when a song changes."""
-    station = kwargs['sender']
-    song = kwargs['song_info']
+    station = sender
+    previous_song = kwargs['previous_song']
+    current_song = kwargs['current_song']
 
     # only the Main Station scrobbles
     if station != Station.main_station():
         return
 
-    if song['artist'] != 'DJ Ango':
-        LOGGER.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
-        songs.scrobble_song(song, now_playing=now_playing)
+    if previous_song and previous_song['title'] != 'Station Break':
+        songs.scrobble_song(previous_song, now_playing=False)
+
+    if current_song and current_song['title'] != 'Station Break':
+        songs.scrobble_song(current_song, now_playing=True)
 
 
 def log_mood(sender, **kwargs):
@@ -252,7 +252,4 @@ signals.song_change.connect(SocketHandler.notify_clients)
 signals.song_change.connect(log_mood)
 signals.song_change.connect(StationThread.purge_queue_dir)
 if settings.SCROBBLER_USER:
-    scrobble_start = partial(scrobble_song, now_playing=True)
-    scrobble_end = partial(scrobble_song, now_playing=False)
-    signals.song_start.connect(scrobble_start)
-    signals.song_end.connect(scrobble_end)
+    signals.song_change.connect(scrobble_song)
