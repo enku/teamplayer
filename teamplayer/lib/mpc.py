@@ -15,7 +15,6 @@ from django.core.urlresolvers import reverse
 
 from teamplayer.conf import settings
 from teamplayer.lib import songs
-from teamplayer.models import Player
 
 MPD_UPDATE_MAX = 20  # seconds
 MPD_UPDATE_WAIT = 0.5  # seconds
@@ -127,7 +126,7 @@ class MPC(object):
             os.makedirs(settings.QUEUE_DIR)
         return self
 
-    def currently_playing(self):
+    def currently_playing(self, stickers=None):
         """Return a dict representing the currently playing song
 
         The structure of the dict is as follows::
@@ -145,6 +144,9 @@ class MPC(object):
         If the station is currently silent (station break) then "artist" and
         "title" will be `None`.  Similarly "total_time" and "remaining_time"
         will be `0`.
+
+        If `stickers` is given, also provide the values for the keys listed in
+        `stickers`.
         """
         not_playing = {
             'artist': None,
@@ -157,6 +159,9 @@ class MPC(object):
         }
         current_song = self.call('currentsong')
 
+        if stickers is None:
+            stickers = ['dj']
+
         if not current_song:
             return not_playing
 
@@ -167,13 +172,16 @@ class MPC(object):
         data = {
             'artist': current_song['artist'],
             'title': current_song['title'],
-            'dj': Player.objects.from_filename(filename).dj_name,
             'total_time': total_time,
             'remaining_time': total_time - elapsed_time,
             'station_id': self.station_id,
             'artist_image': reverse('teamplayer.views.artist_image',
                                     kwargs={'artist': current_song['artist']})
         }
+
+        for sticker in stickers:
+            data[sticker] = self.call('sticker_get', 'song', filename, sticker)
+
         return data
 
     def add_entry_to_playlist(self, entry):
