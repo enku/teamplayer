@@ -91,8 +91,11 @@ class StationThread(threading.Thread):
         if not station:
             return
 
-        mpc = cls.__station_threads[station.pk]
-        mpc.purge_queue_dir()
+        station_thread = cls.get(station)
+        if not station_thread:
+            return
+
+        station_thread.mpc.purge_queue_dir()
 
     def run(self):
         LOGGER.debug('Starting %s', self.name)
