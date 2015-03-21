@@ -1,13 +1,15 @@
 """Tests for the MPC client"""
 import os
 import time
+from io import BytesIO
 from unittest.mock import Mock, call, patch
 
+from django.core.files.uploadedfile import UploadedFile
 from django.test import TestCase
 from mpd import ConnectionError, MPDClient
 
 from teamplayer.lib.mpc import MPC
-from teamplayer.models import Player, Station
+from teamplayer.models import Entry, Player, Station
 
 
 @patch('teamplayer.lib.mpc.mpd.MPDClient', autospec=MPDClient)
@@ -91,15 +93,27 @@ class MPCTest(TestCase):
         }
         self.assertEqual(result, expected)
 
-    def test_add_file_to_playlist(self, mpd_client):
-        # given the mpc instance and filename
+    def test_add_entry_to_playlist(self, mpd_client):
+        # given the mpc instance
         mpc = self.mpc
-        filename = self.filename
+
+        # given the song Entry
+        entry = Entry.objects.create(
+            queue=self.player.queue,
+            station=self.station,
+            song=UploadedFile(BytesIO(), 'YOM.mp3'),
+            title='Yesterday Once More',
+            artist='The Carpenters',
+            filetype='mp3'
+        )
 
         # when we call .add_file_to_playlist()
-        mpc.add_file_to_playlist(filename)
+        with patch('teamplayer.lib.mpc.MPC.wait_for_song') as mock_wait:
+            mock_wait.return_value = True
+            filename = mpc.add_entry_to_playlist(entry)
 
         # then the file is added to the mpd playlist
+        self.assertNotEqual(filename, None)
         expected = call().add(filename)
         self.assertTrue(expected in mpd_client.mock_calls)
         expected = call().play()

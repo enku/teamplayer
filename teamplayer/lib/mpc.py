@@ -148,15 +148,25 @@ class MPC(object):
         data['title'] = current.get('title', 'Unknown')
         return data
 
-    def add_file_to_playlist(self, filename):
-        """
-        Instruct mpd to add *filename* to playlist.  The file must have first
-        been copied to mpd's play directory.
-        """
+    def add_entry_to_playlist(self, entry):
+        """Add `entry` to the mpd playlist"""
+        assert entry.station == self.station
+
+        try:
+            filename = self.copy_entry_to_queue(entry)
+        except (IOError, shutil.Error):
+            LOGGER.exception('IOError copying %s.', entry.song.name)
+            return None
+
+        if not self.wait_for_song(filename):
+            os.unlink(filename)
+            return None
+
         self.call('add', filename)
         if settings.CROSSFADE:
             self.call('crossfade', settings.CROSSFADE)
         self.call('play')
+        return filename
 
     def copy_entry_to_queue(self, entry):
         """

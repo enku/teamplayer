@@ -1,6 +1,5 @@
 """Asynchronous threads and coroutines for TeamPlayer."""
 import logging
-import shutil
 import threading
 
 import mpd
@@ -135,20 +134,9 @@ class StationThread(threading.Thread):
 
             self.previous_player = entry.queue.player
             song = entry.song
-            try:
-                filename = self.mpc.copy_entry_to_queue(entry)
-            except (IOError, shutil.Error):
-                LOGGER.error('IOError copying %s.', song.name, exc_info=True)
-                entry.delete()
-                continue
-
-            if not self.mpc.wait_for_song(filename):
-                entry.delete()
-                continue
-
             msg = "%s: Adding %s's %s"
             LOGGER.info(msg, self.name, self.previous_player, entry)
-            self.mpc.add_file_to_playlist(filename)
+            self.mpc.add_entry_to_playlist(entry)
             entry_dict = EntrySerializer(entry).data
             entry.delete()
             SocketHandler.message(entry.queue.player, 'song_removed',
