@@ -112,8 +112,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             }))
 
     @classmethod
-    @tornado.gen.coroutine
-    def notify_clients(cls, **kwargs):
+    def notify_clients(cls, sender, **kwargs):
         """Signal handler to send a message to clients when the song changes.
         """
         current_song = kwargs['current_song']

@@ -4,6 +4,7 @@ import shutil
 import threading
 from functools import partial
 
+import mpd
 import tornado.gen
 
 from teamplayer.conf import settings
@@ -34,6 +35,7 @@ class StationThread(threading.Thread):
         self.mpc.create_config()
         self.mpc.start()
         self.previous_player = None
+        self.event_thread = EventThread(mpc=self.mpc)
 
     @classmethod
     def create(cls, station):
@@ -77,8 +79,6 @@ class StationThread(threading.Thread):
 
     def wait_for(self, song):
         """Let clients and scrobbler know the song is playing and wait to end"""
-        SocketHandler.notify_clients(current_song=song)
-
         secs = song['remaining_time'] - self.secs_to_inject_new_song
         secs = max(0, secs)
         LOGGER.debug('%s: Waiting %s seconds', self.name, secs)
@@ -99,6 +99,10 @@ class StationThread(threading.Thread):
         LOGGER.debug('Starting %s', self.name)
         self.running = True
         self.dj_ango = Player.dj_ango()
+
+        self.event_thread.start()
+        while not self.event_thread.running:
+            pass
 
         while self.running:
             playlist = self.mpc.call('playlist')
@@ -161,8 +165,43 @@ class StationThread(threading.Thread):
                                   entry_dict)
 
     def stop(self):
+        self.running = False
+
         LOGGER.critical('%s Shutting down' % self.name)
+        self.event_thread.stop()
         self.mpc.stop()
+
+
+class EventThread(threading.Thread):
+    def __init__(self, *args, **kwargs):
+        self.mpc = kwargs.pop('mpc')
+        self.running = False
+
+        super().__init__(*args, **kwargs)
+
+    def run(self):
+        previous_song = None
+        self.running = True
+
+        while self.running:
+            try:
+                self.mpc.call('idle', 'player')
+            except mpd.ConnectionError:
+                # the station went away and so will we
+                self.stop()
+                return
+
+            current_song = self.mpc.currently_playing()
+            signals.song_change.send(
+                self.mpc.station,
+                station_id=self.mpc.station_id,
+                previous_song=previous_song,
+                current_song=current_song
+            )
+
+            previous_song = current_song
+
+    def stop(self):
         self.running = False
 
 
@@ -203,6 +242,7 @@ def log_mood(**kwargs):
 
 
 # Signal connections
+signals.song_change.connect(SocketHandler.notify_clients)
 signals.song_start.connect(log_mood)
 signals.song_end.connect(StationThread.purge_queue_dir)
 if settings.SCROBBLER_USER:
