@@ -70,6 +70,11 @@ class MPC(object):
         if self.mpd:
             self.mpd.terminate()
         self.mpd = None
+        for filename in [self.db_file, self.conf_file]:
+            try:
+                os.unlink(filename)
+            except FileNotFoundError:  # NOQA
+                pass
 
     def create_config(self):
         """Create the mpd config file and write the config to it"""
