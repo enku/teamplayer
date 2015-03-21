@@ -179,8 +179,9 @@ class MPC(object):
                                     kwargs={'artist': current_song['artist']})
         }
 
+        song_stickers = self.call('sticker_list', 'song', filename)
         for sticker in stickers:
-            data[sticker] = self.call('sticker_get', 'song', filename, sticker)
+            data[sticker] = song_stickers.get(sticker, None)
 
         return data
 

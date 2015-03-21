@@ -69,13 +69,13 @@ class LogMoodTest(TestCase):
         song_info = {
             'artist': 'Madonna',
             'title': 'True Blue',
-            'file': '{0}-123456789.mp3'.format(player.pk)
+            'file': '{0}-123456789.mp3'.format(player.pk),
+            'dj': '',
+            'player_id': player.pk
         }
 
         # when we call log_mood
-        with patch('teamplayer.lib.async.StationThread.get') as s_thread:
-            s_thread.return_value.mpc.call.return_value = song_info
-            async.log_mood(sender=station)
+        async.log_mood(sender=station, current_song=song_info)
 
         # then a mood is added
         query = Mood.objects.filter(artist='Madonna', station=station)
@@ -92,13 +92,13 @@ class LogMoodTest(TestCase):
         song_info = {
             'artist': 'Unknown',
             'title': 'Hidden Track',
-            'file': '{0}-123456789.mp3'.format(player.pk)
+            'file': '{0}-123456789.mp3'.format(player.pk),
+            'player_id': 1,
+            'dj': ''
         }
 
         # when we call log_mood
-        with patch('teamplayer.lib.async.StationThread.get') as s_thread:
-            s_thread.return_value.mpc.call.return_value = song_info
-            async.log_mood(sender=station)
+        async.log_mood(sender=station, current_song=song_info)
 
         # then a mood is not added
         query = Mood.objects.all()

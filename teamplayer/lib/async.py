@@ -161,7 +161,8 @@ class EventThread(threading.Thread):
                 self.stop()
                 return
 
-            current_song = self.mpc.currently_playing()
+            current_song = self.mpc.currently_playing(
+                stickers=['dj', 'player_id'])
             signals.song_change.send(
                 self.mpc.station,
                 station_id=self.mpc.station_id,
@@ -198,8 +199,7 @@ def scrobble_song(sender, **kwargs):
 def log_mood(sender, **kwargs):
     """Record the mood for the current artist on the given station"""
     station = sender
-    mpc = StationThread.get(station).mpc
-    song_info = mpc.call('currentsong')
+    song_info = kwargs['current_song']
 
     if not song_info:
         return
@@ -207,11 +207,10 @@ def log_mood(sender, **kwargs):
     if song_info['artist'] in ('Unknown', '', None):
         return
 
-    player = Player.objects.from_filename(song_info['file'])
-    if player == Player.dj_ango():
+    if song_info['player_id'] == Player.dj_ango().pk:
         return
 
-    LOGGER.debug('Logging %s\'s mood for %s' % (player, song_info['artist']))
+    LOGGER.debug('Logging mood for %s' % song_info['artist'])
     Mood.log_mood(song_info['artist'], station)
 
 

@@ -79,7 +79,7 @@ class MPCTest(TestCase):
                 {'state': 'play', 'time': '100:300', 'remaining_time': '0:15'},
             'currentsong.return_value':
                 {'file': '1-t.mp3', 'artist': 'Prince', 'title': 'Purple Rain'},
-            'sticker_get.return_value': ''
+            'sticker_list.return_value': {'dj': '', 'player_id': 1}
         }
         mpd_client.return_value.configure_mock(**config)
         result = mpc.currently_playing()
