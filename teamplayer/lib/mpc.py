@@ -140,7 +140,7 @@ class MPC(object):
         data['remaining_time'] = total_time - elapsed_time
         current = self.call('currentsong')
         filename = current.get('file', '')
-        data['dj'] = self.dj_from_filename(filename)
+        data['dj'] = Player.objects.from_filename(filename).dj_name
         data['artist'] = current.get('artist', '')
         data['artist_image'] = reverse(
             'teamplayer.views.artist_image', kwargs={'artist': data['artist']})
@@ -220,17 +220,6 @@ class MPC(object):
             filename = os.path.join(self.queue_dir, basename)
             return songs.get_song_metadata(filename)['artist']
         return None
-
-    def dj_from_filename(self, filename):
-        """Return the DJ name from the filename or ''."""
-        player_id, sep, _ = filename.partition('-')
-        if not sep:
-            return ''
-
-        try:
-            return Player.objects.get(pk=player_id).dj_name
-        except Player.DoesNotExist:
-            return ''
 
     def idle_or_wait(self, secs):
         """

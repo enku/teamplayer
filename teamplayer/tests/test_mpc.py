@@ -206,22 +206,6 @@ class MPCTest(TestCase):
         # then we get the expected artist
         self.assertEqual(artist, 'TeamPlayer')
 
-    def test_dj_from_filename(self, mpc_client):
-        # given the mpc instance
-        mpc = self.mpc
-
-        # player with a dj name
-        player = self.player
-
-        # and the filename based on the player's id
-        filename = '%s-test.mp3' % player.pk
-
-        # when we call dj_from_filename()
-        result = mpc.dj_from_filename(filename)
-
-        # then we get the expected dj name
-        self.assertEqual(result, player.dj_name)
-
     def test_idle_or_wait(self, mpd_client):
         # given the mpc instance
         mpc = self.mpc
