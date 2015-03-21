@@ -6,7 +6,7 @@ import threading
 import mpd
 
 from teamplayer.conf import settings
-from teamplayer.lib import copy_entry_to_queue, signals, songs
+from teamplayer.lib import signals, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.websocket import SocketHandler
 from teamplayer.models import Mood, Player, Station
@@ -136,7 +136,7 @@ class StationThread(threading.Thread):
             self.previous_player = entry.queue.player
             song = entry.song
             try:
-                filename = copy_entry_to_queue(entry, self.mpc)
+                filename = self.mpc.copy_entry_to_queue(entry)
             except (IOError, shutil.Error):
                 LOGGER.error('IOError copying %s.', song.name, exc_info=True)
                 entry.delete()

@@ -4,17 +4,18 @@ Functions for interacting with mpc/mpd
 import contextlib
 import logging
 import os
+import shutil
 import subprocess
 from threading import Event, Thread
 from time import sleep, time
 
 import mpd
+from django.conf import settings as django_settings
+from django.core.urlresolvers import reverse
 
 from teamplayer.conf import settings
 from teamplayer.lib import songs
 from teamplayer.models import Player
-
-from django.core.urlresolvers import reverse
 
 MPD_UPDATE_MAX = 20  # seconds
 MPD_UPDATE_WAIT = 0.5  # seconds
@@ -156,6 +157,31 @@ class MPC(object):
         if settings.CROSSFADE:
             self.call('crossfade', settings.CROSSFADE)
         self.call('play')
+
+    def copy_entry_to_queue(self, entry):
+        """
+        Given Entry entry, copy it to the mpc queue directory as efficiently as
+        possible.
+        """
+        song = entry.song
+        player = entry.queue.player
+        filename = os.path.join(django_settings.MEDIA_ROOT, song.name)
+        basename = os.path.basename(filename)
+
+        new_filename = '{0}-{1}'.format(player.pk, basename)
+        LOGGER.debug('copying to %s', new_filename)
+
+        new_path = os.path.join(self.queue_dir, new_filename)
+
+        # First we try to make a hard link for efficiency
+        try:
+            if os.path.exists(new_path):
+                os.unlink(new_path)
+            os.link(filename, new_path)
+        except OSError:
+            shutil.copy(filename, new_path)
+
+        return new_filename
 
     @contextlib.contextmanager
     def connect(self):

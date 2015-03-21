@@ -9,7 +9,6 @@ import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
 
-from teamplayer.lib import copy_entry_to_queue
 from teamplayer.lib.mpc import MPC
 from teamplayer.models import Entry, Mood, Player, Queue, Station
 from teamplayer.tests import utils
@@ -95,7 +94,7 @@ class PlayerTestCase(TestCase):
         mpc = MPC(Station.main_station())
 
         # given the mpd playlist file from the entry
-        filename = copy_entry_to_queue(entry, mpc)
+        filename = mpc.copy_entry_to_queue(entry)
 
         # when we call Player.objects.from_filename()
         result = Player.objects.from_filename(filename)
