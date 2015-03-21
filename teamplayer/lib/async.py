@@ -223,27 +223,31 @@ def scrobble_song(now_playing=False, **kwargs):
         songs.scrobble_song(song, now_playing=now_playing)
 
 
-@tornado.gen.coroutine
-def log_mood(**kwargs):
-    """Record the mood for the given artist and station"""
-    player = kwargs['player']
-    song = kwargs['song_info']
-    station = kwargs['sender']
-    artist = song['artist']
+def log_mood(sender, **kwargs):
+    """Record the mood for the current artist on the given station"""
+    station = sender
+    mpc = StationThread.get(station).mpc
+    song_info = mpc.call('currentsong')
 
-    if artist in ('Unknown', 'DJ Ango'):
+    if not song_info:
         return
+
+    if song_info['artist'] in ('Unknown', 'DJ Ango'):
+        return
+
+    player_id = song_info['file'].partition('-')[0]
+    player = Player.objects.get(pk=player_id)
 
     if player == Player.dj_ango():
         return
 
-    LOGGER.debug('Logging mood for %s', artist)
-    Mood.log_mood(artist, station)
+    LOGGER.debug('Logging %s\'s mood for %s' % (player, song_info['artist']))
+    Mood.log_mood(song_info['artist'], station)
 
 
 # Signal connections
 signals.song_change.connect(SocketHandler.notify_clients)
-signals.song_start.connect(log_mood)
+signals.song_change.connect(log_mood)
 signals.song_end.connect(StationThread.purge_queue_dir)
 if settings.SCROBBLER_USER:
     scrobble_start = partial(scrobble_song, now_playing=True)

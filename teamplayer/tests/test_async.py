@@ -58,7 +58,7 @@ class ScrobbleSongTest(AsyncTestCase, TestCase):
         self.assertEqual(mock_scrob.mock_calls, [])
 
 
-class LogMoodTest(AsyncTestCase, TestCase):
+class LogMoodTest(TestCase):
     """Tests for the async.log_mood function"""
     def test_call(self):
         # given the player
@@ -67,11 +67,16 @@ class LogMoodTest(AsyncTestCase, TestCase):
         station = Station.main_station()
 
         # given the song_info dict
-        song_info = {'artist': 'Madonna', 'title': 'True Blue',
-                     'station_id': station.pk}
+        song_info = {
+            'artist': 'Madonna',
+            'title': 'True Blue',
+            'file': '{0}-123456789.mp3'.format(player.pk)
+        }
 
         # when we call log_mood
-        async.log_mood(sender=station, song_info=song_info, player=player)
+        with patch('teamplayer.lib.async.StationThread.get') as s_thread:
+            s_thread.return_value.mpc.call.return_value = song_info
+            async.log_mood(sender=station)
 
         # then a mood is added
         query = Mood.objects.filter(artist='Madonna', station=station)
@@ -85,11 +90,16 @@ class LogMoodTest(AsyncTestCase, TestCase):
         station = Station.main_station()
 
         # given the song_info with "Unknown" artist
-        song_info = {'artist': 'Unknown', 'title': 'Hidden Track',
-                     'station_id': station.pk}
+        song_info = {
+            'artist': 'Unknown',
+            'title': 'Hidden Track',
+            'file': '{0}-123456789.mp3'.format(player.pk)
+        }
 
         # when we call log_mood
-        async.log_mood(sender=station, song_info=song_info, player=player)
+        with patch('teamplayer.lib.async.StationThread.get') as s_thread:
+            s_thread.return_value.mpc.call.return_value = song_info
+            async.log_mood(sender=station)
 
         # then a mood is not added
         query = Mood.objects.all()
