@@ -31,7 +31,6 @@ class StationThread(threading.Thread):
         self.mpc = MPC(self.station)
         self.mpc.create_config()
         self.mpc.start()
-        self.previous_player = None
         self.event_thread = EventThread(mpc=self.mpc)
 
     @classmethod
@@ -98,6 +97,7 @@ class StationThread(threading.Thread):
         LOGGER.debug('Starting %s', self.name)
         self.running = True
         self.dj_ango = Player.dj_ango()
+        player = None
 
         self.event_thread.start()
         while not self.event_thread.running:
@@ -120,27 +120,19 @@ class StationThread(threading.Thread):
             artist = self.mpc.get_last_artist(playlist)
             artist = None if artist == 'TeamPlayer' else artist
             players = self.station.participants()
-            entry = songs.find_a_song(
-                players,
-                self.station,
-                self.previous_player,
-                artist,
-            )
+            entry = songs.find_a_song(players, self.station, player, artist)
 
             if entry is None:
                 LOGGER.info('%s: No players with any queued titles', self.name)
                 signals.QUEUE_CHANGE_EVENT.wait()
                 continue
 
-            self.previous_player = entry.queue.player
-            song = entry.song
-            msg = "%s: Adding %s's %s"
-            LOGGER.info(msg, self.name, self.previous_player, entry)
+            player = entry.queue.player
+            LOGGER.info("%s: Adding %s's %s", self.name, player, entry)
             self.mpc.add_entry_to_playlist(entry)
             entry_dict = EntrySerializer(entry).data
             entry.delete()
-            SocketHandler.message(entry.queue.player, 'song_removed',
-                                  entry_dict)
+            SocketHandler.message(player, 'song_removed', entry_dict)
 
     def stop(self):
         self.running = False
