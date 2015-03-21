@@ -399,20 +399,6 @@ class PlayerManager(models.Manager):
         )
         return player
 
-    def from_filename(self, filename):
-        """Return a player based on the (mpd) filename.
-
-        This assumes the filename is of the format returned by
-        `teamplayer.copy_entry_to_queue()` e.g. <player_id>-<basename>.<ext>
-
-        Raises Player.DoesNotExist
-        """
-        filename = os.path.basename(filename)
-        player_id = filename.partition('-')[0]
-
-        assert player_id
-        return super().get_queryset().get(pk=player_id)
-
 
 class Player(models.Model):
 

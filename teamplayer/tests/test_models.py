@@ -9,7 +9,6 @@ import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
 
-from teamplayer.lib.mpc import MPC
 from teamplayer.models import Entry, Mood, Player, Queue, Station
 from teamplayer.tests import utils
 from tp_library.models import SongFile
@@ -78,38 +77,6 @@ class PlayerTestCase(TestCase):
         }
         # Then we get stats
         self.assertEqual(result, expected)
-
-    def test_from_filename(self):
-        # given the player
-        player = self.player
-
-        # given the player's song entry
-        entry = Entry.objects.create(
-            song=SILENCE,
-            queue=player.queue,
-            station=Station.main_station()
-        )
-
-        # given the mpc instance
-        mpc = MPC(Station.main_station())
-
-        # given the mpd playlist file from the entry
-        filename = mpc.copy_entry_to_queue(entry)
-
-        # when we call Player.objects.from_filename()
-        result = Player.objects.from_filename(filename)
-
-        # then we get the player
-        self.assertEqual(result, player)
-
-    def test_from_filename_DoesNotExist(self):
-        # given the bogus filename
-        filename = '9999-8732198430.mp3'
-
-        # then Player.DoesNotExist is raised
-        with self.assertRaises(Player.DoesNotExist):
-            # when we call Player.objects.from_filename()
-            Player.objects.from_filename(filename)
 
 
 class QueueViewsTestCase(TestCase):
