@@ -38,6 +38,8 @@ class MPC(object):
             settings.MPD_HOME, '%s.pid' % self.station_id)
         self.db_file = os.path.join(
             settings.MPD_HOME, '%s.db' % self.station_id)
+        self.sticker_file = os.path.join(
+            settings.MPD_HOME, '%s.stickers' % self.station_id)
         self.queue_dir = os.path.join(
             settings.QUEUE_DIR, '%s' % self.station_id)
 
@@ -70,7 +72,7 @@ class MPC(object):
         if self.mpd:
             self.mpd.terminate()
         self.mpd = None
-        for filename in [self.db_file, self.conf_file]:
+        for filename in [self.db_file, self.conf_file, self.sticker_file]:
             try:
                 os.unlink(filename)
             except FileNotFoundError:  # NOQA
@@ -82,6 +84,7 @@ class MPC(object):
         context = {
             'ADDRESS': self.address,
             'DB_FILE': self.db_file,
+            'STICKER_FILE': self.sticker_file,
             'HTTP_PORT': self.http_port,
             'MPD_LOG': settings.MPD_LOG,
             'MAX_OUTPUT_BUFFER_SIZE': settings.MAX_OUTPUT_BUFFER_SIZE,
@@ -101,6 +104,7 @@ class MPC(object):
     music_directory         "{QUEUE_DIR}"
     pid_file                "{PID_FILE}"
     db_file                 "{DB_FILE}"
+    sticker_file            "{STICKER_FILE}"
     log_file                "{MPD_LOG}"
     max_connections         "{MPD_MAX_CONNECTIONS}"
     max_output_buffer_size  "{MAX_OUTPUT_BUFFER_SIZE}"
