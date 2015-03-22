@@ -194,7 +194,8 @@ class MPC(object):
             return None
 
         if not self.wait_for_song(filename):
-            os.unlink(filename)
+            if os.path.exists(filename):
+                os.unlink(filename)
             return None
 
         self.call('add', filename)
