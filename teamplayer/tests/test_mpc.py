@@ -110,7 +110,7 @@ class MPCTest(TestCase):
             filetype='mp3'
         )
 
-        # when we call .add_file_to_playlist()
+        # when we call .entry_file_to_playlist()
         with patch('teamplayer.lib.mpc.MPC.wait_for_song') as mock_wait:
             mock_wait.return_value = True
             filename = mpc.add_entry_to_playlist(entry)
