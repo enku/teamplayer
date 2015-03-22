@@ -224,11 +224,7 @@ def find_a_song(players, station, previous_player=None, previous_artist=None):
             return entry
 
     if wants_dj_ango:
-        return auto_find_song(
-            previous_artist,
-            dj_ango.queue,
-            station
-        )
+        return auto_find_song(previous_artist, dj_ango.queue, station)
     return None
 
 
