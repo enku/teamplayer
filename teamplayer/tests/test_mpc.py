@@ -9,6 +9,7 @@ from django.test import TestCase
 from mpd import ConnectionError, MPDClient
 
 from teamplayer.lib.mpc import MPC
+from teamplayer.lib.songs import CLEAR_IMAGE_URL
 from teamplayer.models import Entry, Player, Station
 
 
@@ -88,6 +89,62 @@ class MPCTest(TestCase):
         expected = {
             'artist': 'Prince',
             'title': 'Purple Rain',
+            'artist_image': '/artist/Prince/image',
+            'total_time': 300,
+            'remaining_time': 200,
+            'station_id': self.station.pk,
+            'dj': ''
+        }
+        self.assertEqual(result, expected)
+
+    def test_currently_playing_no_artist(self, mpd_client):
+        # given the mpc instance
+        mpc = self.mpc
+
+        # when we call .currently_playing() and mpd's currentsong returns not
+        # "artist" key
+        config = {
+            'currentsong.return_value':
+                {'file': '1-silence.mp3', 'title': 'Purple Rain'},
+            'status.return_value':
+                {'state': 'play', 'time': '100:300', 'remaining_time': '0:15'},
+            'sticker_list.return_value': {'dj': '', 'player_id': 1}
+        }
+        mpd_client.return_value.configure_mock(**config)
+        result = mpc.currently_playing()
+
+        # then we get the expected dict with "artist" set to None
+        expected = {
+            'artist': None,
+            'title': 'Purple Rain',
+            'artist_image': CLEAR_IMAGE_URL,
+            'total_time': 300,
+            'remaining_time': 200,
+            'station_id': self.station.pk,
+            'dj': ''
+        }
+        self.assertEqual(result, expected)
+
+    def test_currently_playing_no_title(self, mpd_client):
+        # given the mpc instance
+        mpc = self.mpc
+
+        # when we call .currently_playing() and mpd's currentsong returns not
+        # "title" key
+        config = {
+            'currentsong.return_value':
+                {'file': '1-silence.mp3', 'artist': 'Prince'},
+            'status.return_value':
+                {'state': 'play', 'time': '100:300', 'remaining_time': '0:15'},
+            'sticker_list.return_value': {'dj': '', 'player_id': 1}
+        }
+        mpd_client.return_value.configure_mock(**config)
+        result = mpc.currently_playing()
+
+        # then we get the expected dict with "title" set to None
+        expected = {
+            'artist': 'Prince',
+            'title': None,
             'artist_image': '/artist/Prince/image',
             'total_time': 300,
             'remaining_time': 200,

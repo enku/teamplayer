@@ -166,15 +166,22 @@ class MPC(object):
         status = self.call('status')
         elapsed_time, total_time = (int(i) for i in status['time'].split(':'))
         filename = current_song['file']
+        artist = current_song.get('artist', None)
+        title = current_song.get('title', None)
+
+        if artist:
+            artist_image = reverse(
+                'teamplayer.views.artist_image', kwargs={'artist': artist})
+        else:
+            artist_image = songs.CLEAR_IMAGE_URL
 
         data = {
-            'artist': current_song['artist'],
-            'title': current_song['title'],
+            'artist': artist,
+            'title': title,
             'total_time': total_time,
             'remaining_time': total_time - elapsed_time,
             'station_id': self.station_id,
-            'artist_image': reverse('teamplayer.views.artist_image',
-                                    kwargs={'artist': current_song['artist']})
+            'artist_image': artist_image
         }
 
         song_stickers = self.call('sticker_list', 'song', filename)
