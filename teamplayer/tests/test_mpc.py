@@ -104,9 +104,9 @@ class MPCTest(TestCase):
         entry = Entry.objects.create(
             queue=self.player.queue,
             station=self.station,
-            song=UploadedFile(BytesIO(), 'YOM.mp3'),
-            title='Yesterday Once More',
-            artist='The Carpenters',
+            song=UploadedFile(BytesIO(), 'BS.mp3'),
+            title='Break Stuff',
+            artist='Limp Bizkit',
             filetype='mp3'
         )
 
