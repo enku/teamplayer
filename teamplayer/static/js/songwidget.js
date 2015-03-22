@@ -58,10 +58,16 @@ var SongWidget = (function(){
     set_songwidget: function(song_data) {
         "use strict";
         var station_id = song_data.station_id;
-        var title = song_data.title || 'Station Break';
-        var artist = song_data.artist || '';
+        var title = song_data.title || 'Unknown';
+        var artist = song_data.artist || 'Unknown';
         var dj = song_data.dj || '';
         var artist_image = song_data.artist_image;
+
+        // but actually...
+        if (song_data.total_time === 0 && dj === 'DJ Ango') {
+            title = 'Station Break';
+            artist = '';
+        }
 
         $('.station_' + song_data.station_id + '_song').html(
             '“' + title + '” by ' + artist
