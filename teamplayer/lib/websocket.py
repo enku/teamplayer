@@ -1,5 +1,4 @@
 import functools
-import logging
 import os
 import shutil
 import time
@@ -14,7 +13,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from mutagen import File
 
-from teamplayer import models
+from teamplayer import logger, models
 from teamplayer.conf import settings
 from teamplayer.lib import (
     get_player_from_session_id,
@@ -26,14 +25,12 @@ from teamplayer.lib import (
 from teamplayer.serializers import StationSerializer
 from tp_library.models import SongFile
 
-LOGGER = logging.getLogger('teamplayer.websockets')
-
 
 class SocketHandler(tornado.websocket.WebSocketHandler):
     clients = []
 
     def open(self):
-        LOGGER.debug('WebSocket connection opened')
+        logger.debug('WebSocket connection opened')
         station_id = None
         self.clients.append(self)
         self.broadcast_player_stats()
@@ -57,7 +54,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         self.broadcast('new_connection', self.player.username, exclude=[self])
 
     def on_close(self):
-        LOGGER.debug('WebSocket connection closed')
+        logger.debug('WebSocket connection closed')
         self.clients.remove(self)
         self.broadcast_player_stats()
 
@@ -132,20 +129,20 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     conn = None
 
     def open(self):
-        LOGGER.debug('IPC connection opened')
+        logger.debug('IPC connection opened')
 
     def on_message(self, message):
         """Handle message"""
         message = loads(message)
 
         if message.get('key') != django_settings.SECRET_KEY:
-            LOGGER.critical('Someone is trying to hack me!', extra=message)
+            logger.critical('Someone is trying to hack me!', extra=message)
             return
 
         message_type = message['type']
         data = message['data']
         handler_name = 'handle_%s' % message_type
-        LOGGER.debug('Message received: %s', message_type)
+        logger.debug('Message received: %s', message_type)
 
         if hasattr(self, handler_name):
             handler = getattr(self, handler_name)
@@ -237,7 +234,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         except models.Station.DoesNotExist:
             return
 
-        LOGGER.debug('Creating thread for new station: %s', station)
+        logger.debug('Creating thread for new station: %s', station)
         StationThread.create(station)
         signals.station_create.send(models.Station, station_id=station_id)
 
@@ -256,7 +253,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     def handle_library_add(self, entry_id):
         """Add an entry to the TeamPlayer library."""
         entry = models.Entry.objects.get(pk=entry_id)
-        LOGGER.debug('Adding %s to Library.', entry)
+        logger.debug('Adding %s to Library.', entry)
         filename = get_random_filename(entry.filetype)
         fullpath = os.path.join(settings.UPLOADED_LIBRARY_DIR, filename)
         entry_name = os.path.join(django_settings.MEDIA_ROOT, entry.song.name)
@@ -269,7 +266,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
                 shutil.copy(entry_name, fullpath)
             except Exception:
                 # Ok, I give up
-                logging.exception(
+                logger.exception(
                     'Error copying {0} to library.'.format(filename),
                     exc_info=True
                 )
@@ -287,7 +284,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
                 fullpath, metadata, entry.queue.player, entry.station.pk)
         except ValidationError as error:
             msg = 'Error adding file to library: %s' % str(error)
-            logging.debug(msg)
+            logger.debug(msg)
             created = False
 
         if created:

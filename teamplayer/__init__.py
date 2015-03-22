@@ -1,6 +1,7 @@
 """
 Welcome to TeamPlayer: The Democratic Internet Radio Station
 """
+import logging
 import os
 import subprocess
 
@@ -12,6 +13,8 @@ except ImportError:
 
 VERSION = (2, 4, 0, 'final')
 REVISION = None
+
+logger = logging.getLogger('teamplayer')
 
 
 def version_string(version=VERSION, show_revision=True):

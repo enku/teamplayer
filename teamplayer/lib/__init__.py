@@ -1,6 +1,5 @@
 """TeamPlayer Library package"""
 import datetime
-import logging
 import os
 import tempfile
 import uuid
@@ -11,7 +10,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import utc
 
 CHUNKSIZE = 64 * 1024
-LOGGER = logging.getLogger('teamplayer.lib')
 
 
 def list_iter(list_, previous=None):

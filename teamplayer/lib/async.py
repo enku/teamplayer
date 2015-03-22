@@ -1,17 +1,15 @@
 """Asynchronous threads and coroutines for TeamPlayer."""
-import logging
 import threading
 
 import mpd
 
+from teamplayer import logger
 from teamplayer.conf import settings
 from teamplayer.lib import signals, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.websocket import SocketHandler
 from teamplayer.models import Mood, Player, Station
 from teamplayer.serializers import EntrySerializer
-
-LOGGER = logging.getLogger('teamplayer.async')
 
 
 class StationThread(threading.Thread):
@@ -77,7 +75,7 @@ class StationThread(threading.Thread):
         """Let clients and scrobbler know the song is playing and wait to end"""
         secs = song['remaining_time'] - self.secs_to_inject_new_song
         secs = max(0, secs)
-        LOGGER.debug('%s: Waiting %s seconds', self.name, secs)
+        logger.debug('%s: Waiting %s seconds', self.name, secs)
         self.mpc.idle_or_wait(secs)
 
     @classmethod
@@ -94,7 +92,7 @@ class StationThread(threading.Thread):
         station_thread.mpc.purge_queue_dir()
 
     def run(self):
-        LOGGER.debug('Starting %s', self.name)
+        logger.debug('Starting %s', self.name)
         self.running = True
         self.dj_ango = Player.dj_ango()
         player = None
@@ -110,7 +108,7 @@ class StationThread(threading.Thread):
 
             if len_playlist > 1:
                 # Looks like we already added the next song
-                LOGGER.debug('%s: Waiting for playlist to change', self.name)
+                logger.debug('%s: Waiting for playlist to change', self.name)
                 self.mpc.call('idle', 'playlist')
                 continue
 
@@ -123,12 +121,12 @@ class StationThread(threading.Thread):
             entry = songs.find_a_song(players, self.station, player, artist)
 
             if entry is None:
-                LOGGER.info('%s: No players with any queued titles', self.name)
+                logger.info('%s: No players with any queued titles', self.name)
                 signals.QUEUE_CHANGE_EVENT.wait()
                 continue
 
             player = entry.queue.player
-            LOGGER.info("%s: Adding %s's %s", self.name, player, entry)
+            logger.info("%s: Adding %s's %s", self.name, player, entry)
             self.mpc.add_entry_to_playlist(entry)
             entry_dict = EntrySerializer(entry).data
             entry.delete()
@@ -137,7 +135,7 @@ class StationThread(threading.Thread):
     def stop(self):
         self.running = False
 
-        LOGGER.critical('%s Shutting down' % self.name)
+        logger.critical('%s Shutting down' % self.name)
         self.event_thread.stop()
         self.mpc.stop()
 
@@ -210,7 +208,7 @@ def log_mood(sender, **kwargs):
     if song_info['player_id'] == Player.dj_ango().pk:
         return
 
-    LOGGER.debug('Logging mood for %s' % song_info['artist'])
+    logger.debug('Logging mood for %s' % song_info['artist'])
     Mood.log_mood(song_info['artist'], station)
 
 

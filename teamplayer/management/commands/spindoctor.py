@@ -3,7 +3,6 @@
 This command is responsible for starting the mpd daemons and continually
 grabbing entries from users' queues and adding them to the mpd playlist
 """
-import logging
 import os
 import signal
 import sys
@@ -11,7 +10,7 @@ import sys
 import tornado.web
 from django.core.management.base import BaseCommand
 
-from teamplayer import models
+from teamplayer import logger, models
 from teamplayer.conf import settings
 from teamplayer.lib.async import StationThread
 from teamplayer.lib.websocket import IPCHandler, SocketHandler
@@ -20,9 +19,6 @@ try:
     from setproctitle import setproctitle
 except ImportError:
     setproctitle = lambda x: None  # NOQA
-
-
-LOGGER = logging.getLogger('teamplayer.spindoctor')
 
 
 class Command(BaseCommand):
@@ -40,15 +36,15 @@ class Command(BaseCommand):
         queue.active = settings.ALWAYS_SHAKE_THINGS_UP
         queue.save()
 
-        LOGGER.info('Starting StationThreads')
+        logger.info('Starting StationThreads')
         for station in models.Station.get_stations():
             StationThread.create(station)
 
         try:
             start_socket_server()
         except Exception:
-            LOGGER.exception('Error inside main loop')
-            LOGGER.error('Attempting to shutdown...')
+            logger.exception('Error inside main loop')
+            logger.error('Attempting to shutdown...')
             shutdown()
         except KeyboardInterrupt:
             shutdown()
@@ -58,7 +54,7 @@ def shutdown():
     """Shut down mpd servers and exit"""
     csi = '\x1b['
     sys.stderr.write('{csi}1G'.format(csi=csi))  # move to start of line
-    LOGGER.critical('Shutting down')
+    logger.critical('Shutting down')
     for station_thread in StationThread.get_all().values():
         station_thread.mpc.stop()
 
@@ -68,7 +64,7 @@ def shutdown():
 
 def start_socket_server():
     """Start the tornado event loop"""
-    LOGGER.debug('Tornado has started')
+    logger.debug('Tornado has started')
     application = tornado.web.Application([
         (r"/", SocketHandler),
         (r"/ipc", IPCHandler),
@@ -77,4 +73,4 @@ def start_socket_server():
 
     tornado.ioloop.IOLoop.instance().start()
 
-LOGGER.info('TeamPlayer: DJ Ango at your service!')
+logger.info('TeamPlayer: DJ Ango at your service!')

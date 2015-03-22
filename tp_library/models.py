@@ -1,14 +1,12 @@
-import logging
 import os
 
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
 
+from teamplayer import logger
 from teamplayer.lib import first_or_none, songs
 from teamplayer.models import Player
-
-LOGGER = logging.getLogger('teamplayer.library')
 
 
 class SongFile(models.Model):
@@ -50,7 +48,7 @@ class SongFile(models.Model):
                 length = None
 
         except Exception as error:
-            LOGGER.error('Error getting metadata for %s: %s', filename, error)
+            logger.error('Error getting metadata for %s: %s', filename, error)
             raise
 
         # see if we already have a file with said metadata

@@ -1,4 +1,3 @@
-import logging
 import os
 from optparse import make_option
 
@@ -6,14 +5,13 @@ from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 from mutagen import File
 
+from teamplayer import logger
 from teamplayer.lib import attempt_file_rename, remove_pedantic
 from teamplayer.models import Player, Station
 from tp_library.models import SongFile
 
 # Because Python 3 sucks:
 os.environ.setdefault('LANG', 'en_US.UTF-8')
-
-logger = logging.getLogger('teamplayer.library.walk')
 
 
 class Command(BaseCommand):

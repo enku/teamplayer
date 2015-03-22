@@ -2,7 +2,6 @@
 Functions for interacting with mpc/mpd
 """
 import contextlib
-import logging
 import os
 import shutil
 import subprocess
@@ -13,13 +12,12 @@ import mpd
 from django.conf import settings as django_settings
 from django.core.urlresolvers import reverse
 
+from teamplayer import logger
 from teamplayer.conf import settings
 from teamplayer.lib import songs
 
 MPD_UPDATE_MAX = 20  # seconds
 MPD_UPDATE_WAIT = 0.5  # seconds
-
-LOGGER = logging.getLogger('teamplayer.mpc')
 
 
 class MPC(object):
@@ -192,7 +190,7 @@ class MPC(object):
         try:
             filename = self.copy_entry_to_queue(entry)
         except (IOError, shutil.Error):
-            LOGGER.exception('IOError copying %s.', entry.song.name)
+            logger.exception('IOError copying %s.', entry.song.name)
             return None
 
         if not self.wait_for_song(filename):
@@ -222,7 +220,7 @@ class MPC(object):
         basename = os.path.basename(filename)
 
         new_filename = '{0}-{1}'.format(player.pk, basename)
-        LOGGER.debug('copying to %s', new_filename)
+        logger.debug('copying to %s', new_filename)
 
         new_path = os.path.join(self.queue_dir, new_filename)
 
@@ -273,7 +271,7 @@ class MPC(object):
                 return True
             elif time() > try_until_time:
                 # we maxed out our wait time
-                LOGGER.error('%s never made it to the playlist', filename)
+                logger.error('%s never made it to the playlist', filename)
                 return False
             sleep(MPD_UPDATE_WAIT)
 

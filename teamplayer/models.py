@@ -12,11 +12,10 @@ from django.core.files import File
 from django.db import models, transaction
 from django.db.models import Count
 
-from . import lib
+from . import lib, logger
 from .conf import settings
 
 DJ_ANGO = None
-LOGGER = logging.getLogger('teamplayer.models')
 
 
 class Queue(models.Model):
@@ -136,7 +135,7 @@ class Queue(models.Model):
                 fp = File(open(songfile.filename, 'rb'))
                 self.add_song(fp, station)
             except Exception:
-                LOGGER.error('auto_fill exception: SongFile(%s)',
+                logger.error('auto_fill exception: SongFile(%s)',
                              songfile.pk,
                              exc_info=True)
 

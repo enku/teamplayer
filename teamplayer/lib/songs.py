@@ -3,7 +3,6 @@ Library to deal with song files and song metadata
 """
 import contextlib
 import datetime
-import logging
 import socket
 import time
 import urllib.parse
@@ -17,11 +16,10 @@ from django.conf import settings as django_settings
 from django.db.models import Count
 from mutagen import File
 
-from teamplayer import models, scrobbler
+from teamplayer import logger, models, scrobbler
 from teamplayer.conf import settings
 from teamplayer.lib import first_or_none, list_iter, now, remove_pedantic
 
-LOGGER = logging.getLogger('teamplayer.songlib')
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'
 MIME_MAP = {
     'audio/ape': 'ape',
@@ -136,7 +134,7 @@ def get_image_url_for(artist):
     try:
         root = ElementTree.parse(response)
     except ElementTree.ParseError:
-        LOGGER.error('Error parsing response from %s', api_url)
+        logger.error('Error parsing response from %s', api_url)
         return CLEAR_IMAGE_URL
     images = root.findall('./artist/image')
     for image in images:
@@ -159,7 +157,7 @@ def get_similar_artists(artist):
     try:
         data = urlopen(url).read().decode('utf-8')
     except (URLError, HTTPException):
-        LOGGER.error('URLError: %s', url, exc_info=True)
+        logger.error('URLError: %s', url, exc_info=True)
         return []
 
     similar = set()
@@ -257,7 +255,7 @@ def auto_find_song(previous_artist, queue, station):
     for mood_artist in mood_artists:
         a = mood_artist['artist'].lower()
         if a in artists:
-            LOGGER.info('“%s” fits the mood', mood_artist['artist'])
+            logger.info('“%s” fits the mood', mood_artist['artist'])
             return entries.filter(artist__iexact=a)[0]
 
     return entries[0]
@@ -269,7 +267,7 @@ def scrobble_song(song, now_playing=False):
 
     Return True if the song was successfully scrobbled, else return False.
     """
-    LOGGER.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
+    logger.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
     if not scrobbler.POST_URL:
         # we are not logged in
         try:
@@ -289,7 +287,7 @@ def scrobble_song(song, now_playing=False):
             scrobbler.submit(artist, title, start_time, length=length,
                              autoflush=True)
     except (URLError, HTTPException, scrobbler.ProtocolError):
-        LOGGER.error('Error scrobbing song: %s', song, exc_info=True)
+        logger.error('Error scrobbing song: %s', song, exc_info=True)
         return False
     except (scrobbler.SessionError, scrobbler.BackendError, OSError):
         # usually this means our session timed out, just log in again
@@ -298,7 +296,7 @@ def scrobble_song(song, now_playing=False):
                             settings.SCROBBLER_PASSWORD)
         except scrobbler.ProtocolError as error:
             # We've probably logged on too many times, neglect this one
-            LOGGER.error('Error scrobbing song: %s: %s', song, error)
+            logger.error('Error scrobbing song: %s: %s', song, error)
             return False
         if now_playing:
             scrobbler.now_playing(artist, title, length=length)
