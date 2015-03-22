@@ -122,6 +122,34 @@ class MPCTest(TestCase):
         expected = call().play()
         self.assertTrue(expected in mpd_client.mock_calls)
 
+    def test_add_entry_to_playlist_but_file_never_made_it(self, mpd_client):
+        # given the mpc instance
+        mpc = self.mpc
+
+        # given the song Entry
+        entry = Entry.objects.create(
+            queue=self.player.queue,
+            station=self.station,
+            song=UploadedFile(BytesIO(), 'BS.mp3'),
+            title='Break Stuff',
+            artist='Limp Bizkit',
+            filetype='mp3'
+        )
+
+        # when we call .entry_file_to_playlist() but the doesn't make it
+        with patch('teamplayer.lib.mpc.MPC.wait_for_song') as mock_wait:
+            mock_wait.return_value = False
+            filename = mpc.add_entry_to_playlist(entry)
+
+        # then None is returned
+        self.assertEqual(filename, None)
+
+        # and nothing is added to the playlist
+        expected = call().add(filename)
+        self.assertTrue(expected not in mpd_client.mock_calls)
+        expected = call().play()
+        self.assertTrue(expected not in mpd_client.mock_calls)
+
     def test_connect(self, mpd_client):
         # given the mpc instance
         mpc = self.mpc
