@@ -1,30 +1,18 @@
 /* websocket handlers */
 
 song_change: function(data) {
-    var message = ('<span class="song_title">' +
-                   data.title +
-                   '</span>' +
-                   ' by ' +
-                    data.artist),
+    var message = (data.title + ' by ' + data.artist),
         station_name = $('tr[data-station_id="' +
                           data.station_id + '"]').data('name'),
-        title = ('<a class="notify_title station_name station_' 
-                 + data.station_id + '_name" ' +
-                 'onclick="return TeamPlayer.change_station(this.href)" ' +
-                 'href="/station/' + data.station_id  +
-                 '/">' +
-                 station_name +
-                 '</a>');
+        title = station_name;
 
     if (data.station_id !== TeamPlayer.current_song.station_id && data.title !== null) {
-        $.pnotify({
-            title: title,
-            text: message,
-            width: "150px",
-            icon: false,
-            shadow: false,
-            sticker: false
-        });
+        if (data.artist_image) {
+            Notifier.notify(message, title, data.artist_image);
+        } else {
+            Notifier.notify(message, title);
+        }
+
     }
 
     SongWidget.set_songwidget(data);
@@ -73,28 +61,14 @@ roster_change: function() {
 
 new_connection: function(username) {
     if (username) {
-        $.pnotify({
-            title: 'New Connection',
-            text: escape(username) + ' has just joined <span class="brand">TeamPlayer</span>.' ,
-            text_escape: false,
-            width: "150px",
-            shadow: false,
-            sticker: false,
-            nonblock: true
-        });
+        var text = escape(username) + ' has just joined TeamPlayer.';
+
+        Notifier.info(text, 'New Connection')
     }
 },
 
 wall: function (message) {
-    $.pnotify({
-        title: '<span class="warning"><i class="icon-warning-sign"></i> DJ Ango</span>',
-        text: message,
-        text_escape: true,
-        icon: false,
-        shadow: false,
-        sticker: false,
-        hide: false
-    });
+    Notifier.warning(message, 'DJ Ango');
 },
 
 dj_name_change: function (data) {

@@ -57,11 +57,7 @@ function () {
         });
 
         if (result.hasOwnProperty('fail')) {
-            $.pnotify({
-                title: 'Upload Failed',
-                text: result.fail,
-                type: 'error'
-            });
+            Notifier.error(result.fail, 'Upload Failed');
             return;
         }
 
