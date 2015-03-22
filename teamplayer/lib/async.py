@@ -205,10 +205,11 @@ def log_mood(sender, **kwargs):
     if song_info['artist'] in ('Unknown', '', None):
         return
 
-    if song_info['player_id'] == Player.dj_ango().pk:
+    player = Player.objects.get(pk=song_info['player_id'])
+    if player == Player.dj_ango():
         return
 
-    logger.debug('Logging mood for %s' % song_info['artist'])
+    logger.debug('Logging %s\'s mood for %s' % (player, song_info['artist']))
     Mood.log_mood(song_info['artist'], station)
 
 

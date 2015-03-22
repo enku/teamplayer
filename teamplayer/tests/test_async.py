@@ -93,8 +93,31 @@ class LogMoodTest(TestCase):
             'artist': 'Unknown',
             'title': 'Hidden Track',
             'file': '{0}-123456789.mp3'.format(player.pk),
-            'player_id': 1,
+            'player_id': '1',
             'dj': ''
+        }
+
+        # when we call log_mood
+        async.log_mood(sender=station, current_song=song_info)
+
+        # then a mood is not added
+        query = Mood.objects.all()
+        self.assertEqual(query.count(), 0)
+
+    def test_doesnt_log_django(self):
+        # given the DJ Ango Player
+        dj_ango = Player.dj_ango()
+
+        # given the station
+        station = Station.main_station()
+
+        # given the song_info from DJ Ango
+        song_info = {
+            'artist': 'Limp Bizkit',
+            'title': 'Break Stuff',
+            'file': '{0}-123456789.mp3'.format(dj_ango.pk),
+            'player_id': str(dj_ango.pk),  # the sticker is a string object
+            'dj': 'DJ Ango'
         }
 
         # when we call log_mood
