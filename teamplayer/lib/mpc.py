@@ -23,22 +23,22 @@ MPD_UPDATE_WAIT = 0.5  # seconds
 class MPC(object):
     """Interface to a mpc client."""
     def __init__(self, station):
+        join = os.path.join
+        self.mpd_dir = join(settings.MPD_HOME, str(station.pk))
         self.mpd = None
         self.station = station
-        self.station_id = station.id if station else 0
+        self.station_id = station.id
         self.address = settings.MPD_ADDRESS
         self.port = self.station_id + settings.MPD_PORT
         self.http_port = self.station_id + settings.HTTP_PORT
-        self.conf_file = os.path.join(
-            settings.MPD_HOME, '%s.conf' % self.station_id)
-        self.pid_file = os.path.join(
-            settings.MPD_HOME, '%s.pid' % self.station_id)
-        self.db_file = os.path.join(
-            settings.MPD_HOME, '%s.db' % self.station_id)
-        self.sticker_file = os.path.join(
-            settings.MPD_HOME, '%s.stickers' % self.station_id)
-        self.queue_dir = os.path.join(
-            settings.QUEUE_DIR, '%s' % self.station_id)
+        self.conf_file = join(self.mpd_dir, 'mpd.conf')
+        self.pid_file = join(self.mpd_dir, 'mpd.pid')
+        self.db_file = join(self.mpd_dir, 'mpd.db')
+        self.sticker_file = join(self.mpd_dir, 'mpd.stickers')
+        self.queue_dir = join(self.mpd_dir, 'queue')
+
+        if not os.path.exists(self.mpd_dir):
+            os.makedirs(self.mpd_dir)
 
         if not os.path.exists(self.queue_dir):
             os.makedirs(self.queue_dir)
@@ -69,11 +69,9 @@ class MPC(object):
         if self.mpd:
             self.mpd.terminate()
         self.mpd = None
-        for filename in [self.db_file, self.conf_file, self.sticker_file]:
-            try:
-                os.unlink(filename)
-            except FileNotFoundError:  # NOQA
-                pass
+
+        if os.path.exists(self.mpd_dir):
+            shutil.rmtree(self.mpd_dir)
 
     def create_config(self):
         """Create the mpd config file and write the config to it"""
