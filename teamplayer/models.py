@@ -55,13 +55,21 @@ class Queue(models.Model):
         entry.save()
         return entry
 
-    @transaction.atomic
     def randomize(self, station):
         """Randomize entries in the queue """
-        for entry in self.entry_set.filter(station=station):
-            entry.place = random.randint(0, 256)
-            entry.save()
-        return
+        entries = self.entry_set.filter(station=station)
+        entry_count = entries.count()
+
+        if not entry_count:
+            return
+
+        place_list = list(range(entry_count))
+        random.shuffle(place_list)
+
+        with transaction.atomic():
+            for entry, place in zip(entries, place_list):
+                entry.place = place
+                entry.save()
 
     @transaction.atomic
     def reorder(self, id_list):

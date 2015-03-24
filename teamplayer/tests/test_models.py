@@ -1,6 +1,7 @@
 """Unit tests for the TeamPlayer Django app"""
 import datetime
 import os
+from io import BytesIO
 from tempfile import TemporaryDirectory
 from unittest import mock
 
@@ -331,6 +332,45 @@ class QueueTestCase(TestCase):
 
         # Then we get the expected two songs even if there was no mood
         self.assertEqual(len(result), 2)
+
+    def test_randomize_no_repeats(self):
+        Entry.objects.all().delete()
+        # given the queue
+        queue = self.player.queue
+
+        # given the station
+        station = Station.main_station()
+
+        # given the songs in the queue for that station
+        songs = (
+            ('Madonna', 'True Blue'),
+            ('Sleigh Bells', 'End of the Line'),
+            ('The Love Language', 'Heart to Tell'),
+            ('Pace is the Trick', 'Interpol'),
+            ('Wander (Through the Night)', 'The B of the Bang'),
+            ('Lord We Ganstas', 'Slipstick'),
+            ('Grammy', 'Purity Ring'),
+            ('Bullet in the Head', 'Gvcci Hvcci')
+        )
+        for artist, title in songs:
+            Entry.objects.create(
+                queue=queue,
+                station=station,
+                song=UploadedFile(BytesIO(), '%s.mp3' % title),
+                title=title,
+                artist=artist,
+                filetype='mp3'
+            )
+
+        # when we call randomize() on the queue for that station
+        queue.randomize(station)
+
+        # then the entries get a unique random order
+        entries = Entry.objects.filter(station=station, queue=queue)
+        places = entries.values_list('place', flat=True)
+        places = list(places)
+        places.sort()
+        self.assertEqual(places, list(range(len(songs))))
 
 
 class QueueAutoFill(TestCase):
