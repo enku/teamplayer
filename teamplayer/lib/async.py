@@ -161,12 +161,17 @@ class EventThread(threading.Thread):
 
             current_song = self.mpc.currently_playing(
                 stickers=['dj', 'player_id'])
-            signals.song_change.send(
+            results = signals.song_change.send_robust(
                 self.mpc.station,
                 station_id=self.mpc.station_id,
                 previous_song=previous_song,
                 current_song=current_song
             )
+            for receiver, response in results:
+                if isinstance(response, Exception):
+                    exc_info = response.__traceback__
+                    msg = 'Exception raise in signal handler'
+                    logger.debug(msg, exc_info=exc_info)
 
             previous_song = current_song
 
