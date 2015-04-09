@@ -11,7 +11,7 @@ except ImportError:
     AppConfig = object
 
 
-VERSION = (2, 4, 0, 'final')
+VERSION = (2, 5, 0, 'final')
 REVISION = None
 
 logger = logging.getLogger('teamplayer')
