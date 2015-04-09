@@ -44,7 +44,7 @@ class ProtocolError(Exception):
 
 
 def login(user, password, client=('tst', '1.0')):
-    """Authencitate with AS (The Handshake)
+    """Authenticate with AS (The Handshake)
 
     @param user:      The username
     @param password: The password
@@ -94,7 +94,7 @@ Consider using an NTP-client to keep you system time in sync.''')
 
     elif lines[0].startswith('FAILED'):
         handle_hard_error()
-        raise BackendError("Authencitation with AS failed. Reason: %s" %
+        raise BackendError("Authentication with AS failed. Reason: %s" %
                            lines[0])
 
     elif lines[0] == 'OK':
@@ -286,7 +286,7 @@ def flush():
         raise SessionError('Invalid session')
     elif lines[0].startswith('FAILED'):
         handle_hard_error()
-        raise BackendError("Authencitation with AS failed. Reason: %s" %
+        raise BackendError("Authentication with AS failed. Reason: %s" %
                            lines[0])
     else:
         # some hard error

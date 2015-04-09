@@ -12,11 +12,10 @@ from django.core.files import File
 from django.db import models, transaction
 from django.db.models import Count
 
-from . import lib
+from . import lib, logger
 from .conf import settings
 
 DJ_ANGO = None
-LOGGER = logging.getLogger('teamplayer.models')
 
 
 class Queue(models.Model):
@@ -56,13 +55,21 @@ class Queue(models.Model):
         entry.save()
         return entry
 
-    @transaction.atomic
     def randomize(self, station):
         """Randomize entries in the queue """
-        for entry in self.entry_set.filter(station=station):
-            entry.place = random.randint(0, 256)
-            entry.save()
-        return
+        entries = self.entry_set.filter(station=station)
+        entry_count = entries.count()
+
+        if not entry_count:
+            return
+
+        place_list = list(range(entry_count))
+        random.shuffle(place_list)
+
+        with transaction.atomic():
+            for entry, place in zip(entries, place_list):
+                entry.place = place
+                entry.save()
 
     @transaction.atomic
     def reorder(self, id_list):
@@ -136,7 +143,7 @@ class Queue(models.Model):
                 fp = File(open(songfile.filename, 'rb'))
                 self.add_song(fp, station)
             except Exception:
-                LOGGER.error('auto_fill exception: SongFile(%s)',
+                logger.error('auto_fill exception: SongFile(%s)',
                              songfile.pk,
                              exc_info=True)
 
@@ -174,13 +181,13 @@ class Queue(models.Model):
         return set(song_files)
 
     @staticmethod
-    def auto_fill_mood(queryset, entries_needed, station=None):
+    def auto_fill_mood(queryset, entries_needed, station=None, seconds=None):
         """Return at most *entries_needed* SongFIles from the *queryset*.
 
         The songs are selected depending on the current "mood".
         """
         num_top_artists = settings.AUTOFILL_MOOD_TOP_ARTISTS
-        seconds = settings.AUTOFILL_MOOD_HISTORY
+        seconds = seconds or settings.AUTOFILL_MOOD_HISTORY
         history = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
         station = station or Station.main_station()
         top_artists = Mood.objects.filter(timestamp__gte=history,
@@ -204,13 +211,19 @@ class Queue(models.Model):
             if len(liked_songs) == entries_needed:
                 break
 
+        additional = []
         still_needed = entries_needed - len(liked_songs)
-        if still_needed:
-            # just get some random stuff
-            q = queryset.exclude(pk__in=[i.pk for i in liked_songs])
-            additional = Queue.auto_fill_random(q, still_needed)
-        else:
-            additional = []
+        if still_needed > 0:
+            qs = queryset.exclude(pk__in=[i.pk for i in liked_songs])
+            # keep going back in history up to 24 hours to find artists that fit
+            # the mood
+            if seconds < 86400:
+                seconds = seconds + settings.AUTOFILL_MOOD_HISTORY
+                additional = Queue.auto_fill_mood(
+                    qs, still_needed, station=station, seconds=seconds)
+            else:
+                additional = Queue.auto_fill_random(qs, still_needed)
+
         return liked_songs + list(additional)
 
 
@@ -284,10 +297,26 @@ class Mood(models.Model):
             )
 
 
+class StationManager(models.Manager):
+    def create_station(self, **kwargs):
+        songs = kwargs.pop('songs', [])
+
+        station = self.model(**kwargs)
+        station.save()
+
+        queue = station.creator.queue
+        for songfile in songs:
+            with open(songfile.filename, 'rb') as fp:
+                django_file = File(fp)
+                queue.add_song(django_file, station)
+
+        return station
+
+
 class Station(models.Model):
     __main_station = None
 
-    objects = models.Manager()
+    objects = StationManager()
     name = models.CharField(max_length=128, unique=True)
     creator = models.ForeignKey('Player', unique=True)
 

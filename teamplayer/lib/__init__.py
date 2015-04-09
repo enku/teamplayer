@@ -1,19 +1,15 @@
 """TeamPlayer Library package"""
 import datetime
-import logging
 import os
-import shutil
 import tempfile
 import uuid
 
-from django.conf import settings as django_settings
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import utc
 
 CHUNKSIZE = 64 * 1024
-LOGGER = logging.getLogger('teamplayer.lib')
 
 
 def list_iter(list_, previous=None):
@@ -89,32 +85,6 @@ def get_station_id_from_session_id(session_id):
 def now():
     """Like datetime.datetime.utcnow(), but with tzinfo"""
     return datetime.datetime.utcnow().replace(tzinfo=utc)
-
-
-def copy_entry_to_queue(entry, mpc):
-    """
-    Given Entry entry, copy it to the mpc queue directory as efficiently as
-    possible.
-    """
-    song = entry.song
-    player = entry.queue.player
-    filename = os.path.join(django_settings.MEDIA_ROOT, song.name)
-    basename = os.path.basename(filename)
-
-    new_filename = '{0}-{1}'.format(player.pk, basename)
-    LOGGER.debug('copying to %s', new_filename)
-
-    new_path = os.path.join(mpc.queue_dir, new_filename)
-
-    # First we try to make a hard link for efficiency
-    try:
-        if os.path.exists(new_path):
-            os.unlink(new_path)
-        os.link(filename, new_path)
-    except OSError:
-        shutil.copy(filename, new_path)
-
-    return new_filename
 
 
 def first_or_none(d, key):

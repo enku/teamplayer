@@ -14,7 +14,6 @@ from haystack.views import SearchView, search_view_factory
 from teamplayer.lib.websocket import IPCHandler
 from teamplayer.models import Station
 from teamplayer.serializers import EntrySerializer
-from teamplayer.views import get_station_from_session
 from tp_library.forms import AddToQueueForm
 from tp_library.models import SongFile
 
@@ -26,7 +25,7 @@ def add_to_queue(request):
 
     Return the dictified entry on success.  Or {'error', message} on failure.
     """
-    station = get_station_from_session(request)
+    station = request.station
     form = AddToQueueForm(request.POST)
     if form.is_valid():
         songfile_id = form.cleaned_data['song_id']

@@ -1,5 +1,7 @@
 """Unit tests for the TeamPlayer Django app"""
+import datetime
 import os
+from io import BytesIO
 from tempfile import TemporaryDirectory
 from unittest import mock
 
@@ -245,6 +247,131 @@ class QueueTestCase(TestCase):
         # And the second artists should be random but not the sleigh bells song
         self.assertNotEqual(result[1].artist, 'Sleigh Bells')
 
+    def test_auto_fill_mood_recurses(self):
+        # given the set of songs in our library
+        songs = (
+            ('Madonna', 'True Blue'),
+            ('Sleigh Bells', 'End of the Line'),
+            ('The Love Language', 'Heart to Tell'),
+            ('Pace is the Trick', 'Interpol'),
+            ('Wander (Through the Night)', 'The B of the Bang'),
+            ('Lord We Ganstas', 'Slipstick'),
+            ('Grammy', 'Purity Ring'),
+            ('Bullet in the Head', 'Gvcci Hvcci')
+        )
+        dj_ango = Player.dj_ango()
+        main_station = Station.main_station()
+        for song in songs:
+            SongFile.objects.create(
+                artist=song[0],
+                title=song[1],
+                filename='{0}-{1}.mp3'.format(*song),
+                filesize=80000,
+                album="Marduk's Mix Tape",
+                genre="Unknown",
+                station_id=main_station.pk,
+                added_by=dj_ango,
+            )
+
+        # Given the current mood
+        now = datetime.datetime.now()
+        one_hour_ago = now - datetime.timedelta(seconds=3600)
+        Mood.objects.create(
+            station=main_station, artist='Sleigh Bells', timestamp=now)
+        Mood.objects.create(
+            station=main_station, artist='Prince', timestamp=one_hour_ago)
+
+        # when we call Queue.auto_fill_mood()
+        qs = SongFile.objects.all()
+        needed = 2
+        result = list(Queue.auto_fill_mood(qs, needed, seconds=900))
+
+        # Then we get the expected two songs
+        self.assertEqual(len(result), 2)
+
+        # And the first song should be Sleigh Bells
+        self.assertEqual(result[0].artist, 'Sleigh Bells')
+
+        # And the second should be Prince because he's not the current mood but
+        # was on the last hour
+        self.assertNotEqual(result[1].artist, 'Prince')
+
+    def test_auto_fill_mood_not_recurses(self):
+        # given the set of songs in our library
+        songs = (
+            ('Madonna', 'True Blue'),
+            ('Sleigh Bells', 'End of the Line'),
+            ('The Love Language', 'Heart to Tell'),
+            ('Pace is the Trick', 'Interpol'),
+            ('Wander (Through the Night)', 'The B of the Bang'),
+            ('Lord We Ganstas', 'Slipstick'),
+            ('Grammy', 'Purity Ring'),
+            ('Bullet in the Head', 'Gvcci Hvcci')
+        )
+        dj_ango = Player.dj_ango()
+        main_station = Station.main_station()
+        for song in songs:
+            SongFile.objects.create(
+                artist=song[0],
+                title=song[1],
+                filename='{0}-{1}.mp3'.format(*song),
+                filesize=80000,
+                album="Marduk's Mix Tape",
+                genre="Unknown",
+                station_id=main_station.pk,
+                added_by=dj_ango,
+            )
+
+        # given no mood
+        assert not Mood.objects.all().exists()
+
+        # when we call Queue.auto_fill_mood()
+        qs = SongFile.objects.all()
+        needed = 2
+        result = list(Queue.auto_fill_mood(qs, needed, seconds=900))
+
+        # Then we get the expected two songs even if there was no mood
+        self.assertEqual(len(result), 2)
+
+    def test_randomize_no_repeats(self):
+        Entry.objects.all().delete()
+        # given the queue
+        queue = self.player.queue
+
+        # given the station
+        station = Station.main_station()
+
+        # given the songs in the queue for that station
+        songs = (
+            ('Madonna', 'True Blue'),
+            ('Sleigh Bells', 'End of the Line'),
+            ('The Love Language', 'Heart to Tell'),
+            ('Pace is the Trick', 'Interpol'),
+            ('Wander (Through the Night)', 'The B of the Bang'),
+            ('Lord We Ganstas', 'Slipstick'),
+            ('Grammy', 'Purity Ring'),
+            ('Bullet in the Head', 'Gvcci Hvcci')
+        )
+        for artist, title in songs:
+            Entry.objects.create(
+                queue=queue,
+                station=station,
+                song=UploadedFile(BytesIO(), '%s.mp3' % title),
+                title=title,
+                artist=artist,
+                filetype='mp3'
+            )
+
+        # when we call randomize() on the queue for that station
+        queue.randomize(station)
+
+        # then the entries get a unique random order
+        entries = Entry.objects.filter(station=station, queue=queue)
+        places = entries.values_list('place', flat=True)
+        places = list(places)
+        places.sort()
+        self.assertEqual(places, list(range(len(songs))))
+
 
 class QueueAutoFill(TestCase):
     """
@@ -303,6 +430,64 @@ class QueueAutoFill(TestCase):
                 qs_filter={'length__lt': 600}
             )
             self.assertEqual(queue.entry_set.count(), 5)
+
+
+class StationManagerTest(TestCase):
+    def setUp(self):
+        self.player = Player.objects.create_player('test', password='***')
+
+    def test_create_station(self):
+        # given the player
+        player = self.player
+
+        # when we call Station.objects.create_station()
+        station = Station.objects.create_station(creator=player,
+                                                 name='test station')
+
+        # then we get a station with the player as creator
+        self.assertEqual(station.creator, player)
+        self.assertEqual(station.name, 'test station')
+
+    def test_create_station_with_songs(self):
+        # given the player
+        player = self.player
+
+        # given the songs in the library
+        song_data = (
+            ('Madonna', 'True Blue'),
+            ('Sleigh Bells', 'End of the Line'),
+            ('The Love Language', 'Heart to Tell'),
+            ('Pace is the Trick', 'Interpol'),
+            ('Wander (Through the Night)', 'The B of the Bang'),
+            ('Lord We Ganstas', 'Slipstick'),
+            ('Grammy', 'Purity Ring'),
+            ('Bullet in the Head', 'Gvcci Hvcci')
+        )
+        main_station = Station.main_station()
+        songs = []
+        with TemporaryDirectory() as tempdir:
+            silence = open(SILENCE, 'rb').read()
+            for data in song_data:
+                filename = os.path.join(tempdir, '{0}-{1}.mp3'.format(*data))
+                open(filename, 'wb').write(silence)
+                song = SongFile.objects.create(
+                    artist=data[0],
+                    title=data[1],
+                    filename=filename,
+                    filesize=80000,
+                    album="Marduk's Mix Tape",
+                    genre="Unknown",
+                    station_id=main_station.pk,
+                    added_by=player,
+                )
+                songs.append(song)
+
+            # when we call Station.objects.create_station() with those songs
+            station = Station.objects.create_station(creator=player,
+                                                     songs=songs)
+
+            # then the station is created and the song entries added
+            self.assertEqual(station.entries.count(), len(songs))
 
 
 class StationTest(TestCase):

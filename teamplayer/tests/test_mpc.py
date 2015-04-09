@@ -1,13 +1,16 @@
 """Tests for the MPC client"""
 import os
 import time
+from io import BytesIO
 from unittest.mock import Mock, call, patch
 
+from django.core.files.uploadedfile import UploadedFile
 from django.test import TestCase
 from mpd import ConnectionError, MPDClient
 
 from teamplayer.lib.mpc import MPC
-from teamplayer.models import Player, Station
+from teamplayer.lib.songs import CLEAR_IMAGE_URL
+from teamplayer.models import Entry, Player, Station
 
 
 @patch('teamplayer.lib.mpc.mpd.MPDClient', autospec=MPDClient)
@@ -72,11 +75,14 @@ class MPCTest(TestCase):
         mpc = self.mpc
 
         # when we call .currently_playing()
-        mpd_client.return_value.status.return_value = {
-            'state': 'play', 'time': '100:300', 'remaining_time': '0:15'
+        config = {
+            'status.return_value':
+                {'state': 'play', 'time': '100:300', 'remaining_time': '0:15'},
+            'currentsong.return_value':
+                {'file': '1-t.mp3', 'artist': 'Prince', 'title': 'Purple Rain'},
+            'sticker_list.return_value': {'dj': '', 'player_id': 1}
         }
-        mpd_client.return_value.currentsong.return_value = {
-            'file': '1-test.mp3', 'artist': 'Prince', 'title': 'Purple Rain'}
+        mpd_client.return_value.configure_mock(**config)
         result = mpc.currently_playing()
 
         # then we get the expected result
@@ -91,19 +97,141 @@ class MPCTest(TestCase):
         }
         self.assertEqual(result, expected)
 
-    def test_add_file_to_playlist(self, mpd_client):
-        # given the mpc instance and filename
+    def test_currently_playing_no_artist(self, mpd_client):
+        # given the mpc instance
         mpc = self.mpc
-        filename = self.filename
 
-        # when we call .add_file_to_playlist()
-        mpc.add_file_to_playlist(filename)
+        # when we call .currently_playing() and mpd's currentsong returns not
+        # "artist" key
+        config = {
+            'currentsong.return_value':
+                {'file': '1-silence.mp3', 'title': 'Purple Rain'},
+            'status.return_value':
+                {'state': 'play', 'time': '100:300', 'remaining_time': '0:15'},
+            'sticker_list.return_value': {'dj': '', 'player_id': 1}
+        }
+        mpd_client.return_value.configure_mock(**config)
+        result = mpc.currently_playing()
+
+        # then we get the expected dict with "artist" set to None
+        expected = {
+            'artist': None,
+            'title': 'Purple Rain',
+            'artist_image': CLEAR_IMAGE_URL,
+            'total_time': 300,
+            'remaining_time': 200,
+            'station_id': self.station.pk,
+            'dj': ''
+        }
+        self.assertEqual(result, expected)
+
+    def test_currently_playing_no_title(self, mpd_client):
+        # given the mpc instance
+        mpc = self.mpc
+
+        # when we call .currently_playing() and mpd's currentsong returns not
+        # "title" key
+        config = {
+            'currentsong.return_value':
+                {'file': '1-silence.mp3', 'artist': 'Prince'},
+            'status.return_value':
+                {'state': 'play', 'time': '100:300', 'remaining_time': '0:15'},
+            'sticker_list.return_value': {'dj': '', 'player_id': 1}
+        }
+        mpd_client.return_value.configure_mock(**config)
+        result = mpc.currently_playing()
+
+        # then we get the expected dict with "title" set to None
+        expected = {
+            'artist': 'Prince',
+            'title': None,
+            'artist_image': '/artist/Prince/image',
+            'total_time': 300,
+            'remaining_time': 200,
+            'station_id': self.station.pk,
+            'dj': ''
+        }
+        self.assertEqual(result, expected)
+
+    def test_add_entry_to_playlist(self, mpd_client):
+        # given the mpc instance
+        mpc = self.mpc
+
+        # given the song Entry
+        entry = Entry.objects.create(
+            queue=self.player.queue,
+            station=self.station,
+            song=UploadedFile(BytesIO(), 'BS.mp3'),
+            title='Break Stuff',
+            artist='Limp Bizkit',
+            filetype='mp3'
+        )
+
+        # when we call .entry_file_to_playlist()
+        with patch('teamplayer.lib.mpc.MPC.wait_for_song') as mock_wait:
+            mock_wait.return_value = True
+            filename = mpc.add_entry_to_playlist(entry)
 
         # then the file is added to the mpd playlist
+        self.assertNotEqual(filename, None)
         expected = call().add(filename)
         self.assertTrue(expected in mpd_client.mock_calls)
         expected = call().play()
         self.assertTrue(expected in mpd_client.mock_calls)
+
+    def test_add_entry_to_playlist_but_file_never_made_it(self, mpd_client):
+        # given the mpc instance
+        mpc = self.mpc
+
+        # given the song Entry
+        entry = Entry.objects.create(
+            queue=self.player.queue,
+            station=self.station,
+            song=UploadedFile(BytesIO(), 'BS.mp3'),
+            title='Break Stuff',
+            artist='Limp Bizkit',
+            filetype='mp3'
+        )
+
+        # when we call .entry_file_to_playlist() but the doesn't make it
+        with patch('teamplayer.lib.mpc.MPC.wait_for_song') as mock_wait:
+            mock_wait.return_value = False
+            filename = mpc.add_entry_to_playlist(entry)
+
+        # then None is returned
+        self.assertEqual(filename, None)
+
+        # and nothing is added to the playlist
+        expected = call().add(filename)
+        self.assertTrue(expected not in mpd_client.mock_calls)
+        expected = call().play()
+        self.assertTrue(expected not in mpd_client.mock_calls)
+
+    def test_add_entry_to_playlist_but_file_disappears(self, mpd_client):
+        # this happened.  can't explain why, but there's a test...
+        # given the mpc instance
+        mpc = self.mpc
+
+        # given the song Entry
+        entry = Entry.objects.create(
+            queue=self.player.queue,
+            station=self.station,
+            song=UploadedFile(BytesIO(), 'BS.mp3'),
+            title='Break Stuff',
+            artist='Limp Bizkit',
+            filetype='mp3'
+        )
+
+        # when we call .entry_file_to_playlist() but the doesn't make it
+        with patch('teamplayer.lib.mpc.MPC.wait_for_song') as mock_wait:
+            mock_wait.return_value = False
+            # and attempting to remove it raises FileNotFoundError
+            with patch('teamplayer.lib.mpc.os.unlink') as mock_unlink:
+                mock_unlink.side_effect = FileNotFoundError  # NOQA
+                filename = mpc.add_entry_to_playlist(entry)
+
+        # then None is returned
+        self.assertEqual(filename, None)
 
     def test_connect(self, mpd_client):
         # given the mpc instance
@@ -205,22 +333,6 @@ class MPCTest(TestCase):
 
         # then we get the expected artist
         self.assertEqual(artist, 'TeamPlayer')
-
-    def test_dj_from_filename(self, mpc_client):
-        # given the mpc instance
-        mpc = self.mpc
-
-        # player with a dj name
-        player = self.player
-
-        # and the filename based on the player's id
-        filename = '%s-test.mp3' % player.pk
-
-        # when we call dj_from_filename()
-        result = mpc.dj_from_filename(filename)
-
-        # then we get the expected dj name
-        self.assertEqual(result, player.dj_name)
 
     def test_idle_or_wait(self, mpd_client):
         # given the mpc instance

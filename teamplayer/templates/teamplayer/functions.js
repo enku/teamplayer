@@ -185,14 +185,7 @@ station_create: function (station) {
     }
 
     if (station.id !== TeamPlayer.current_song.station_id) {
-        $.pnotify({
-            title: 'New Station',
-            text: '<span class="station_name"><a href="' + station.url + '">' + station.name + '</a>',
-            width: "150px",
-            shadow: false,
-            sticker: false,
-            nonblock: true
-        });
+        Notifier.info(station.name, 'New Station');
     }
 },
 

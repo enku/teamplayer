@@ -56,11 +56,24 @@ var SongWidget = (function(){
     },
 
     set_songwidget: function(song_data) {
+        "use strict";
+        var station_id = song_data.station_id;
+        var title = song_data.title || 'Unknown';
+        var artist = song_data.artist || 'Unknown';
+        var dj = song_data.dj || '';
+        var artist_image = song_data.artist_image;
+
+        // but actually...
+        if (song_data.total_time === 0 && dj === 'DJ Ango') {
+            title = 'Station Break';
+            artist = '';
+        }
+
         $('.station_' + song_data.station_id + '_song').html(
-            '“' + song_data.title + '” by ' + song_data.artist
+            '“' + title + '” by ' + artist
         );
 
-        if (song_data.station_id !== TP.current_song.station_id) return;
+        if (station_id !== TP.current_song.station_id) return;
 
         var song_str,
             lastfm_str,
@@ -76,38 +89,32 @@ var SongWidget = (function(){
         $('#progress_bar').animate({'width': '100%'}, 
                                    song_data.remaining_time*1000 - 500);
         
-        if (song_data.artist == $('#current_song .song_artist').text()
-            && song_data.title == $('#current_song .song_title').text()
-            && song_data.dj == $('#current_song .djname').text())
+        if (artist == $('#current_song .song_artist').text()
+            && title == $('#current_song .song_title').text()
+            && dj == $('#current_song .djname').text())
             return;
 
-        TP.current_song.artist = song_data['artist'];
-        TP.current_song.title = song_data['title'];
-        TP.current_song.dj = song_data['dj'];
+        TP.current_song.artist = artist;
+        TP.current_song.title = title;
+        TP.current_song.dj = dj;
 
         ttext = (
                 'Title: ' 
-                + TP.current_song.title 
-                + '\nArtist: ' 
-                + TP.current_song.artist + '\nDJ: ' 
-                + SongWidget.escapeHTML(TP.current_song.dj)
+                + title + '\nArtist: ' + artist + '\nDJ: ' + SongWidget.escapeHTML(dj)
         );
 
-        if (TP.current_song.artist !== 'Unknown' 
-                && song_data['artist_image'] !== '') {
+        if (artist_image) {
             // pre-load image
-            image.src = song_data['artist_image'];
+            image.src = artist_image;
 
             lastfm_str = '<a target="_blank" href="' +
-                TP.urls.artist_page + 
-                encodeURIComponent(TP.current_song.artist) + 
-                '"><img src="' +
-                song_data['artist_image'] + '" alt="" /></a>';}
-        else lastfm_str = '<img src="' + TP.urls.clear_png + '" alt="" />';
+                TP.urls.artist_page + encodeURIComponent(artist) + 
+                '"><img src="' + artist_image + '" alt="" /></a>';
+        } else {
+            lastfm_str = '<img src="' + TP.urls.clear_png + '" alt="" />';
+        }
 
-        document.title = (TP.current_song.title 
-                + ' · ' + TP.current_song.artist 
-                + ' - TeamPlayer');
+        document.title = (title + ' · ' + artist + ' - TeamPlayer');
         var $current_song = $('#current_song');
         $current_song.fadeOut('fast', function() {
                 $current_song.attr('title', ttext);

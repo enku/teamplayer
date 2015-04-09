@@ -1,9 +1,6 @@
 import functools
-import logging
 import os
 import shutil
-import signal
-import sys
 import time
 from json import dumps, loads
 
@@ -13,28 +10,27 @@ import tornado.web
 import tornado.websocket
 from django.conf import settings as django_settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.urlresolvers import reverse
 from mutagen import File
 
-from teamplayer import models
+from teamplayer import logger, models
 from teamplayer.conf import settings
 from teamplayer.lib import (
     get_player_from_session_id,
     get_random_filename,
     get_station_id_from_session_id,
-    remove_pedantic
+    remove_pedantic,
+    signals
 )
-from teamplayer.lib.signals import QUEUE_CHANGE_EVENT
 from teamplayer.serializers import StationSerializer
 from tp_library.models import SongFile
-
-LOGGER = logging.getLogger('teamplayer.websockets')
 
 
 class SocketHandler(tornado.websocket.WebSocketHandler):
     clients = []
 
     def open(self):
-        LOGGER.debug('WebSocket connection opened')
+        logger.debug('WebSocket connection opened')
         station_id = None
         self.clients.append(self)
         self.broadcast_player_stats()
@@ -58,7 +54,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         self.broadcast('new_connection', self.player.username, exclude=[self])
 
     def on_close(self):
-        LOGGER.debug('WebSocket connection closed')
+        logger.debug('WebSocket connection closed')
         self.clients.remove(self)
         self.broadcast_player_stats()
 
@@ -113,8 +109,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             }))
 
     @classmethod
-    @tornado.gen.coroutine
-    def notify_clients(cls, **kwargs):
+    def notify_clients(cls, sender, **kwargs):
         """Signal handler to send a message to clients when the song changes.
         """
         current_song = kwargs['current_song']
@@ -134,20 +129,20 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     conn = None
 
     def open(self):
-        LOGGER.debug('IPC connection opened')
+        logger.debug('IPC connection opened')
 
     def on_message(self, message):
         """Handle message"""
         message = loads(message)
 
         if message.get('key') != django_settings.SECRET_KEY:
-            LOGGER.critical('Someone is trying to hack me!', extra=message)
+            logger.critical('Someone is trying to hack me!', extra=message)
             return
 
         message_type = message['type']
         data = message['data']
         handler_name = 'handle_%s' % message_type
-        LOGGER.debug('Message received: %s', message_type)
+        logger.debug('Message received: %s', message_type)
 
         if hasattr(self, handler_name):
             handler = getattr(self, handler_name)
@@ -181,13 +176,15 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         SocketHandler.broadcast('wall', message)
 
     def handle_song_added(self, song_id):
+        signals.song_added.send(models.Entry, song_id=song_id)
         SocketHandler.broadcast_player_stats()
         SocketHandler.broadcast_station_stats()
 
-        QUEUE_CHANGE_EVENT.set()
-        QUEUE_CHANGE_EVENT.clear()
+        signals.QUEUE_CHANGE_EVENT.set()
+        signals.QUEUE_CHANGE_EVENT.clear()
 
     def handle_song_removed(self, song_id):
+        signals.song_removed.send(models.Entry, song_id=song_id)
         SocketHandler.broadcast_player_stats()
         SocketHandler.broadcast_station_stats()
 
@@ -197,20 +194,14 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         SocketHandler.broadcast_station_stats()
 
         # Send an event to the spindoctor
-        QUEUE_CHANGE_EVENT.set()
-        QUEUE_CHANGE_EVENT.clear()
+        signals.QUEUE_CHANGE_EVENT.set()
+        signals.QUEUE_CHANGE_EVENT.clear()
 
     def handle_shutdown(self, data):
         """Shut down all services"""
-        from teamplayer.lib.threads import StationThread
+        from teamplayer.management.commands.spindoctor import shutdown
 
-        LOGGER.critical('Shutting down')
-        for station_thread in StationThread.get_all().values():
-            station_thread.mpc.stop()
-
-        # suicide
-        os.kill(os.getpid(), signal.SIGTERM)
-        sys.exit(0)
+        shutdown()
 
     def handle_station_rename(self, data):
         """A station's name has changed"""
@@ -220,7 +211,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     def handle_station_delete(self, station_id):
         """A station has been removed."""
         # to avoid circular imports
-        from teamplayer.lib.threads import StationThread
+        from teamplayer.lib.async import StationThread
 
         # first we broadcast so that all clients can get off the station
         SocketHandler.broadcast('station_delete', station_id)
@@ -231,19 +222,21 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         time.sleep(3)
 
         StationThread.remove(station_id)
+        signals.station_delete.send(models.Station, station_id=station_id)
 
     def handle_station_create(self, station_id):
         """A station was created. we need to start the Thread"""
         # to avoid circular imports
-        from teamplayer.lib.threads import StationThread
+        from teamplayer.lib.async import StationThread
 
         try:
             station = models.Station.objects.get(pk=station_id)
         except models.Station.DoesNotExist:
             return
 
-        LOGGER.debug('Creating thread for new station: %s', station)
+        logger.debug('Creating thread for new station: %s', station)
         StationThread.create(station)
+        signals.station_create.send(models.Station, station_id=station_id)
 
         # Let 'em know
         for client in SocketHandler.clients:
@@ -260,7 +253,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     def handle_library_add(self, entry_id):
         """Add an entry to the TeamPlayer library."""
         entry = models.Entry.objects.get(pk=entry_id)
-        LOGGER.debug('Adding %s to Library.', entry)
+        logger.debug('Adding %s to Library.', entry)
         filename = get_random_filename(entry.filetype)
         fullpath = os.path.join(settings.UPLOADED_LIBRARY_DIR, filename)
         entry_name = os.path.join(django_settings.MEDIA_ROOT, entry.song.name)
@@ -273,7 +266,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
                 shutil.copy(entry_name, fullpath)
             except Exception:
                 # Ok, I give up
-                logging.exception(
+                logger.exception(
                     'Error copying {0} to library.'.format(filename),
                     exc_info=True
                 )
@@ -291,10 +284,25 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
                 fullpath, metadata, entry.queue.player, entry.station.pk)
         except ValidationError as error:
             msg = 'Error adding file to library: %s' % str(error)
-            logging.debug(msg)
+            logger.debug(msg)
             created = False
 
-        if not created:
+        if created:
+            song_info = {
+                'station_id': songfile.station_id,
+                'title': songfile.title,
+                'artist': songfile.artist,
+                'artist_image': reverse('teamplayer.views.artist_image',
+                                        kwargs={'artist': songfile.artist}),
+                'total_time': songfile.length,
+                'path': songfile.filename,
+            }
+            signals.library_add.send(
+                models.Player,
+                player=entry.queue.player,
+                song_info=song_info,
+            )
+        else:
             os.unlink(fullpath)
 
     def handle_dj_name_change(self, data):
