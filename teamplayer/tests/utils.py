@@ -18,6 +18,11 @@ METALLICA_SIMILAR_TXT = os.path.join(__dir__, 'data', 'metallica_similar.txt')
 SILENCE = os.path.join(__dir__, 'data', 'silence.mp3')
 
 
+def getdata(filename):
+    fullpath = os.path.join(__dir__, 'data', filename)
+    return open(fullpath)
+
+
 class SpinDoctor:
 
     """Emulate the spin management command
