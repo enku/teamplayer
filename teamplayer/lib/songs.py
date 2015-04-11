@@ -5,7 +5,6 @@ import contextlib
 import datetime
 import socket
 import time
-import urllib.parse
 from functools import lru_cache
 from http.client import HTTPException
 from urllib.error import URLError
@@ -92,25 +91,6 @@ def time_to_secs(time_str):
     seconds = int(parts[2])
 
     return 3600 * hours + 60 * minutes + seconds
-
-
-def url_friendly_artist(artist):
-    """
-    Return *artist* in such a way that it is acceptable by the
-    last.fm api when used in …/artist/*artist*/similar.txt for example.
-
-    Currently this is used to get the similar artist url.  Might
-    it also be useful for other things last.fm?
-    """
-    new_artist = artist
-
-    if type(new_artist) is str:
-        new_artist = artist.encode('utf-8', 'ignore')
-
-    new_artist = artist.replace('.', '')
-    new_artist = new_artist.replace('/', '')
-    new_artist = urllib.parse.quote(new_artist)
-    return new_artist
 
 
 @lru_cache(maxsize=256)
