@@ -1,3 +1,4 @@
+import json
 from io import BytesIO
 from unittest.mock import patch
 
@@ -68,9 +69,10 @@ class AutoFindSong(TestCase):
 
         self.main_station = Station.main_station()
 
-    @patch('teamplayer.lib.songs.urllib.request.urlopen')
-    def test(self, mock_open):
-        mock_open.return_value = open(PRINCE_SIMILAR_TXT, 'rb')
+    @patch('teamplayer.lib.songs.get_similar_artists')
+    def test(self, get_similar_artists):
+        with utils.getdata('prince_similar.json') as fp:
+            get_similar_artists.return_value = json.load(fp)
 
         # Given the player's queue...
         self.player.auto_mode = True
@@ -103,9 +105,10 @@ class AutoFindSong(TestCase):
         # Then we should get purple_rain
         self.assertEqual(song, purple_rain)
 
-    @patch('teamplayer.lib.songs.urllib.request.urlopen')
-    def test_no_songs_returns_None(self, mock_open):
-        mock_open.return_value = open(PRINCE_SIMILAR_TXT, 'rb')
+    @patch('teamplayer.lib.songs.get_similar_artists')
+    def test_no_songs_returns_None(self, get_similar_artists):
+        with utils.getdata('prince_similar.json') as fp:
+            get_similar_artists.return_value = json.load(fp)
 
         # Given the player's empty queue...
         self.player.auto_mode = True
@@ -124,10 +127,8 @@ class AutoFindSong(TestCase):
         # Then we get nothing
         self.assertEqual(song, None)
 
-    @patch('teamplayer.lib.songs.urllib.request.urlopen')
-    def test_no_mood_fits_returns_first_entry(self, mock_open):
-        mock_open.return_value = BytesIO()
-
+    @patch('teamplayer.lib.songs.get_similar_artists')
+    def test_no_mood_fits_returns_first_entry(self, get_similar_artists):
         # Given the player's queue...
         self.player.auto_mode = True
         self.player.save()
@@ -154,14 +155,16 @@ class AutoFindSong(TestCase):
         )
 
         # When we call auto_find_song
+        get_similar_artists.return_value = []
         song = songs.auto_find_song(None, queue, self.main_station)
 
         # Then we should get happiness
         self.assertEqual(song, happiness)
 
-    @patch('teamplayer.lib.songs.urllib.request.urlopen')
-    def test_does_not_return_previous_artist(self, mock_open):
-        mock_open.return_value = open(PRINCE_SIMILAR_TXT, 'rb')
+    @patch('teamplayer.lib.songs.get_similar_artists')
+    def test_does_not_return_previous_artist(self, get_similar_artists):
+        with utils.getdata('prince_similar.json') as fp:
+            get_similar_artists.return_value = json.load(fp)
 
         # Given the player's queue...
         self.player.auto_mode = True
