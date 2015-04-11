@@ -1,62 +1,14 @@
 import json
-from io import BytesIO
 from unittest.mock import patch
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from teamplayer import scrobbler
 from teamplayer.lib import songs
 from teamplayer.models import Entry, Mood, Player, Station
 from teamplayer.tests import utils
 
 PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
-
-
-class ScrobbleSongError(TestCase):
-    """
-    Demonstrate the ProtocolError thrown during scrobble_song
-    """
-    @patch('teamplayer.scrobbler.login')
-    def test_error(self, mock_login):
-        # given the "song"
-        song = {
-            'artist': 'Prince',
-            'title': 'Purple Rain',
-            'total_time': 500,
-        }
-
-        # when we scrobble it and the scrobbler raises an error
-        mock_login.side_effect = scrobbler.ProtocolError
-        status = songs.scrobble_song(song)
-
-        # Then the exception is not propogated and we just get a False return
-        self.assertEqual(status, False)
-
-    @patch('teamplayer.lib.songs.scrobbler.submit')
-    @patch('teamplayer.lib.songs.scrobbler.login')
-    def test_timeout_error(self, mock_login, mock_submit):
-        # given the "song"
-        song = {
-            'artist': 'Prince',
-            'title': 'Purple Rain',
-            'total_time': 500,
-        }
-
-        # when we scrobble it and the scrobbler raises TimeoutError
-        calls = 0
-
-        def side_effect(*args, **kwargs):
-            nonlocal calls
-            calls = calls + 1
-            if calls == 1:  # first call
-                raise TimeoutError
-            return
-        mock_submit.side_effect = side_effect
-        status = songs.scrobble_song(song)
-
-        # Then the exception is not propogated and it just logs in again
-        self.assertEqual(status, True)
 
 
 class AutoFindSong(TestCase):

@@ -4,17 +4,14 @@ Library to deal with song files and song metadata
 import contextlib
 import datetime
 import socket
-import time
 from functools import lru_cache
-from http.client import HTTPException
-from urllib.error import URLError
 
 import pylast
 from django.conf import settings as django_settings
 from django.db.models import Count
 from mutagen import File
 
-from teamplayer import logger, models, scrobbler
+from teamplayer import logger, models
 from teamplayer.conf import settings
 from teamplayer.lib import first_or_none, list_iter, now, remove_pedantic
 
@@ -220,42 +217,28 @@ def scrobble_song(song, now_playing=False):
 
     Return True if the song was successfully scrobbled, else return False.
     """
-    logger.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
-    if not scrobbler.POST_URL:
-        # we are not logged in
-        try:
-            scrobbler.login(settings.SCROBBLER_USER,
-                            settings.SCROBBLER_PASSWORD)
-        except (URLError, HTTPException, scrobbler.ProtocolError):
-            return False
+    password_hash = pylast.md5(settings.SCROBBLER_PASSWORD)
+    network = pylast.LastFMNetwork(
+        api_key=LASTFM_APIKEY,
+        api_secret=settings.LASTFM_APISECRET,
+        username=settings.SCROBBLER_USER,
+        password_hash=password_hash
+    )
 
     artist = song['artist']
     title = song['title']
     length = song['total_time']
-    start_time = int(time.mktime(time.localtime())) - length  # not exact..
+
     try:
+        logger.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
         if now_playing:
-            scrobbler.now_playing(artist, title, length=length)
+            network.update_now_playing(artist, title, duration=length)
         else:
-            scrobbler.submit(artist, title, start_time, length=length,
-                             autoflush=True)
-    except (URLError, HTTPException, scrobbler.ProtocolError):
-        logger.error('Error scrobbing song: %s', song, exc_info=True)
+            timestamp = int(now().timestamp()) - length
+            network.scrobble(artist, title, timestamp, duration=length)
+    except pylast.WSError:
         return False
-    except (scrobbler.SessionError, scrobbler.BackendError, OSError):
-        # usually this means our session timed out, just log in again
-        try:
-            scrobbler.login(settings.SCROBBLER_USER,
-                            settings.SCROBBLER_PASSWORD)
-        except scrobbler.ProtocolError as error:
-            # We've probably logged on too many times, neglect this one
-            logger.error('Error scrobbing song: %s: %s', song, error)
-            return False
-        if now_playing:
-            scrobbler.now_playing(artist, title, length=length)
-        else:
-            scrobbler.submit(artist, title, start_time, length=length,
-                             autoflush=True)
+
     return True
 
 remove_pedantic()

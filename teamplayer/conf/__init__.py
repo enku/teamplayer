@@ -29,6 +29,7 @@ DEFAULTS = {
     'SCROBBLER_USER': '',
     'SCROBBLER_PASSWORD': '',
     'LASTFM_APIKEY': '2d5952c801e074e3251bafb77f54e680',
+    'LASTFM_APISECRET': '23dd84f772d374d7f8230d74afc8d269',
     'CROSSFADE': 0,
     'SHAKE_THINGS_UP': 0,
     'SHAKE_THINGS_UP_FILTER': {'length__lt': 300, 'length__gt': 0},
