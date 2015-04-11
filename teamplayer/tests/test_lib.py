@@ -11,9 +11,7 @@ from teamplayer import version_string
 from teamplayer.conf import settings
 from teamplayer.tests import utils
 
-ARTIST_XML = utils.ARTIST_XML
 SILENCE = utils.SILENCE
-PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
 Mood = teamplayer.models.Mood
 TestCase = django.test.TestCase
 call = mock.call

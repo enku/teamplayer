@@ -12,9 +12,6 @@ Entry = teamplayer.models.Entry
 UploadedFile = django.core.files.uploadedfile.UploadedFile
 
 __dir__ = os.path.dirname(__file__)
-ARTIST_XML = os.path.join(__dir__, 'data', 'prince_artistinfo.xml')
-PRINCE_SIMILAR_TXT = os.path.join(__dir__, 'data', 'prince_similar.txt')
-METALLICA_SIMILAR_TXT = os.path.join(__dir__, 'data', 'metallica_similar.txt')
 SILENCE = os.path.join(__dir__, 'data', 'silence.mp3')
 
 

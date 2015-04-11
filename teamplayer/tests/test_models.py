@@ -16,8 +16,6 @@ from teamplayer.tests import utils
 from tp_library.models import SongFile
 
 SILENCE = utils.SILENCE
-METALLICA_SIMILAR_TXT = utils.METALLICA_SIMILAR_TXT
-PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
 SpinDoctor = utils.SpinDoctor
 TestCase = django.test.TestCase
 UploadedFile = django.core.files.uploadedfile.UploadedFile

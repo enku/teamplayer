@@ -8,8 +8,6 @@ from teamplayer.lib import songs
 from teamplayer.models import Entry, Mood, Player, Station
 from teamplayer.tests import utils
 
-PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
-
 
 class AutoFindSong(TestCase):
     def setUp(self):
