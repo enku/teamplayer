@@ -1,5 +1,6 @@
 """Unit tests for the TeamPlayer Django app"""
 import datetime
+import json
 import os
 from io import BytesIO
 from tempfile import TemporaryDirectory
@@ -667,8 +668,8 @@ class QueueMasterTestCase(TestCase):
         self.assertEqual(current[1], 'Prince')
         self.assertEqual(current[2], 'Purple Rain')
 
-    @patch('teamplayer.lib.songs.urlopen')
-    def test_round_robin(self, mock_urlopen):
+    @patch('teamplayer.lib.songs.get_similar_artists')
+    def test_round_robin(self, get_similar_artists):
         self.spin.create_song_for(self.player1, artist='Prince',
                                   title='Purple Rain')
         self.spin.create_song_for(self.player2, artist='Metallica',
@@ -717,16 +718,20 @@ class QueueMasterTestCase(TestCase):
         self.spin.next()
         self.assertEqual(self.player1.queue.entry_set.count(), 0)
 
-    @patch('teamplayer.lib.songs.urlopen')
-    def test_auto_mode(self, mock_urlopen):
-        def my_urlopen(url):
-            if 'Prince' in url:
-                return open(PRINCE_SIMILAR_TXT, 'rb')
-            if 'Metallica' in url:
-                return open(METALLICA_SIMILAR_TXT, 'rb')
-            return open(os.devnull, 'rb')
+    @patch('teamplayer.lib.songs.get_similar_artists')
+    def test_auto_mode(self, get_similar_artists):
+        def my_similar(artist):
+            if artist == 'Prince':
+                with utils.getdata('prince_similar.json') as fp:
+                    data = json.load(fp)
+            elif artist == 'Metallica':
+                with utils.getdata('metallica_similar.json') as fp:
+                    data = json.load(fp)
+            else:
+                data = []
+            return data
 
-        mock_urlopen.side_effect = my_urlopen
+        get_similar_artists.side_effect = my_similar
 
         self.spin.create_song_for(self.player1, artist='Prince',
                                   title='Purple Rain')

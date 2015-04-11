@@ -1,4 +1,5 @@
 """Unit tests for TeamPlayer lib functions"""
+import json
 from unittest import mock
 
 import django.contrib.auth.models
@@ -103,9 +104,10 @@ class LibSongs(TestCase):
 
 class MoodTestCase(TestCase):
     """Test the Mood model."""
-    @patch('teamplayer.lib.songs.urlopen')
-    def test_mood(self, mock):
-        mock.return_value = open(PRINCE_SIMILAR_TXT, 'rb')
+    @patch('teamplayer.lib.songs.get_similar_artists')
+    def test_mood(self, get_similar_artists):
+        with utils.getdata('prince_similar.json') as fp:
+            get_similar_artists.return_value = json.load(fp)
         station = teamplayer.models.Station.main_station()
         self.assertEqual(Mood.objects.all().count(), 0)
         Mood.log_mood('Prince', station)

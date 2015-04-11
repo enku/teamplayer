@@ -9,9 +9,9 @@ import urllib.parse
 from functools import lru_cache
 from http.client import HTTPException
 from urllib.error import URLError
-from urllib.request import urlopen
 from xml.etree import ElementTree
 
+import pylast
 from django.conf import settings as django_settings
 from django.db.models import Count
 from mutagen import File
@@ -151,24 +151,14 @@ def get_similar_artists(artist):
     Generator for finding similar artists to *artist*.  Uses the last.fm
     api to fetch the list
     """
-    encoded_artist = url_friendly_artist(artist)
-    url = ('http://ws.audioscrobbler.com/2.0/artist/%s/similar.txt' %
-           encoded_artist)
-    try:
-        data = urlopen(url).read().decode('utf-8')
-    except (URLError, HTTPException):
-        logger.error('URLError: %s', url, exc_info=True)
-        return []
+    network = pylast.LastFMNetwork(api_key=LASTFM_APIKEY)
+    lfm_artist = network.get_artist(artist)
+    lfm_similar = lfm_artist.get_similar()
+    similar = []
 
-    similar = set()
-    for line in data.split('\n'):
-        try:
-            similar_artist = line.strip().split(',')[-1]
-        except IndexError:
-            continue
-        # damned entity references
-        similar_artist = similar_artist.replace("&amp;", "&")
-        similar.add(similar_artist)
+    for item in lfm_similar:
+        similar.append(item.item.name)
+
     return similar
 
 
