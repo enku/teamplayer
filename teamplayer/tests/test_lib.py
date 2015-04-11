@@ -8,6 +8,7 @@ import django.test
 
 import teamplayer.models
 from teamplayer import version_string
+from teamplayer.conf import settings
 from teamplayer.tests import utils
 
 ARTIST_XML = utils.ARTIST_XML
@@ -15,6 +16,7 @@ SILENCE = utils.SILENCE
 PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
 Mood = teamplayer.models.Mood
 TestCase = django.test.TestCase
+call = mock.call
 patch = mock.patch
 reverse = django.core.urlresolvers.reverse
 
@@ -73,15 +75,22 @@ class LibSongs(TestCase):
         self.assertEqual(func('9:01'), 541)
         self.assertEqual(func('9:00:01'), 32401)
 
-    @patch('teamplayer.lib.songs.urllib.request.urlopen')
-    def test_artist_image_url(self, mock):
-        mock.return_value = open(ARTIST_XML)
-        url = teamplayer.lib.songs.get_image_url_for('Prince')
-        self.assertEqual(url,
-                         'http://userserve-ak.last.fm/serve/252/609358.jpg')
+    @patch('teamplayer.lib.songs.pylast.LastFMNetwork')
+    def test_artist_image_url(self, LastFMNetwork):
+        img_url = 'http://userserve-ak.last.fm/serve/252/609358.jpg'
+        network = LastFMNetwork()
+        prince = network.get_artist('Prince')
+        prince.get_cover_image.return_value = img_url
+        LastFMNetwork.reset_mock()
 
-    @patch('teamplayer.lib.songs.urllib.request.urlopen')
-    def test_blank_artist(self, mock):
+        url = teamplayer.lib.songs.get_image_url_for('Prince')
+        self.assertEqual(url, img_url)
+        expected = call(api_key=settings.LASTFM_APIKEY).get_artist(
+            'Prince').get_cover_image()
+        expected = expected.call_list()
+        self.assertEqual(LastFMNetwork.mock_calls, expected)
+
+    def test_blank_artist(self):
         """Demonstrate we get the "clear" image for blank artists"""
         # given a blank artist
         blank_artist = ''

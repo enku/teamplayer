@@ -9,7 +9,6 @@ import urllib.parse
 from functools import lru_cache
 from http.client import HTTPException
 from urllib.error import URLError
-from xml.etree import ElementTree
 
 import pylast
 from django.conf import settings as django_settings
@@ -120,29 +119,13 @@ def get_image_url_for(artist):
     if not artist:
         return CLEAR_IMAGE_URL
 
-    encoded_artist = url_friendly_artist(artist)
-    tmpl = ('http://ws.audioscrobbler.com/2.0/?method=artist.getInfo'
-            '&artist={0}&api_key={1}&limit=1')
-    api_url = tmpl.format(encoded_artist, LASTFM_APIKEY)
-
-    with sockettimeout(3.0):
-        try:
-            response = urllib.request.urlopen(api_url)
-        except IOError:
-            return CLEAR_IMAGE_URL
+    network = pylast.LastFMNetwork(api_key=LASTFM_APIKEY)
+    lfm_artist = network.get_artist(artist)
 
     try:
-        root = ElementTree.parse(response)
-    except ElementTree.ParseError:
-        logger.error('Error parsing response from %s', api_url)
+        return lfm_artist.get_cover_image()
+    except pylast.WSError:
         return CLEAR_IMAGE_URL
-    images = root.findall('./artist/image')
-    for image in images:
-        if image.get('size') == 'extralarge':
-            image_url = image.text
-            break
-    image_url = image_url or CLEAR_IMAGE_URL
-    return image_url
 
 
 @lru_cache(maxsize=512)
