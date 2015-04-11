@@ -1,9 +1,7 @@
 """
 Library to deal with song files and song metadata
 """
-import contextlib
 import datetime
-import socket
 from functools import lru_cache
 
 import pylast
@@ -27,15 +25,6 @@ MIME_MAP = {
     'audio/x-flac': 'flac',
 }
 LASTFM_APIKEY = settings.LASTFM_APIKEY
-
-
-@contextlib.contextmanager
-def sockettimeout(secs):
-    """Context manager to temporarily set the default socket timeout"""
-    orig_timeout = socket.getdefaulttimeout()
-    socket.setdefaulttimeout(secs)
-    yield
-    socket.setdefaulttimeout(orig_timeout)
 
 
 class SongMetadataError(Exception):
