@@ -71,7 +71,10 @@ class MPC(object):
         self.mpd = None
 
         if os.path.exists(self.mpd_dir):
-            shutil.rmtree(self.mpd_dir)
+            try:
+                shutil.rmtree(self.mpd_dir)
+            except FileNotFoundError:
+                pass
 
     def create_config(self):
         """Create the mpd config file and write the config to it"""
