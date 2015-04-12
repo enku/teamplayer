@@ -127,6 +127,20 @@ def top_artists_from_tag(tag, limit=100):
     return [x.item.name for x in pylast_tag.get_top_artists(limit=limit)]
 
 
+def artists_from_tags(tags):
+    tag_sets = []
+
+    for tag in tags:
+        tag_artists = top_artists_from_tag(tag)
+        tag_sets.append(set(tag_artists))
+
+    artists = tag_sets[0]
+    for tag_set in tag_sets[1:]:
+        artists.intersection_update(tag_set)
+
+    return list(artists)
+
+
 def best_song_from_player(player, station, previous_artist=None):
     """
     Given the player and station, get the best song from the player's queue,

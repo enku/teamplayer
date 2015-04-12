@@ -1,6 +1,6 @@
 import json
 import pickle
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pylast
 from django.core.urlresolvers import reverse
@@ -232,3 +232,27 @@ class TopArtistsFromTag(TestCase):
         # then we get the top artists
         expected = [x.item.name for x in tags]
         self.assertEqual(result, expected)
+
+
+class ArtistsFromTagsTest(TestCase):
+    def test_call(self):
+        # set up our mock object
+        tags = {}
+        with utils.getdata('electronic_tags.pickle', 'rb') as fp:
+            tags['electronic'] = pickle.load(fp)
+        with utils.getdata('canadian_tags.pickle', 'rb') as fp:
+            tags['canadian'] = pickle.load(fp)
+
+        with patch('teamplayer.lib.songs.pylast.Tag') as Tag:
+            def side_effect(tag, *args, **kwargs):
+                pylast_tag = Mock()
+                pylast_tag.get_top_artists.return_value = tags.get(tag, [])
+
+                return pylast_tag
+            Tag.side_effect = side_effect
+
+            # when we call artists from tags
+            result = songs.artists_from_tags(['canadian', 'electronic'])
+
+        # Then we only get the list of canadian electronic artists
+        self.assertEqual(set(result), set(['Grimes', 'Caribou']))
