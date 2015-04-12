@@ -1,6 +1,7 @@
 import json
 from unittest.mock import patch
 
+import pylast
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
@@ -147,3 +148,55 @@ class AutoFindSong(TestCase):
 
         # Then instead of Prince we should get Metallica
         self.assertEqual(song, metallica)
+
+
+class ScrobbleSongTest(TestCase):
+    def test_now_playing(self):
+        # given the song dict
+        song = {'artist': 'Prince', 'title': 'Purple Rain', 'total_time': 190}
+
+        # when we call scrobble_song() with now_playing=True
+        with patch('teamplayer.lib.songs.pylast.LastFMNetwork') as Network:
+            songs.scrobble_song(song, now_playing=True)
+
+        # then it makes the appropriate call to the scrobbler
+        Network.return_value.update_now_playing.assert_called_with(
+            'Prince', 'Purple Rain', duration=190)
+
+    def test_not_now_playing(self):
+        # given the song dict
+        song = {'artist': 'Prince', 'title': 'Purple Rain', 'total_time': 190}
+
+        # when we call scrobble_song() with now_playing=False
+        with patch('teamplayer.lib.songs.pylast.LastFMNetwork') as Network:
+            with patch('teamplayer.lib.songs.now') as now:
+                songs.scrobble_song(song, now_playing=False)
+
+        # then it makes the appropriate call to the scrobbler
+        timestamp = int(now().timestamp()) - 190
+        Network.return_value.scrobble.assert_called_with(
+            'Prince', 'Purple Rain', timestamp, duration=190)
+
+    def test_returns_True_on_success(self):
+        # given the song dict
+        song = {'artist': 'Prince', 'title': 'Purple Rain', 'total_time': 190}
+
+        # when we call scrobble_song()
+        with patch('teamplayer.lib.songs.pylast.LastFMNetwork'):
+            result = songs.scrobble_song(song, now_playing=True)
+
+        # then True is returned
+        self.assertEqual(result, True)
+
+    def test_returns_False_on_failure(self):
+        # given the song dict
+        song = {'artist': 'Prince', 'title': 'Purple Rain', 'total_time': 190}
+
+        # when we call scrobble_song() and an error is raised by pylast
+        with patch('teamplayer.lib.songs.pylast.LastFMNetwork') as Network:
+            exc = pylast.WSError(Network(), 'fail', 'You suck')
+            Network.return_value.update_now_playing.side_effect = exc
+            result = songs.scrobble_song(song, now_playing=True)
+
+        # then False is returned
+        self.assertEqual(result, False)
