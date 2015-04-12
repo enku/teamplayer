@@ -2,6 +2,7 @@
 import datetime
 import json
 import os
+import pickle
 from io import BytesIO
 from tempfile import TemporaryDirectory
 from unittest import mock
@@ -11,6 +12,7 @@ import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
 
+from teamplayer.lib import songs
 from teamplayer.models import Entry, Mood, Player, Queue, Station
 from teamplayer.tests import utils
 from tp_library.models import SongFile
@@ -429,6 +431,34 @@ class QueueAutoFill(TestCase):
                 qs_filter={'length__lt': 600}
             )
             self.assertEqual(queue.entry_set.count(), 5)
+
+    def test_auto_fill_from_tags(self):
+        # given the (mock) queryset
+        queryset = mock.MagicMock(name='queryset')
+        queryset.count = mock.Mock(return_value=90)
+        queryset.filter = mock.MagicMock(return_value=queryset)
+
+        # given the player
+        player = Player.objects.create_player('test_player', password='test')
+
+        # given the station with a tag in the name
+        station = Station.objects.create(creator=player, name='#electronic')
+
+        # when we call auto_fill_from_tags()
+        with patch('teamplayer.models.lib.songs.pylast.Tag') as Tag:
+            with utils.getdata('electronic_tags.pickle', 'rb') as fp:
+                tags = pickle.load(fp)
+            Tag().get_top_artists.return_value = tags
+            Tag.reset_mock()
+
+            result = Queue.auto_fill_from_tags(queryset, 3, station)
+
+        # then the queryset is filtered on the artists from the tags
+        artists = songs.artists_from_tags(['electronic'])
+        queryset.filter.assert_called_with(artist__in=artists)
+
+        # and 3 items are returned
+        self.assertEqual(len(result), 3)
 
 
 class StationManagerTest(TestCase):

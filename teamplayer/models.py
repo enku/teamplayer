@@ -226,6 +226,31 @@ class Queue(models.Model):
 
         return liked_songs + list(additional)
 
+    @staticmethod
+    def auto_fill_from_tags(queryset, entries_needed, station):
+        """Return at most `entries_needed` SongFiles with `station`'s tags
+
+        Gets the tags from the `station.name`, gets artists with those tags and
+        then returns random songs from `queryset` that have artists with those
+        tags.
+        """
+        stationname = station.name
+        tags = stationname.split()
+        tags = [lib.songs.split_tag_into_words(i[1:]) for i in tags
+                if i.startswith('#')]
+        logger.debug('Tags: %s' % ', '.join(tags))
+        artists = lib.songs.artists_from_tags(tags)
+        songfiles = queryset.filter(artist__in=artists)
+
+        count = songfiles.count()
+        if count > entries_needed:
+            indices = random.sample(range(count), entries_needed)
+            songs = [songfiles[i] for i in indices]
+        else:
+            songs = list(songfiles)
+
+        return songs
+
 
 class Entry(models.Model):
 
