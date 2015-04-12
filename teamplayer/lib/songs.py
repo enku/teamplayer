@@ -111,6 +111,22 @@ def get_similar_artists(artist):
     return similar
 
 
+@lru_cache(maxsize=256)
+def top_artists_from_tag(tag, limit=100):
+    """Return a list of artists from the given "tag"
+
+    Args:
+        tag (str): lowercase (Lastfm tag)
+        limit (int): maximal number of tags to return (default: 100)
+
+    Returns: A list of tag strings
+    """
+    network = pylast.LastFMNetwork(api_key=LASTFM_APIKEY)
+    pylast_tag = pylast.Tag(tag, network)
+
+    return [x.item.name for x in pylast_tag.get_top_artists(limit=limit)]
+
+
 def best_song_from_player(player, station, previous_artist=None):
     """
     Given the player and station, get the best song from the player's queue,

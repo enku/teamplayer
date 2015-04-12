@@ -1,4 +1,5 @@
 import json
+import pickle
 from unittest.mock import patch
 
 import pylast
@@ -200,3 +201,34 @@ class ScrobbleSongTest(TestCase):
 
         # then False is returned
         self.assertEqual(result, False)
+
+
+class TopArtistsFromTag(TestCase):
+    def test_respects_limit(self):
+        # set up our mock object
+        with patch('teamplayer.lib.songs.pylast.Tag') as Tag:
+            with utils.getdata('electronic_tags.pickle', 'rb') as fp:
+                tags = pickle.load(fp)
+            Tag().get_top_artists.return_value = tags
+            Tag.reset_mock()
+
+            # when we call top_artists_from_tag() with a limit
+            songs.top_artists_from_tag('electronic', limit=5)
+
+        # then it only asks lastfm for the top 5 tasks
+        Tag().get_top_artists.assert_called_with(limit=5)
+
+    def test_call(self):
+        # set up our mock object
+        with patch('teamplayer.lib.songs.pylast.Tag') as Tag:
+            with utils.getdata('electronic_tags.pickle', 'rb') as fp:
+                tags = pickle.load(fp)
+            Tag().get_top_artists.return_value = tags
+            Tag.reset_mock()
+
+            # when we call top_artists_from_tag()
+            result = songs.top_artists_from_tag('electronic')
+
+        # then we get the top artists
+        expected = [x.item.name for x in tags]
+        self.assertEqual(result, expected)
