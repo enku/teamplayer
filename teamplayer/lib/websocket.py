@@ -208,6 +208,25 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         SocketHandler.broadcast('station_rename', data)
         SocketHandler.broadcast_station_stats()
 
+        # station names with hashtags cause DJ Ango to empty his queue for
+        # that station and re-fill it
+        stationid, stationname = data
+        if '#' in stationname:
+            logger.debug('# found in station name. Clearing queue')
+            dj_ango = models.Player.dj_ango()
+            models.Entry.objects.filter(
+                station__id=stationid,
+                queue=dj_ango.queue
+            ).delete()
+            station = models.Station.objects.get(pk=stationid)
+            dj_ango.queue.auto_fill(
+                settings.SHAKE_THINGS_UP,
+                station=station,
+                qs_filter=settings.SHAKE_THINGS_UP_FILTER,
+                minimum=1,
+            )
+            self.handle_queue_status(data)
+
     def handle_station_delete(self, station_id):
         """A station has been removed."""
         # to avoid circular imports

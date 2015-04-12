@@ -213,8 +213,9 @@ def find_a_song(players, station, previous_player=None, previous_artist=None):
     song in the player's queue whose artist is similar to the current mood
     without repeating the previous_artist.
     """
-    wants_dj_ango = (settings.SHAKE_THINGS_UP
-                     and station == models.Station.main_station())
+    wants_dj_ango = settings.SHAKE_THINGS_UP
+    station = models.Station.objects.get(pk=station.pk)  # reload
+
     if wants_dj_ango:
         dj_ango = models.Player.dj_ango()
         dj_ango.queue.auto_fill(

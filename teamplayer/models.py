@@ -14,6 +14,7 @@ from django.db.models import Count
 
 from . import lib, logger
 from .conf import settings
+from .lib import signals
 
 DJ_ANGO = None
 
@@ -121,6 +122,7 @@ class Queue(models.Model):
         qs_filter = qs_filter or {}
 
         station = station or Station.main_station()
+        station = Station.objects.get(pk=station.pk)  # re-fetch
         entries = Entry.objects.filter(queue=self, station=station)
         entries_count = entries.count()
         if entries.count() > minimum:
@@ -129,7 +131,12 @@ class Queue(models.Model):
 
         song_files = SongFile.objects.filter(**qs_filter)
 
-        if settings.AUTOFILL_STRATEGY == 'contiguous':
+        if station != Station.main_station():
+            if '#' in station.name:
+                logger.debug('Station name has a #. Filling based on tags')
+                song_files = self.auto_fill_from_tags(
+                    song_files, entries_needed, station)
+        elif settings.AUTOFILL_STRATEGY == 'contiguous':
             song_files = self.auto_fill_contiguous(song_files, entries_needed)
         elif settings.AUTOFILL_STRATEGY == 'mood':
             song_files = self.auto_fill_mood(song_files, entries_needed,
@@ -146,6 +153,9 @@ class Queue(models.Model):
                 logger.error('auto_fill exception: SongFile(%s)',
                              songfile.pk,
                              exc_info=True)
+        if song_files:
+            signals.QUEUE_CHANGE_EVENT.set()
+            signals.QUEUE_CHANGE_EVENT.clear()
 
     # TODO: Unit test
     @staticmethod
