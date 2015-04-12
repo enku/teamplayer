@@ -31,6 +31,10 @@ class Queue(models.Model):
     def add_song(self, song_file, station):
         """Add <<song_file>> to queue"""
 
+        if station.name == 'my station':
+            raise Exception('stop adding stuff to me!')
+
+        logger.debug('Adding song to %s' % station)
         # get the extension of the original filename
         dot = song_file.name.rfind('.')
         if dot != -1:
@@ -136,6 +140,8 @@ class Queue(models.Model):
                 logger.debug('Station name has a #. Filling based on tags')
                 song_files = self.auto_fill_from_tags(
                     song_files, entries_needed, station)
+            else:
+                return
         elif settings.AUTOFILL_STRATEGY == 'contiguous':
             song_files = self.auto_fill_contiguous(song_files, entries_needed)
         elif settings.AUTOFILL_STRATEGY == 'mood':
