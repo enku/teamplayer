@@ -15,9 +15,9 @@ __dir__ = os.path.dirname(__file__)
 SILENCE = os.path.join(__dir__, 'data', 'silence.mp3')
 
 
-def getdata(filename):
+def getdata(filename, flags='r'):
     fullpath = os.path.join(__dir__, 'data', filename)
-    return open(fullpath)
+    return open(fullpath, flags)
 
 
 class SpinDoctor:
