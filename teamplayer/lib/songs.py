@@ -141,6 +141,45 @@ def artists_from_tags(tags):
     return list(artists)
 
 
+def split_tag_into_words(tag):
+    """Return `tag` split into words.
+
+    The best way to to describe this is to show examples:
+
+        "loveSongs" -> "love songs"
+
+        "LoveSongs" -> "love songs"
+
+        "lovesongs" -> "lovesongs"
+
+        "LOVESONGS" -> "lovesongs"
+
+        "love_songs" -> "love songs"
+    """
+    words = ['']
+    word = 0
+
+    for char in tag:
+        if words[word] == '':
+            words[word] = char
+
+        elif char == '_':
+            words.append('')
+            word = word + 1
+            prevchar = char
+            continue
+
+        elif char.isupper() and prevchar.islower():
+            words.append(char)
+            word = word + 1
+
+        else:
+            words[word] = words[word] + char
+        prevchar = char
+
+    return ' '.join(words).lower().strip()
+
+
 def best_song_from_player(player, station, previous_artist=None):
     """
     Given the player and station, get the best song from the player's queue,

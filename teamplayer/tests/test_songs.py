@@ -256,3 +256,26 @@ class ArtistsFromTagsTest(TestCase):
 
         # Then we only get the list of canadian electronic artists
         self.assertEqual(set(result), set(['Grimes', 'Caribou']))
+
+
+class SplitTagIntoWordsTest(TestCase):
+
+    def test_loveSongs(self):
+        result = songs.split_tag_into_words('loveSongs')
+        self.assertEqual(result, 'love songs')
+
+    def test_LoveSongs(self):
+        result = songs.split_tag_into_words('LoveSongs')
+        self.assertEqual(result, 'love songs')
+
+    def test_lovesongs(self):
+        result = songs.split_tag_into_words('LoveSongs')
+        self.assertEqual(result, 'love songs')
+
+    def test_LOVESONGS(self):
+        result = songs.split_tag_into_words('LOVESONGS')
+        self.assertEqual(result, 'lovesongs')
+
+    def test_love_songs(self):
+        result = songs.split_tag_into_words('love_songs')
+        self.assertEqual(result, 'love songs')
