@@ -31,10 +31,6 @@ class Queue(models.Model):
     def add_song(self, song_file, station):
         """Add <<song_file>> to queue"""
 
-        if station.name == 'my station':
-            raise Exception('stop adding stuff to me!')
-
-        logger.debug('Adding song to %s' % station)
         # get the extension of the original filename
         dot = song_file.name.rfind('.')
         if dot != -1:
