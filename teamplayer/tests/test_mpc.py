@@ -6,7 +6,7 @@ from unittest.mock import Mock, call, patch
 
 from django.core.files.uploadedfile import UploadedFile
 from django.test import TestCase
-from mpd import ConnectionError, MPDClient
+from mpd import CommandError, ConnectionError, MPDClient
 
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.songs import CLEAR_IMAGE_URL
@@ -232,6 +232,33 @@ class MPCTest(TestCase):
 
         # then None is returned
         self.assertEqual(filename, None)
+
+    def test_add_entry_to_playlist_set_sticker_causes_mpd_CommandError(
+            self, mpd_client):
+        # given the mpc instance
+        mpc = self.mpc
+
+        # given the song Entry
+        entry = Entry.objects.create(
+            queue=self.player.queue,
+            station=self.station,
+            song=UploadedFile(BytesIO(), 'BS.mp3'),
+            title='Break Stuff',
+            artist='Limp Bizkit',
+            filetype='mp3'
+        )
+
+        # when calling add_entry_to_playlist() causes set_sticker to raise
+        # mpd.CommandError
+        client = mpd_client()
+        sticker_set = client.sticker_set
+        sticker_set.side_effect = CommandError("[50@0] {sticker} Not found")
+        with patch('teamplayer.lib.mpc.MPC.wait_for_song') as mock_wait:
+            mock_wait.return_value = True
+            filename = mpc.add_entry_to_playlist(entry)
+
+        # then the entry still gets added (iow no exception is raised)
+        self.assertTrue(isinstance(filename, str))
 
     def test_connect(self, mpd_client):
         # given the mpc instance

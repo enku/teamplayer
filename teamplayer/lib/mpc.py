@@ -210,8 +210,13 @@ class MPC(object):
 
         # add some stickers
         player = entry.queue.player
-        self.call('sticker_set', 'song', filename, 'player_id', player.pk)
-        self.call('sticker_set', 'song', filename, 'dj', player.dj_name)
+        try:
+            self.call('sticker_set', 'song', filename, 'player_id', player.pk)
+            self.call('sticker_set', 'song', filename, 'dj', player.dj_name)
+        except mpd.CommandError:
+            # It appears sometimes we can get an error writing the sticker.
+            # This is not critical but, of course, we lose metadata on read
+            pass
 
         if settings.CROSSFADE:
             self.call('crossfade', settings.CROSSFADE)
