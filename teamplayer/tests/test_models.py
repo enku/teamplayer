@@ -11,7 +11,9 @@ import django.contrib.auth.models
 import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
+from django.core.files import File
 
+from teamplayer.conf import settings
 from teamplayer.lib import songs
 from teamplayer.models import Entry, Mood, Player, Queue, Station
 from teamplayer.tests import utils
@@ -403,6 +405,121 @@ class QueueAutoFill(TestCase):
 
         # then we don't get our 301-second songfile
         self.assertEqual(queue.entry_set.count(), 0)
+
+    def test_auto_fill_contiguous(self):
+        # given the queue
+        queue = self.dj_ango.queue
+
+        # given the setting to use contiguous
+        with patch.object(settings, 'AUTOFILL_STRATEGY', 'contiguous'):
+            # when we call auto_fill()
+            with patch('teamplayer.models.Queue.auto_fill_contiguous') \
+                    as auto_fill_contiguous:
+                auto_fill_contiguous.return_value = [self.songfile] * 10
+                queue.auto_fill(10)
+
+        # then it calls auto_fill_contiguous
+        self.assertTrue(auto_fill_contiguous.called)
+
+        # and the requested songs get added
+        self.assertEqual(queue.entry_set.count(), 10)
+
+    def test_auto_fill_mood(self):
+        # given the queue
+        queue = self.dj_ango.queue
+
+        # given the setting to use mood
+        with patch.object(settings, 'AUTOFILL_STRATEGY', 'mood'):
+            # when we call auto_fill()
+            with patch('teamplayer.models.Queue.auto_fill_mood') \
+                    as auto_fill_mood:
+                auto_fill_mood.return_value = [self.songfile] * 10
+                queue.auto_fill(10)
+
+        # then it calls auto_fill_mood
+        self.assertTrue(auto_fill_mood.called)
+
+        # and the requested songs get added
+        self.assertEqual(queue.entry_set.count(), 10)
+
+    def test_auto_fill_random(self):
+        # given the queue
+        queue = self.dj_ango.queue
+
+        # given the setting to use random
+        with patch.object(settings, 'AUTOFILL_STRATEGY', 'random'):
+            # when we call auto_fill()
+            with patch('teamplayer.models.Queue.auto_fill_random') \
+                    as auto_fill_random:
+                auto_fill_random.return_value = [self.songfile] * 10
+                queue.auto_fill(10)
+
+        # then it calls auto_fill_random
+        self.assertTrue(auto_fill_random.called)
+
+        # and the requested songs get added
+        self.assertEqual(queue.entry_set.count(), 10)
+
+    def test_auto_fill_already_has_enough_entries(self):
+        # given the queue that already has 10 entries
+        queue = self.dj_ango.queue
+        fp = File(open(self.songfile.filename, 'rb'))
+        for i in range(10):
+            queue.add_song(fp, self.station)
+        self.assertEqual(queue.entry_set.count(), 10)
+
+        # given the setting to use random
+        with patch.object(settings, 'AUTOFILL_STRATEGY', 'random'):
+            # when we call auto_fill()
+            with patch('teamplayer.models.Queue.auto_fill_random') \
+                    as auto_fill_random:
+                auto_fill_random.return_value = [self.songfile] * 10
+                queue.auto_fill(10)
+
+        # then it doesn't even bother to call auto_fill_random
+        self.assertTrue(not auto_fill_random.called)
+
+        # and no new songs get added
+        self.assertEqual(queue.entry_set.count(), 10)
+
+    def test_auto_fill_user_station_with_hashtag(self):
+        # given the player
+        player = Player.objects.create_player('test', password='***')
+
+        # given the player's station with a hashtag in the name
+        station = Station.objects.create(creator=player, name='#electronic')
+
+        # when we call auto_fill() with the station
+        with patch('teamplayer.models.Queue.auto_fill_from_tags') \
+                as auto_fill_from_tags:
+            auto_fill_from_tags.return_value = [self.songfile] * 10
+            player.queue.auto_fill(10, station=station)
+
+        # then it calls auto_fill_from_tags()
+        args, kwargs = auto_fill_from_tags.call_args
+        self.assertEqual(args[1:], (10, station))
+
+        # and addes entries to the queue
+        self.assertEqual(player.queue.entry_set.count(), 10)
+
+    def test_auto_fill_user_station_without_hashtag(self):
+        # given the player
+        player = Player.objects.create_player('test', password='***')
+
+        # given the player's station without a hashtag in the name
+        station = Station.objects.create(creator=player, name='my station')
+
+        # when we call auto_fill() with the station
+        with patch('teamplayer.models.Queue.auto_fill_from_tags') \
+                as auto_fill_from_tags:
+            auto_fill_from_tags.return_value = [self.songfile] * 10
+            player.queue.auto_fill(10, station=station)
+
+        # then it does not call auto_fill_from_tags()
+        self.assertEqual(auto_fill_from_tags.call_count, 0)
+
+        # and nothing is added to the queue
+        self.assertEqual(player.queue.entry_set.count(), 0)
 
     def test_multiple_files(self):
         """We can have multiple files and get back as many as we ask for"""
