@@ -73,7 +73,7 @@ class MPC(object):
         if os.path.exists(self.mpd_dir):
             try:
                 shutil.rmtree(self.mpd_dir)
-            except FileNotFoundError:
+            except FileNotFoundError:  # NOQA
                 pass
 
     def create_config(self):
