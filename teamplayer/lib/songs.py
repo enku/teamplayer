@@ -125,7 +125,15 @@ def top_artists_from_tag(tag, limit=100):
     network = pylast.LastFMNetwork(api_key=LASTFM_APIKEY)
     pylast_tag = pylast.Tag(tag, network)
 
-    return [x.item.name for x in pylast_tag.get_top_artists(limit=limit)]
+    try:
+        top_artists = pylast_tag.get_top_artists(limit=limit)
+    except pylast.WSError as error:
+        if int(error.status) == 6:
+            # invalid params (i.e. no such tag)
+            return []
+        raise
+
+    return [x.item.name for x in top_artists]
 
 
 def artists_from_tags(tags):

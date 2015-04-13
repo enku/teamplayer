@@ -233,6 +233,20 @@ class TopArtistsFromTag(TestCase):
         expected = [x.item.name for x in tags]
         self.assertEqual(result, expected)
 
+    def test_no_tag_with_that_name(self):
+        # given the non-existant tag name
+        tag_name = '#post-grunge'
+
+        # when we call top_artists_from_tag()
+        # (pytag will raise an exception
+        with patch('teamplayer.lib.songs.pylast.Tag') as Tag:
+            Tag.get_top_artists.side_effect = pylast.WSError(
+                None, '6', 'No tag with that name')
+            result = songs.top_artists_from_tag(tag_name)
+
+        # then we get an empty list
+        self.assertEqual(result, [])
+
 
 class ArtistsFromTagsTest(TestCase):
     def test_call(self):
