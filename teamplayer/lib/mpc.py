@@ -165,7 +165,13 @@ class MPC(object):
             return not_playing
 
         status = self.call('status')
-        elapsed_time, total_time = (int(i) for i in status['time'].split(':'))
+
+        try:
+            time_str = status['time']
+        except KeyError:
+            return not_playing
+
+        elapsed_time, total_time = (int(i) for i in time_str.split(':'))
         filename = current_song['file']
         artist = current_song.get('artist', None)
         title = current_song.get('title', None)
