@@ -315,7 +315,10 @@ class MPC(object):
             if basename.startswith('file: '):
                 basename = basename[6:]
             filename = os.path.join(self.queue_dir, basename)
-            return songs.get_song_metadata(filename)['artist']
+            try:
+                return songs.get_song_metadata(filename)['artist']
+            except songs.SongMetadataError:
+                pass
         return None
 
     def idle_or_wait(self, secs):
