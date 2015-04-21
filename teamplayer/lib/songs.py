@@ -17,6 +17,7 @@ CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'
 MIME_MAP = {
     'audio/ape': 'ape',
     'audio/flac': 'flac',
+    'audio/mp1': 'mp3',
     'audio/mp2': 'mp3',
     'audio/mp3': 'mp3',
     'audio/mp4': 'mp4',
