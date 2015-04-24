@@ -174,3 +174,30 @@ class StationThread(TestCase):
             self.assertTrue(mock_mpc.return_value.stop.called)
         finally:
             thread.running = False
+
+    def test_exception_logging_self(self, mock_mpc):
+        # given the station
+        station = Station.main_station()
+
+        try:
+            # when an exception is raised inside the thread
+            with patch(
+                'teamplayer.lib.async.StationThread.wait_for'
+            ) as wait_for:
+                wait_for.side_effect = Exception
+
+                with patch('teamplayer.lib.async.logger') as logger:
+                    thread = async.StationThread(station=station)
+                    try:
+                        # given the station thread
+                        thread.start()
+                        thread.join()
+                    except Exception:
+                        pass
+
+            # then it stops the mpd
+            logger.exception.assert_called_with(
+                'Station {}: Error inside main loop'.format(station.id))
+            self.assertTrue(logger.error.called)
+        finally:
+            thread.stop()

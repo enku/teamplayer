@@ -92,6 +92,21 @@ class StationThread(threading.Thread):
         station_thread.mpc.purge_queue_dir()
 
     def run(self):
+        try:
+            self.run_forever()
+        except Exception:
+            logger.exception(
+                'Station {}: Error inside main loop'
+                .format(self.station.id)
+            )
+            logger.error(
+                'Current song: {}'
+                .format(self.mpc.currently_playing())
+            )
+
+            raise
+
+    def run_forever(self):
         logger.debug('Starting %s', self.name)
         self.running = True
         self.dj_ango = Player.dj_ango()
