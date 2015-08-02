@@ -355,7 +355,7 @@ class Station(models.Model):
 
     objects = StationManager()
     name = models.CharField(max_length=128, unique=True)
-    creator = models.ForeignKey('Player', unique=True)
+    creator = models.OneToOneField('Player')
 
     def __str__(self):
         return self.name
