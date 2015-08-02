@@ -310,7 +310,7 @@ class Mood(models.Model):
     objects = models.Manager()
     station = models.ForeignKey('Station')
     artist = models.TextField()
-    timestamp = models.DateTimeField(auto_now=True, auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return '%s: %s' % (self.artist, self.timestamp)
