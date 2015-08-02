@@ -86,7 +86,7 @@ class Command(BaseCommand):
 
             try:
                 metadata = File(fullpath, easy=True)
-            except IOError:
+            except Exception:
                 logger.exception('Error adding %s to library', fullpath,
                                  exc_info=True)
                 self.errors += 1
