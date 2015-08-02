@@ -1,5 +1,6 @@
 """Unit tests for the async module"""
 from unittest.mock import patch
+from unittest import skip
 
 from django.test import TestCase
 
@@ -175,6 +176,7 @@ class StationThread(TestCase):
         finally:
             thread.running = False
 
+    @skip('This test passes but the thread blows up and it is ugly.')
     def test_exception_logging_self(self, mock_mpc):
         # given the station
         station = Station.main_station()
