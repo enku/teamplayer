@@ -29,7 +29,7 @@ setup(
         'Django>=1.8,<1.9',
         'django-haystack>=2.3,<2.4',
         'mutagen>=1.29,<1.30',
-        'pylast>=1.1,<1.2',
+        'pylast>=1.2,<1.3',
         'python-mpd2',
         'tornado',
         'djangorestframework>=2.3.10,<2.4'
