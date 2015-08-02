@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from mutagen import File
 
 from teamplayer import logger
-from teamplayer.lib import attempt_file_rename, remove_pedantic
+from teamplayer.lib import attempt_file_rename
 from teamplayer.models import Player, Station
 from tp_library.models import SongFile
 
@@ -110,6 +110,3 @@ class Command(BaseCommand):
                 self.created += 1
             else:
                 self.skipped += 1
-
-
-remove_pedantic()

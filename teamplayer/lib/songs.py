@@ -11,7 +11,7 @@ from mutagen import File
 
 from teamplayer import logger, models
 from teamplayer.conf import settings
-from teamplayer.lib import first_or_none, list_iter, now, remove_pedantic
+from teamplayer.lib import first_or_none, list_iter, now
 
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'
 MIME_MAP = {
@@ -309,5 +309,3 @@ def scrobble_song(song, now_playing=False):
         return False
 
     return True
-
-remove_pedantic()

@@ -19,7 +19,6 @@ from teamplayer.lib import (
     get_player_from_session_id,
     get_random_filename,
     get_station_id_from_session_id,
-    remove_pedantic,
     signals
 )
 from teamplayer.serializers import StationSerializer
@@ -336,5 +335,3 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     def handle_user_created(self, data):
         SocketHandler.broadcast('roster_change', data)
 # -----------------------------------------------------------------------------
-
-remove_pedantic()

@@ -28,7 +28,7 @@ setup(
     install_requires=[
         'Django>=1.8,<1.9',
         'django-haystack>=2.3,<2.4',
-        'mutagen>=1.26,<1.27',
+        'mutagen>=1.29,<1.30',
         'pylast>=1.1,<1.2',
         'python-mpd2',
         'tornado',
