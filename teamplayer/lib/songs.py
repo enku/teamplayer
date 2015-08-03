@@ -87,13 +87,16 @@ def get_image_url_for(artist):
     if not artist:
         return CLEAR_IMAGE_URL
 
+    cover_image = None
     network = pylast.LastFMNetwork(api_key=LASTFM_APIKEY)
     lfm_artist = network.get_artist(artist)
 
     try:
-        return lfm_artist.get_cover_image()
+        cover_image = lfm_artist.get_cover_image()
     except pylast.WSError:
-        return CLEAR_IMAGE_URL
+        pass
+
+    return cover_image or CLEAR_IMAGE_URL
 
 
 @lru_cache(maxsize=512)

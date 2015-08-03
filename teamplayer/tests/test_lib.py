@@ -99,6 +99,19 @@ class LibSongs(TestCase):
         # then we get a clear image url
         self.assertEqual(result, teamplayer.lib.songs.CLEAR_IMAGE_URL)
 
+    @patch('teamplayer.lib.songs.pylast.LastFMNetwork')
+    def test_lastfm_image_is_none(self, LastFMNetwork):
+        # given the artist for which lastfm has no image
+        artist = 'Albert Hopkins'
+        LastFMNetwork().get_artist().get_cover_image.return_value = None
+        LastFMNetwork.reset_mock()
+
+        # when we call the function
+        result = teamplayer.lib.songs.get_image_url_for(artist)
+
+        # then we get a clear image url
+        self.assertEqual(result, teamplayer.lib.songs.CLEAR_IMAGE_URL)
+
     def test_find_a_song(self):
         """Test that it can find songs in the queue"""
         station = teamplayer.models.Station.main_station()
