@@ -106,15 +106,6 @@ def first_or_none(d, key):
     return value
 
 
-def remove_pedantic():
-    """
-    Set the PEDANTIC attribute on the ID3 class to False.
-    """
-    from mutagen import id3
-
-    id3.ID3.PEDANTIC = False
-
-
 def attempt_file_rename(fullpath):
     """Attempt to rename a non-UTF-8 filename
 

@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from mutagen import File
 
 from teamplayer import logger
-from teamplayer.lib import attempt_file_rename, remove_pedantic
+from teamplayer.lib import attempt_file_rename
 from teamplayer.models import Player, Station
 from tp_library.models import SongFile
 
@@ -86,7 +86,7 @@ class Command(BaseCommand):
 
             try:
                 metadata = File(fullpath, easy=True)
-            except IOError:
+            except Exception:
                 logger.exception('Error adding %s to library', fullpath,
                                  exc_info=True)
                 self.errors += 1
@@ -110,6 +110,3 @@ class Command(BaseCommand):
                 self.created += 1
             else:
                 self.skipped += 1
-
-
-remove_pedantic()

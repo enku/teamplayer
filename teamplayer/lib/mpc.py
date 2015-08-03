@@ -71,7 +71,10 @@ class MPC(object):
         self.mpd = None
 
         if os.path.exists(self.mpd_dir):
-            shutil.rmtree(self.mpd_dir)
+            try:
+                shutil.rmtree(self.mpd_dir)
+            except FileNotFoundError:  # NOQA
+                pass
 
     def create_config(self):
         """Create the mpd config file and write the config to it"""
@@ -162,7 +165,13 @@ class MPC(object):
             return not_playing
 
         status = self.call('status')
-        elapsed_time, total_time = (int(i) for i in status['time'].split(':'))
+
+        try:
+            time_str = status['time']
+        except KeyError:
+            return not_playing
+
+        elapsed_time, total_time = (int(i) for i in time_str.split(':'))
         filename = current_song['file']
         artist = current_song.get('artist', None)
         title = current_song.get('title', None)
@@ -207,8 +216,13 @@ class MPC(object):
 
         # add some stickers
         player = entry.queue.player
-        self.call('sticker_set', 'song', filename, 'player_id', player.pk)
-        self.call('sticker_set', 'song', filename, 'dj', player.dj_name)
+        try:
+            self.call('sticker_set', 'song', filename, 'player_id', player.pk)
+            self.call('sticker_set', 'song', filename, 'dj', player.dj_name)
+        except mpd.CommandError:
+            # It appears sometimes we can get an error writing the sticker.
+            # This is not critical but, of course, we lose metadata on read
+            pass
 
         if settings.CROSSFADE:
             self.call('crossfade', settings.CROSSFADE)
@@ -301,7 +315,10 @@ class MPC(object):
             if basename.startswith('file: '):
                 basename = basename[6:]
             filename = os.path.join(self.queue_dir, basename)
-            return songs.get_song_metadata(filename)['artist']
+            try:
+                return songs.get_song_metadata(filename)['artist']
+            except songs.SongMetadataError:
+                pass
         return None
 
     def idle_or_wait(self, secs):

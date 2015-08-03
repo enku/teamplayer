@@ -14,6 +14,7 @@ from django.db.models import Count
 
 from . import lib, logger
 from .conf import settings
+from .lib import signals
 
 DJ_ANGO = None
 
@@ -121,6 +122,7 @@ class Queue(models.Model):
         qs_filter = qs_filter or {}
 
         station = station or Station.main_station()
+        station = Station.objects.get(pk=station.pk)  # re-fetch
         entries = Entry.objects.filter(queue=self, station=station)
         entries_count = entries.count()
         if entries.count() > minimum:
@@ -129,7 +131,14 @@ class Queue(models.Model):
 
         song_files = SongFile.objects.filter(**qs_filter)
 
-        if settings.AUTOFILL_STRATEGY == 'contiguous':
+        if station != Station.main_station():
+            if '#' in station.name:
+                logger.debug('Station name has a #. Filling based on tags')
+                song_files = self.auto_fill_from_tags(
+                    song_files, entries_needed, station)
+            else:
+                return
+        elif settings.AUTOFILL_STRATEGY == 'contiguous':
             song_files = self.auto_fill_contiguous(song_files, entries_needed)
         elif settings.AUTOFILL_STRATEGY == 'mood':
             song_files = self.auto_fill_mood(song_files, entries_needed,
@@ -146,6 +155,9 @@ class Queue(models.Model):
                 logger.error('auto_fill exception: SongFile(%s)',
                              songfile.pk,
                              exc_info=True)
+        if song_files:
+            signals.QUEUE_CHANGE_EVENT.set()
+            signals.QUEUE_CHANGE_EVENT.clear()
 
     # TODO: Unit test
     @staticmethod
@@ -226,6 +238,31 @@ class Queue(models.Model):
 
         return liked_songs + list(additional)
 
+    @staticmethod
+    def auto_fill_from_tags(queryset, entries_needed, station):
+        """Return at most `entries_needed` SongFiles with `station`'s tags
+
+        Gets the tags from the `station.name`, gets artists with those tags and
+        then returns random songs from `queryset` that have artists with those
+        tags.
+        """
+        stationname = station.name
+        tags = stationname.split()
+        tags = [lib.songs.split_tag_into_words(i[1:]) for i in tags
+                if i.startswith('#')]
+        logger.debug('Tags: %s' % ', '.join(tags))
+        artists = lib.songs.artists_from_tags(tags)
+        songfiles = queryset.filter(artist__in=artists)
+
+        count = songfiles.count()
+        if count > entries_needed:
+            indices = random.sample(range(count), entries_needed)
+            songs = [songfiles[i] for i in indices]
+        else:
+            songs = list(songfiles)
+
+        return songs
+
 
 class Entry(models.Model):
 
@@ -273,7 +310,7 @@ class Mood(models.Model):
     objects = models.Manager()
     station = models.ForeignKey('Station')
     artist = models.TextField()
-    timestamp = models.DateTimeField(auto_now=True, auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return '%s: %s' % (self.artist, self.timestamp)
@@ -318,7 +355,7 @@ class Station(models.Model):
 
     objects = StationManager()
     name = models.CharField(max_length=128, unique=True)
-    creator = models.ForeignKey('Player', unique=True)
+    creator = models.OneToOneField('Player')
 
     def __str__(self):
         return self.name

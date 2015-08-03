@@ -1,6 +1,8 @@
 """Unit tests for the TeamPlayer Django app"""
 import datetime
+import json
 import os
+import pickle
 from io import BytesIO
 from tempfile import TemporaryDirectory
 from unittest import mock
@@ -9,14 +11,15 @@ import django.contrib.auth.models
 import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
+from django.core.files import File
 
+from teamplayer.conf import settings
+from teamplayer.lib import songs
 from teamplayer.models import Entry, Mood, Player, Queue, Station
 from teamplayer.tests import utils
 from tp_library.models import SongFile
 
 SILENCE = utils.SILENCE
-METALLICA_SIMILAR_TXT = utils.METALLICA_SIMILAR_TXT
-PRINCE_SIMILAR_TXT = utils.PRINCE_SIMILAR_TXT
 SpinDoctor = utils.SpinDoctor
 TestCase = django.test.TestCase
 UploadedFile = django.core.files.uploadedfile.UploadedFile
@@ -403,6 +406,121 @@ class QueueAutoFill(TestCase):
         # then we don't get our 301-second songfile
         self.assertEqual(queue.entry_set.count(), 0)
 
+    def test_auto_fill_contiguous(self):
+        # given the queue
+        queue = self.dj_ango.queue
+
+        # given the setting to use contiguous
+        with patch.object(settings, 'AUTOFILL_STRATEGY', 'contiguous'):
+            # when we call auto_fill()
+            with patch('teamplayer.models.Queue.auto_fill_contiguous') \
+                    as auto_fill_contiguous:
+                auto_fill_contiguous.return_value = [self.songfile] * 10
+                queue.auto_fill(10)
+
+        # then it calls auto_fill_contiguous
+        self.assertTrue(auto_fill_contiguous.called)
+
+        # and the requested songs get added
+        self.assertEqual(queue.entry_set.count(), 10)
+
+    def test_auto_fill_mood(self):
+        # given the queue
+        queue = self.dj_ango.queue
+
+        # given the setting to use mood
+        with patch.object(settings, 'AUTOFILL_STRATEGY', 'mood'):
+            # when we call auto_fill()
+            with patch('teamplayer.models.Queue.auto_fill_mood') \
+                    as auto_fill_mood:
+                auto_fill_mood.return_value = [self.songfile] * 10
+                queue.auto_fill(10)
+
+        # then it calls auto_fill_mood
+        self.assertTrue(auto_fill_mood.called)
+
+        # and the requested songs get added
+        self.assertEqual(queue.entry_set.count(), 10)
+
+    def test_auto_fill_random(self):
+        # given the queue
+        queue = self.dj_ango.queue
+
+        # given the setting to use random
+        with patch.object(settings, 'AUTOFILL_STRATEGY', 'random'):
+            # when we call auto_fill()
+            with patch('teamplayer.models.Queue.auto_fill_random') \
+                    as auto_fill_random:
+                auto_fill_random.return_value = [self.songfile] * 10
+                queue.auto_fill(10)
+
+        # then it calls auto_fill_random
+        self.assertTrue(auto_fill_random.called)
+
+        # and the requested songs get added
+        self.assertEqual(queue.entry_set.count(), 10)
+
+    def test_auto_fill_already_has_enough_entries(self):
+        # given the queue that already has 10 entries
+        queue = self.dj_ango.queue
+        fp = File(open(self.songfile.filename, 'rb'))
+        for i in range(10):
+            queue.add_song(fp, self.station)
+        self.assertEqual(queue.entry_set.count(), 10)
+
+        # given the setting to use random
+        with patch.object(settings, 'AUTOFILL_STRATEGY', 'random'):
+            # when we call auto_fill()
+            with patch('teamplayer.models.Queue.auto_fill_random') \
+                    as auto_fill_random:
+                auto_fill_random.return_value = [self.songfile] * 10
+                queue.auto_fill(10)
+
+        # then it doesn't even bother to call auto_fill_random
+        self.assertTrue(not auto_fill_random.called)
+
+        # and no new songs get added
+        self.assertEqual(queue.entry_set.count(), 10)
+
+    def test_auto_fill_user_station_with_hashtag(self):
+        # given the player
+        player = Player.objects.create_player('test', password='***')
+
+        # given the player's station with a hashtag in the name
+        station = Station.objects.create(creator=player, name='#electronic')
+
+        # when we call auto_fill() with the station
+        with patch('teamplayer.models.Queue.auto_fill_from_tags') \
+                as auto_fill_from_tags:
+            auto_fill_from_tags.return_value = [self.songfile] * 10
+            player.queue.auto_fill(10, station=station)
+
+        # then it calls auto_fill_from_tags()
+        args, kwargs = auto_fill_from_tags.call_args
+        self.assertEqual(args[1:], (10, station))
+
+        # and addes entries to the queue
+        self.assertEqual(player.queue.entry_set.count(), 10)
+
+    def test_auto_fill_user_station_without_hashtag(self):
+        # given the player
+        player = Player.objects.create_player('test', password='***')
+
+        # given the player's station without a hashtag in the name
+        station = Station.objects.create(creator=player, name='my station')
+
+        # when we call auto_fill() with the station
+        with patch('teamplayer.models.Queue.auto_fill_from_tags') \
+                as auto_fill_from_tags:
+            auto_fill_from_tags.return_value = [self.songfile] * 10
+            player.queue.auto_fill(10, station=station)
+
+        # then it does not call auto_fill_from_tags()
+        self.assertEqual(auto_fill_from_tags.call_count, 0)
+
+        # and nothing is added to the queue
+        self.assertEqual(player.queue.entry_set.count(), 0)
+
     def test_multiple_files(self):
         """We can have multiple files and get back as many as we ask for"""
         queue = self.dj_ango.queue
@@ -430,6 +548,34 @@ class QueueAutoFill(TestCase):
                 qs_filter={'length__lt': 600}
             )
             self.assertEqual(queue.entry_set.count(), 5)
+
+    def test_auto_fill_from_tags(self):
+        # given the (mock) queryset
+        queryset = mock.MagicMock(name='queryset')
+        queryset.count = mock.Mock(return_value=90)
+        queryset.filter = mock.MagicMock(return_value=queryset)
+
+        # given the player
+        player = Player.objects.create_player('test_player', password='test')
+
+        # given the station with a tag in the name
+        station = Station.objects.create(creator=player, name='#electronic')
+
+        # when we call auto_fill_from_tags()
+        with patch('teamplayer.models.lib.songs.pylast.Tag') as Tag:
+            with utils.getdata('electronic_tags.pickle', 'rb') as fp:
+                tags = pickle.load(fp)
+            Tag().get_top_artists.return_value = tags
+            Tag.reset_mock()
+
+            result = Queue.auto_fill_from_tags(queryset, 3, station)
+
+        # then the queryset is filtered on the artists from the tags
+        artists = songs.artists_from_tags(['electronic'])
+        queryset.filter.assert_called_with(artist__in=artists)
+
+        # and 3 items are returned
+        self.assertEqual(len(result), 3)
 
 
 class StationManagerTest(TestCase):
@@ -667,8 +813,8 @@ class QueueMasterTestCase(TestCase):
         self.assertEqual(current[1], 'Prince')
         self.assertEqual(current[2], 'Purple Rain')
 
-    @patch('teamplayer.lib.songs.urlopen')
-    def test_round_robin(self, mock_urlopen):
+    @patch('teamplayer.lib.songs.get_similar_artists')
+    def test_round_robin(self, get_similar_artists):
         self.spin.create_song_for(self.player1, artist='Prince',
                                   title='Purple Rain')
         self.spin.create_song_for(self.player2, artist='Metallica',
@@ -717,16 +863,20 @@ class QueueMasterTestCase(TestCase):
         self.spin.next()
         self.assertEqual(self.player1.queue.entry_set.count(), 0)
 
-    @patch('teamplayer.lib.songs.urlopen')
-    def test_auto_mode(self, mock_urlopen):
-        def my_urlopen(url):
-            if 'Prince' in url:
-                return open(PRINCE_SIMILAR_TXT, 'rb')
-            if 'Metallica' in url:
-                return open(METALLICA_SIMILAR_TXT, 'rb')
-            return open(os.devnull, 'rb')
+    @patch('teamplayer.lib.songs.get_similar_artists')
+    def test_auto_mode(self, get_similar_artists):
+        def my_similar(artist):
+            if artist == 'Prince':
+                with utils.getdata('prince_similar.json') as fp:
+                    data = json.load(fp)
+            elif artist == 'Metallica':
+                with utils.getdata('metallica_similar.json') as fp:
+                    data = json.load(fp)
+            else:
+                data = []
+            return data
 
-        mock_urlopen.side_effect = my_urlopen
+        get_similar_artists.side_effect = my_similar
 
         self.spin.create_song_for(self.player1, artist='Prince',
                                   title='Purple Rain')

@@ -1,29 +1,24 @@
 """
 Library to deal with song files and song metadata
 """
-import contextlib
 import datetime
-import socket
-import time
-import urllib.parse
 from functools import lru_cache
-from http.client import HTTPException
-from urllib.error import URLError
-from urllib.request import urlopen
-from xml.etree import ElementTree
 
+import pylast
 from django.conf import settings as django_settings
 from django.db.models import Count
 from mutagen import File
 
-from teamplayer import logger, models, scrobbler
+from teamplayer import logger, models
 from teamplayer.conf import settings
-from teamplayer.lib import first_or_none, list_iter, now, remove_pedantic
+from teamplayer.lib import first_or_none, list_iter, now
 
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'
 MIME_MAP = {
     'audio/ape': 'ape',
     'audio/flac': 'flac',
+    'audio/mp1': 'mp3',
+    'audio/mp2': 'mp3',
     'audio/mp3': 'mp3',
     'audio/mp4': 'mp4',
     'audio/mpeg': 'mp3',
@@ -32,15 +27,6 @@ MIME_MAP = {
     'audio/x-flac': 'flac',
 }
 LASTFM_APIKEY = settings.LASTFM_APIKEY
-
-
-@contextlib.contextmanager
-def sockettimeout(secs):
-    """Context manager to temporarily set the default socket timeout"""
-    orig_timeout = socket.getdefaulttimeout()
-    socket.setdefaulttimeout(secs)
-    yield
-    socket.setdefaulttimeout(orig_timeout)
 
 
 class SongMetadataError(Exception):
@@ -95,54 +81,19 @@ def time_to_secs(time_str):
     return 3600 * hours + 60 * minutes + seconds
 
 
-def url_friendly_artist(artist):
-    """
-    Return *artist* in such a way that it is acceptable by the
-    last.fm api when used in …/artist/*artist*/similar.txt for example.
-
-    Currently this is used to get the similar artist url.  Might
-    it also be useful for other things last.fm?
-    """
-    new_artist = artist
-
-    if type(new_artist) is str:
-        new_artist = artist.encode('utf-8', 'ignore')
-
-    new_artist = artist.replace('.', '')
-    new_artist = new_artist.replace('/', '')
-    new_artist = urllib.parse.quote(new_artist)
-    return new_artist
-
-
 @lru_cache(maxsize=256)
 def get_image_url_for(artist):
     """Return a URL for image of artist"""
     if not artist:
         return CLEAR_IMAGE_URL
 
-    encoded_artist = url_friendly_artist(artist)
-    tmpl = ('http://ws.audioscrobbler.com/2.0/?method=artist.getInfo'
-            '&artist={0}&api_key={1}&limit=1')
-    api_url = tmpl.format(encoded_artist, LASTFM_APIKEY)
-
-    with sockettimeout(3.0):
-        try:
-            response = urllib.request.urlopen(api_url)
-        except IOError:
-            return CLEAR_IMAGE_URL
+    network = pylast.LastFMNetwork(api_key=LASTFM_APIKEY)
+    lfm_artist = network.get_artist(artist)
 
     try:
-        root = ElementTree.parse(response)
-    except ElementTree.ParseError:
-        logger.error('Error parsing response from %s', api_url)
+        return lfm_artist.get_cover_image()
+    except pylast.WSError:
         return CLEAR_IMAGE_URL
-    images = root.findall('./artist/image')
-    for image in images:
-        if image.get('size') == 'extralarge':
-            image_url = image.text
-            break
-    image_url = image_url or CLEAR_IMAGE_URL
-    return image_url
 
 
 @lru_cache(maxsize=512)
@@ -151,25 +102,92 @@ def get_similar_artists(artist):
     Generator for finding similar artists to *artist*.  Uses the last.fm
     api to fetch the list
     """
-    encoded_artist = url_friendly_artist(artist)
-    url = ('http://ws.audioscrobbler.com/2.0/artist/%s/similar.txt' %
-           encoded_artist)
-    try:
-        data = urlopen(url).read().decode('utf-8')
-    except (URLError, HTTPException):
-        logger.error('URLError: %s', url, exc_info=True)
-        return []
+    network = pylast.LastFMNetwork(api_key=LASTFM_APIKEY)
+    lfm_artist = network.get_artist(artist)
+    lfm_similar = lfm_artist.get_similar()
+    similar = []
 
-    similar = set()
-    for line in data.split('\n'):
-        try:
-            similar_artist = line.strip().split(',')[-1]
-        except IndexError:
-            continue
-        # damned entity references
-        similar_artist = similar_artist.replace("&amp;", "&")
-        similar.add(similar_artist)
+    for item in lfm_similar:
+        similar.append(item.item.name)
+
     return similar
+
+
+@lru_cache(maxsize=256)
+def top_artists_from_tag(tag, limit=100):
+    """Return a list of artists from the given "tag"
+
+    Args:
+        tag (str): lowercase (Lastfm tag)
+        limit (int): maximal number of tags to return (default: 100)
+
+    Returns: A list of tag strings
+    """
+    network = pylast.LastFMNetwork(api_key=LASTFM_APIKEY)
+    pylast_tag = pylast.Tag(tag, network)
+
+    try:
+        top_artists = pylast_tag.get_top_artists(limit=limit)
+    except pylast.WSError as error:
+        if int(error.status) == 6:
+            # invalid params (i.e. no such tag)
+            return []
+        raise
+
+    return [x.item.name for x in top_artists]
+
+
+def artists_from_tags(tags):
+    tag_sets = []
+
+    for tag in tags:
+        tag_artists = top_artists_from_tag(tag)
+        tag_sets.append(set(tag_artists))
+
+    artists = tag_sets[0]
+    for tag_set in tag_sets[1:]:
+        artists.intersection_update(tag_set)
+
+    return list(artists)
+
+
+def split_tag_into_words(tag):
+    """Return `tag` split into words.
+
+    The best way to to describe this is to show examples:
+
+        "loveSongs" -> "love songs"
+
+        "LoveSongs" -> "love songs"
+
+        "lovesongs" -> "lovesongs"
+
+        "LOVESONGS" -> "lovesongs"
+
+        "love_songs" -> "love songs"
+    """
+    words = ['']
+    word = 0
+
+    for char in tag:
+        if words[word] == '':
+            words[word] = char
+
+        elif char == '_':
+            words.append('')
+            word = word + 1
+            prevchar = char
+            continue
+
+        elif char.isupper() and prevchar.islower():
+            words.append(char)
+            word = word + 1
+
+        else:
+            words[word] = words[word] + char
+        prevchar = char
+
+    return ' '.join(words).lower().strip()
 
 
 def best_song_from_player(player, station, previous_artist=None):
@@ -205,8 +223,9 @@ def find_a_song(players, station, previous_player=None, previous_artist=None):
     song in the player's queue whose artist is similar to the current mood
     without repeating the previous_artist.
     """
-    wants_dj_ango = (settings.SHAKE_THINGS_UP
-                     and station == models.Station.main_station())
+    wants_dj_ango = settings.SHAKE_THINGS_UP
+    station = models.Station.objects.get(pk=station.pk)  # reload
+
     if wants_dj_ango:
         dj_ango = models.Player.dj_ango()
         dj_ango.queue.auto_fill(
@@ -267,42 +286,26 @@ def scrobble_song(song, now_playing=False):
 
     Return True if the song was successfully scrobbled, else return False.
     """
-    logger.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
-    if not scrobbler.POST_URL:
-        # we are not logged in
-        try:
-            scrobbler.login(settings.SCROBBLER_USER,
-                            settings.SCROBBLER_PASSWORD)
-        except (URLError, HTTPException, scrobbler.ProtocolError):
-            return False
+    password_hash = pylast.md5(settings.SCROBBLER_PASSWORD)
+    network = pylast.LastFMNetwork(
+        api_key=LASTFM_APIKEY,
+        api_secret=settings.LASTFM_APISECRET,
+        username=settings.SCROBBLER_USER,
+        password_hash=password_hash
+    )
 
     artist = song['artist']
     title = song['title']
     length = song['total_time']
-    start_time = int(time.mktime(time.localtime())) - length  # not exact..
-    try:
-        if now_playing:
-            scrobbler.now_playing(artist, title, length=length)
-        else:
-            scrobbler.submit(artist, title, start_time, length=length,
-                             autoflush=True)
-    except (URLError, HTTPException, scrobbler.ProtocolError):
-        logger.error('Error scrobbing song: %s', song, exc_info=True)
-        return False
-    except (scrobbler.SessionError, scrobbler.BackendError, OSError):
-        # usually this means our session timed out, just log in again
-        try:
-            scrobbler.login(settings.SCROBBLER_USER,
-                            settings.SCROBBLER_PASSWORD)
-        except scrobbler.ProtocolError as error:
-            # We've probably logged on too many times, neglect this one
-            logger.error('Error scrobbing song: %s: %s', song, error)
-            return False
-        if now_playing:
-            scrobbler.now_playing(artist, title, length=length)
-        else:
-            scrobbler.submit(artist, title, start_time, length=length,
-                             autoflush=True)
-    return True
 
-remove_pedantic()
+    try:
+        logger.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
+        if now_playing:
+            network.update_now_playing(artist, title, duration=length)
+        else:
+            timestamp = int(now().timestamp()) - length
+            network.scrobble(artist, title, timestamp, duration=length)
+    except pylast.WSError:
+        return False
+
+    return True

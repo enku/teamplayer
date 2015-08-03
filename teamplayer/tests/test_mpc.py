@@ -6,7 +6,7 @@ from unittest.mock import Mock, call, patch
 
 from django.core.files.uploadedfile import UploadedFile
 from django.test import TestCase
-from mpd import ConnectionError, MPDClient
+from mpd import CommandError, ConnectionError, MPDClient
 
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.songs import CLEAR_IMAGE_URL
@@ -153,6 +153,35 @@ class MPCTest(TestCase):
         }
         self.assertEqual(result, expected)
 
+    def test_currently_playing_song_ends_before_status_called(self, mpd_client):
+        # this can happen, ex, for a 0-length song
+        # given the mpc instance
+        mpc = self.mpc
+
+        # when we call .currently_playing() and and the "currentsong" mpd
+        # command succeeds but the "status" command doesn't show a song
+        config = {
+            'currentsong.return_value':
+                {'file': '1-t.mp3', 'artist': 'Prince', 'title': 'Purple Rain'},
+            'status.return_value':
+                {},
+            'sticker_list.return_value': {'dj': '', 'player_id': 1}
+        }
+        mpd_client.return_value.configure_mock(**config)
+        result = mpc.currently_playing()
+
+        # then we get the dict showing that nothing's playing
+        expected = {
+            'artist': None,
+            'title': None,
+            'dj': 'DJ Ango',
+            'total_time': 0,
+            'remaining_time': 0,
+            'station_id': self.station.pk,
+            'artist_image': CLEAR_IMAGE_URL
+        }
+        self.assertEqual(result, expected)
+
     def test_add_entry_to_playlist(self, mpd_client):
         # given the mpc instance
         mpc = self.mpc
@@ -232,6 +261,33 @@ class MPCTest(TestCase):
 
         # then None is returned
         self.assertEqual(filename, None)
+
+    def test_add_entry_to_playlist_set_sticker_causes_mpd_CommandError(
+            self, mpd_client):
+        # given the mpc instance
+        mpc = self.mpc
+
+        # given the song Entry
+        entry = Entry.objects.create(
+            queue=self.player.queue,
+            station=self.station,
+            song=UploadedFile(BytesIO(), 'BS.mp3'),
+            title='Break Stuff',
+            artist='Limp Bizkit',
+            filetype='mp3'
+        )
+
+        # when calling add_entry_to_playlist() causes set_sticker to raise
+        # mpd.CommandError
+        client = mpd_client()
+        sticker_set = client.sticker_set
+        sticker_set.side_effect = CommandError("[50@0] {sticker} Not found")
+        with patch('teamplayer.lib.mpc.MPC.wait_for_song') as mock_wait:
+            mock_wait.return_value = True
+            filename = mpc.add_entry_to_playlist(entry)
+
+        # then the entry still gets added (iow no exception is raised)
+        self.assertTrue(isinstance(filename, str))
 
     def test_connect(self, mpd_client):
         # given the mpc instance
