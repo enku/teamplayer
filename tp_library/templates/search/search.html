@@ -1,3 +1,4 @@
+{% load highlight %}
 <div class="library_header"><span class="brand">TeamPlayer</span> Library</div>
 
 <table id="library_list">
@@ -9,9 +10,9 @@
             <input type="button" class="button" data-id="{{ result.object.pk }}" title="Add to queue." style="background: url('{{ result.object.image }}') no-repeat; background-size: 64px 64px;"/>
         </td>
         <td class="library song">
-            <span class="song_title">{{ result.object.title }}</span>{% if result.object.artist %} by {{ result.object.artist }}{% endif %}
+            <span class="song_title">{% highlight result.object.title with query %}</span>{% if result.object.artist %} by {% highlight result.object.artist with query %}{% endif %}
             {% if result.object.album %}
-            from <i>{{ result.object.album }}</i>
+            from <i>{% highlight result.object.album with query %}</i>
             {% endif %}
         </td>
         {% if forloop.last %}
