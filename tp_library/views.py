@@ -9,7 +9,8 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
-from haystack.views import SearchView, search_view_factory
+from haystack.generic_views import SearchView
+from haystack.query import SearchQuerySet
 
 from teamplayer.lib.websocket import IPCHandler
 from teamplayer.models import Station
@@ -57,15 +58,18 @@ def add_to_queue(request):
 
 
 class SongSearchView(SearchView):
-    def extra_context(self):
+    queryset = SearchQuerySet()
+    template_name = 'search/search.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(SongSearchView, self).get_context_data(*args, **kwargs)
         request = self.request
         station_id = request.session.get('station_id')
+        context['station_id'] = station_id
 
-        return {
-            'station_id': station_id,
-        }
+        return context
 
-song_search = search_view_factory(SongSearchView)
+song_search = SongSearchView.as_view()
 
 
 def get_song(request, song_id):

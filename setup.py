@@ -27,7 +27,7 @@ setup(
                   'tp_library': get_package_data('tp_library')},
     install_requires=[
         'Django>=1.8,<1.9',
-        'django-haystack>=2.3,<2.4',
+        'django-haystack>=2.4,<2.5',
         'mutagen>=1.29,<1.30',
         'pylast>=1.2,<1.3',
         'python-mpd2',
