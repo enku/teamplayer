@@ -243,8 +243,13 @@ class EditStationView(TestCase):
         # when we POST it to the url
         response = self.client.post(url, data=post_data)
 
-        # then we get a response telling is our input was bad
-        self.assertEqual(response.content, b'This field is required.')
+        # then we get a Bad Request response
+        self.assertEqual(response.status_code, 400)
+
+        # and a json object telling us our errors
+        self.assertEqual(response['content-type'], 'application/json')
+        expected = {'name': ['This field is required.']}
+        self.assertEqual(json.loads(response.content.decode()), expected)
 
     def test_http_get(self):
         # given the edit_station view url

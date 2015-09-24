@@ -402,7 +402,13 @@ def edit_station(request):
                 request.session['station_id'] = main_station.pk
             IPCHandler.send_message('station_delete', station_id)
     else:
-        message = '\n'.join([i[0] for i in form.errors.values()])
+        content = json.dumps(form.errors)
+        response = HttpResponse(
+            content=content,
+            content_type='application/json',
+            status=400
+        )
+        return response
 
     return HttpResponse(message)
 

@@ -736,7 +736,12 @@ class StationTest(TestCase):
             follow=True,
             HTTP_REFERRER=reverse('teamplayer.views.show_stations'))
 
-        self.assertContains(response, "is an invalid name")
+        self.assertEqual(response.status_code, 400)
+        result = json.loads(response.content.decode())
+        self.assertEqual(
+            result,
+            {'name': ['“TeamPlayer” is an invalid name.']}
+        )
 
     def test_participants(self):
         """Station.participants()"""
