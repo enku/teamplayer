@@ -397,7 +397,9 @@ def edit_station(request):
             station.save()
             IPCHandler.send_message('station_rename', [station_id, name])
         elif action == 'remove':
-            station.delete()
+            # we don't actually remove the station, but disable it
+            station.enabled = False
+            station.save()
             if request.session['station_id'] == station_id:
                 request.session['station_id'] = main_station.pk
             IPCHandler.send_message('station_delete', station_id)

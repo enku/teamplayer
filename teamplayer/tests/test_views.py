@@ -363,6 +363,26 @@ class EditStationView(TestCase):
         exists = Station.objects.filter(id=station.id).exists()
         self.assertFalse(exists)
 
+    def test_station_remove_actually_disables(self):
+        # given the edit_station view url
+        url = self.url
+
+        # given the user's station
+        station = Station.create_station('Test', self.player)
+
+        # when the user edits the station for removal
+        post_data = {
+            'action': 'remove',
+            'station_id': station.id,
+            'name': 'Test'
+        }
+        with patch('teamplayer.views.IPCHandler.send_message'):
+            self.client.post(url, data=post_data)
+
+        # Then the station gets disabled
+        station = Station.objects.disabled.get(id=station.id)
+        self.assertFalse(station.enabled)
+
     def test_station_remove_from_station(self):
         # given the edit_station view url
         url = self.url

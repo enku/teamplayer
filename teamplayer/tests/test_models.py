@@ -648,6 +648,21 @@ class StationTest(TestCase):
         station = Station.create_station('My Station', self.player)
         self.assertTrue(isinstance(station, Station))
 
+    def test_create_station_reuses_users_old_station(self):
+        # given the players's previous station
+        station = Station.create_station('My Station', self.player)
+
+        # when we disable the station
+        station.enabled = False
+        station.save()
+
+        # and then create another station with the same player
+        new_station = Station.create_station('My Other Station', self.player)
+
+        # then the new_station is really the old station
+        self.assertEqual(new_station.id, station.id)
+        self.assertEqual(new_station.name, 'My Other Station')
+
     def test_get_songs(self):
         """Test that get_songs shows files on that station"""
         # given the stations

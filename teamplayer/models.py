@@ -335,10 +335,25 @@ class Mood(models.Model):
 
 
 class StationManager(models.Manager):
+
+    def get_queryset(self):
+        """Override default queryset to only return enabled stations"""
+        return super(StationManager, self).get_queryset().filter(enabled=True)
+
+    @property
+    def disabled(self):
+        """Return queryset for all disabled stations"""
+        return super(StationManager, self).get_queryset().filter(enabled=False)
+
     def create_station(self, **kwargs):
         songs = kwargs.pop('songs', [])
+        creator = kwargs.pop('creator')
 
-        station = self.model(**kwargs)
+        qs = super(StationManager, self).get_queryset()
+        station, _ = qs.get_or_create(creator=creator)
+        for name, value in kwargs.items():
+            setattr(station, name, value)
+        station.enabled = True
         station.full_clean()
         station.save()
 
