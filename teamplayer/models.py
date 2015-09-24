@@ -357,6 +357,7 @@ class Station(models.Model):
     objects = StationManager()
     name = models.CharField(max_length=128, unique=True)
     creator = models.OneToOneField('Player')
+    enabled = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
