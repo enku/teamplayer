@@ -339,6 +339,7 @@ class StationManager(models.Manager):
         songs = kwargs.pop('songs', [])
 
         station = self.model(**kwargs)
+        station.full_clean()
         station.save()
 
         queue = station.creator.queue
@@ -409,12 +410,7 @@ class Station(models.Model):
 
     @classmethod
     def create_station(cls, station_name, creator):
-        station = cls()
-        station.name = station_name
-        station.creator = creator
-        station.full_clean()
-        station.save()
-        return station
+        return cls.objects.create_station(name=station_name, creator=creator)
 
     @classmethod
     def main_station(cls):

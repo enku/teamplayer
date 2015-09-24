@@ -630,6 +630,7 @@ class StationManagerTest(TestCase):
 
             # when we call Station.objects.create_station() with those songs
             station = Station.objects.create_station(creator=player,
+                                                     name='My Station',
                                                      songs=songs)
 
             # then the station is created and the song entries added
