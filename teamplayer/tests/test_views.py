@@ -6,7 +6,7 @@ from unittest.mock import patch
 import django.core.urlresolvers
 import django.test
 
-from teamplayer.models import Player
+from teamplayer.models import Player, Station
 from teamplayer.tests import utils
 
 SpinDoctor = utils.SpinDoctor
@@ -221,6 +221,185 @@ class AddUserView(TestCase):
         response = self.client.post(reverse('teamplayer.views.registration'),
                                     form_data, follow=True)
         self.assertContains(response, 'already exists')
+
+
+class EditStationView(TestCase):
+    """Test the edit_station view"""
+    url = reverse('teamplayer.views.edit_station')
+
+    def setUp(self):
+        # create a player
+        self.player = Player.objects.create_player(username='test',
+                                                   password='test')
+        self.client.login(username='test', password='test')
+
+    def test_invalid_input(self):
+        # given the edit_station view url
+        url = self.url
+
+        # given the invalid POST input
+        post_data = {'action': 'rename', 'station_id': 1}
+
+        # when we POST it to the url
+        response = self.client.post(url, data=post_data)
+
+        # then we get a response telling is our input was bad
+        self.assertEqual(response.content, b'This field is required.')
+
+    def test_http_get(self):
+        # given the edit_station view url
+        url = self.url
+
+        # when we http GET on the url
+        response = self.client.get(url)
+        # then we get an method not allowed response
+        self.assertEqual(response.status_code, 405)
+
+    def test_station_does_not_exist(self):
+        # given the edit_station view url
+        url = self.url
+
+        # given the user station that is subsequently removed
+        station = Station.create_station('Test', self.player)
+        station_id = station.pk
+        station.delete()
+
+        # when the user goes to the remove station url
+        post_data = {
+            'name': 'Rename my station',
+            'action': 'rename',
+            'station_id': station_id
+        }
+        response = self.client.post(url, data=post_data)
+
+        # then we get a 404
+        self.assertEqual(response.status_code, 404)
+
+    def test_not_my_station(self):
+        # given the edit_station view url
+        url = self.url
+
+        # given the station that does not belong to him
+        station_id = Station.main_station().pk
+
+        # when the user goes to the remove station url
+        post_data = {
+            'name': 'Hijacked Station',
+            'action': 'rename',
+            'station_id': station_id
+        }
+        response = self.client.post(url, data=post_data)
+
+        # then we get a 404 (although we should get a 403)
+        self.assertEqual(response.status_code, 404)
+
+    def test_station_rename(self):
+        # given the edit_station view url
+        url = self.url
+
+        # given the user's station
+        station = Station.create_station('Test', self.player)
+
+        # when the user posts and edit to rename the station
+        post_data = {
+            'action': 'rename',
+            'station_id': station.id,
+            'name': 'The Best Station'
+        }
+        with patch('teamplayer.views.IPCHandler.send_message'):
+            response = self.client.post(url, data=post_data)
+
+        # then we get a 200 response
+        self.assertEqual(response.status_code, 200)
+
+        # and the station is renamed
+        station = Station.objects.get(id=station.id)
+        self.assertEqual(station.name, 'The Best Station')
+
+    def test_station_rename_ipc(self):
+        # given the edit_station view url
+        url = self.url
+
+        # given the user's station
+        station = Station.create_station('Test', self.player)
+
+        # when the user posts and edit to rename the station
+        post_data = {
+            'action': 'rename',
+            'station_id': station.id,
+            'name': 'The Best Station'
+        }
+        with patch('teamplayer.views.IPCHandler.send_message') as send_message:
+            self.client.post(url, data=post_data)
+
+        # then an IPC message is sent alerting that the station was renamed
+        send_message.assert_called_with(
+            'station_rename', [station.id, 'The Best Station'])
+
+    def test_station_remove(self):
+        # given the edit_station view url
+        url = self.url
+
+        # given the user's station
+        station = Station.create_station('Test', self.player)
+
+        # when the user edits the station for removal
+        post_data = {
+            'action': 'remove',
+            'station_id': station.id,
+            'name': 'Test'
+        }
+        with patch('teamplayer.views.IPCHandler.send_message'):
+            response = self.client.post(url, data=post_data)
+
+        # then we get a 200 response
+        self.assertEqual(response.status_code, 200)
+
+        exists = Station.objects.filter(id=station.id).exists()
+        self.assertFalse(exists)
+
+    def test_station_remove_from_station(self):
+        # given the edit_station view url
+        url = self.url
+
+        # given the user's station
+        station = Station.create_station('Test', self.player)
+
+        # when the user is listening to that station
+        self.client.get(reverse('station', args=[station.id]))
+        assert self.client.session['station_id'] == station.id
+
+        # and the user edits the station for removal
+        post_data = {
+            'action': 'remove',
+            'station_id': station.id,
+            'name': 'Test'
+        }
+        with patch('teamplayer.views.IPCHandler.send_message'):
+            self.client.post(url, data=post_data)
+
+        # then the user's station change to the main station
+        main_station = Station.main_station()
+        self.assertEqual(self.client.session['station_id'], main_station.id)
+
+    def test_station_remove_ipc(self):
+        # given the edit_station view url
+        url = self.url
+
+        # given the user's station
+        station = Station.create_station('Test', self.player)
+
+        # when the user edits the station for removal
+        post_data = {
+            'action': 'remove',
+            'station_id': station.id,
+            'name': 'Test'
+        }
+        with patch('teamplayer.views.IPCHandler.send_message') as send_message:
+            self.client.post(url, data=post_data)
+
+        # then an IPC message is sent alerting that the station was removed
+        send_message.assert_called_with('station_delete', station.id)
 
 
 class RegistrationTest(TestCase):
