@@ -92,7 +92,8 @@ class MPC(object):
             'QUEUE_DIR': self.queue_dir,
             'STREAM_BITRATE': settings.STREAM_BITRATE,
             'STREAM_FORMAT': settings.STREAM_FORMAT,
-            'ZEROCONF_NAME': 'TeamPlayer Station #%s' % self.station.pk
+            'ZEROCONF_NAME': 'TeamPlayer Station #%s' % self.station.pk,
+            'NAME': 'TeamPlayer: %s\'s station' % self.station.creator
         }
 
         mpd_file.write("""# Automatically generated.  Do not edit.
@@ -112,7 +113,7 @@ class MPC(object):
         enabled             "yes"
         always_on           "yes"
         type                "httpd"
-        name                "TeamPlayer HTTP Stream"
+        name                "{NAME}"
         encoder             "lame"
         port                "{HTTP_PORT}"
         bitrate             "{STREAM_BITRATE}"
