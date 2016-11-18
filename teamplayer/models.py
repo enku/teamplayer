@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from django.core.files import File
 from django.db import models, transaction
 from django.db.models import Count
+from django.utils import timezone
 
 from . import lib, logger
 from .conf import settings
@@ -200,7 +201,7 @@ class Queue(models.Model):
         """
         num_top_artists = settings.AUTOFILL_MOOD_TOP_ARTISTS
         seconds = seconds or settings.AUTOFILL_MOOD_HISTORY
-        history = datetime.datetime.now() - datetime.timedelta(seconds=seconds)
+        history = timezone.now() - datetime.timedelta(seconds=seconds)
         station = station or Station.main_station()
         top_artists = Mood.objects.filter(timestamp__gte=history,
                                           station=station)

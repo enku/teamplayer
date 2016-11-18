@@ -12,6 +12,7 @@ import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
 from django.core.files import File
+from django.utils import timezone
 
 from teamplayer.conf import settings
 from teamplayer.lib import songs
@@ -277,7 +278,7 @@ class QueueTestCase(TestCase):
             )
 
         # Given the current mood
-        now = datetime.datetime.now()
+        now = timezone.now()
         one_hour_ago = now - datetime.timedelta(seconds=3600)
         Mood.objects.create(
             station=main_station, artist='Sleigh Bells', timestamp=now)
