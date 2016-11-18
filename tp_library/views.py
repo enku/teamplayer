@@ -2,7 +2,6 @@ import json
 import os
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.sites.models import get_current_site
 from django.contrib.syndication.views import Feed, add_domain
 from django.core.files import File
 from django.core.urlresolvers import reverse
@@ -17,6 +16,11 @@ from teamplayer.models import Station
 from teamplayer.serializers import EntrySerializer
 from tp_library.forms import AddToQueueForm
 from tp_library.models import SongFile
+
+try:
+    from django.contrib.sites.models import get_current_site
+except ImportError:
+    from django.contrib.sites.shortcuts import get_current_site
 
 
 @login_required
