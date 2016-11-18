@@ -38,7 +38,7 @@ class StationSerializer(serializers.ModelSerializer):
         return obj.url(self.context['request'])
 
     def get_url(self, obj):
-        return reverse('home', args=(obj.pk,))
+        return reverse('station', args=(obj.pk,))
 
     def get_current_song(self, obj):
         return obj.current_song()
