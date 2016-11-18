@@ -21,9 +21,9 @@ class StationSerializer(serializers.ModelSerializer):
         read_only=True, slug_field='username')
 
     songs = serializers.SerializerMethodField('get_song_count')
-    current_song = serializers.SerializerMethodField('get_current_song')
-    url = serializers.SerializerMethodField('get_url')
-    stream = serializers.SerializerMethodField('get_stream')
+    current_song = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
+    stream = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Station
