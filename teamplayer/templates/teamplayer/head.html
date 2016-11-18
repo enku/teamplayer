@@ -3,7 +3,6 @@
     <meta charset="utf-8" />
     <title>TeamPlayer</title>
     <link rel="Shortcut Icon" href="{% static "images/favicon.ico" %}" />
-    {% if station %}<link rel="alternate" type="application/rss+xml" title="Station {{ station.pk }} Feed" href="{% url 'library_feed' station.pk %}" />{% endif %}
     <script type="text/javascript" src="{% static "js/jquery-2.0.2.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/jquery.form.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/jquery-ui-1.10.3.custom.min.js" %}"></script>
