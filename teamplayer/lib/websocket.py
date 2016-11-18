@@ -310,8 +310,10 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
                 'station_id': songfile.station_id,
                 'title': songfile.title,
                 'artist': songfile.artist,
-                'artist_image': reverse('teamplayer.views.artist_image',
-                                        kwargs={'artist': songfile.artist}),
+                'artist_image': reverse(
+                    'artist_image',
+                    kwargs={'artist': songfile.artist}
+                ),
                 'total_time': songfile.length,
                 'path': songfile.filename,
             }

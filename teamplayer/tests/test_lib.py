@@ -45,7 +45,7 @@ class LibSongs(TestCase):
             **self.user_data)
         self.user = self.player.user
         song = open(SILENCE, 'rb')
-        view = reverse('teamplayer.views.add_to_queue')
+        view = reverse('add_to_queue')
 
         self.client.login(username=self.user_data['username'],
                           password=self.user_data['password'])

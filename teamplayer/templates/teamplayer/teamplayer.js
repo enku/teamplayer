@@ -9,19 +9,19 @@ var TeamPlayer = (function () {
     return {
         // urls
         urls: {
-            home: '{% url "teamplayer.views.home" %}',
-            currently_playing:  '{% url "teamplayer.views.currently_playing" %}',
-            add_to_queue: '{% url "teamplayer.views.add_to_queue" %}',
-            artist_page: '{% url "teamplayer.views.artist_page" "" %}',
+            home: '{% url "home" %}',
+            currently_playing:  '{% url "currently_playing" %}',
+            add_to_queue: '{% url "add_to_queue" %}',
+            artist_page: '{% url "artist_page" "" %}',
             clear_png: '{% static "images/clear.png" %}',
             web_socket: '{{ websocket_url }}',
-            reorder_queue: '{% url "teamplayer.views.reorder_queue" %}',
-            show_stations: '{% url "teamplayer.views.show_stations" %}',
-            show_queue: '{% url "teamplayer.views.show_queue" %}',
-            show_players: '{% url "teamplayer.views.show_players" %}',
-            main_view: '{% url "teamplayer.views.show_queue" %}',
-            player: '{% url "teamplayer.views.player" %}',
-            my_station: '{% url "teamplayer.views.station_detail" "mine" %}'
+            reorder_queue: '{% url "reorder_queue" %}',
+            show_stations: '{% url "show_stations" %}',
+            show_queue: '{% url "show_queue" %}',
+            show_players: '{% url "show_players" %}',
+            main_view: '{% url "show_queue" %}',
+            player: '{% url "player" %}',
+            my_station: '{% url "station_detail" "mine" %}'
         },
 
         // current song

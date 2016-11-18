@@ -13,7 +13,7 @@ class EntrySerializer(serializers.ModelSerializer):
         order_by = 'place'
 
     def get_url(self, obj):
-        return reverse('teamplayer.views.show_entry', args=(obj.pk,))
+        return reverse('show_entry', args=(obj.pk,))
 
 
 class StationSerializer(serializers.ModelSerializer):
@@ -38,7 +38,7 @@ class StationSerializer(serializers.ModelSerializer):
         return obj.url(self.context['request'])
 
     def get_url(self, obj):
-        return reverse('teamplayer.views.home', args=(obj.pk,))
+        return reverse('home', args=(obj.pk,))
 
     def get_current_song(self, obj):
         return obj.current_song()

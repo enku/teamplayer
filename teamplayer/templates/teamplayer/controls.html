@@ -13,18 +13,18 @@
     };
 
     $(function() {
-        toggle_menu('#toggle_hold', '{% url "teamplayer.views.toggle_queue_status" %}');
-        toggle_menu('#toggle_auto', '{% url "teamplayer.views.toggle_auto_mode" %}');
+        toggle_menu('#toggle_hold', '{% url "toggle_queue_status" %}');
+        toggle_menu('#toggle_auto', '{% url "toggle_auto_mode" %}');
     });
 </script>
 <div id="controls" style="display: none">
     <div class="control"
         title="Shuffle queue"
-        onclick="SongWidget.get_and_songlist('{% url "teamplayer.views.randomize_queue" %}', {})">Shuffle
+        onclick="SongWidget.get_and_songlist('{% url "randomize_queue" %}', {})">Shuffle
     </div>
     <div class="control"
         title="Order your queue by artist's current rank"
-        onclick="SongWidget.get_and_songlist('{% url "teamplayer.views.order_by_rank" %}', {})">Auto Sort
+        onclick="SongWidget.get_and_songlist('{% url "order_by_rank" %}', {})">Auto Sort
     </div>
     <div class="control" title="Put queue on hold" id="toggle_hold">Hold
         <input type="checkbox" {% if not user.player.queue.active %}checked="checked"{% endif %} />
@@ -39,10 +39,10 @@
         onclick="MainView.show('library')">Library
     </div>
     <div class="control" title="About TeamPlayer"
-        onclick="window.open('{% url "teamplayer.views.about" %}')">About
+        onclick="window.open('{% url "about" %}')">About
     </div>
     <div class="control" title="Exit" 
         style="border-top: 1px solid #BFBFBF; margin-top: 3px;"
-        onclick="window.location='{% url "teamplayer.views.logout" %}'">Exit
+        onclick="window.location='{% url "logout" %}'">Exit
     </div>
 </div>

@@ -9,7 +9,7 @@
     <tr>
         <td>
             <div class="register_header">Register</div>
-            <form id="add_user" method="post" action="{% url "teamplayer.views.registration" %}">
+            <form id="add_user" method="post" action="{% url "registration" %}">
                 {% csrf_token %}
                 <table id="add_user">
                     {{ form.as_table }}

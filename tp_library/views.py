@@ -100,7 +100,7 @@ class LibraryFeed(Feed):
         return obj.name
 
     def link(self, obj):
-        return reverse('teamplayer.views.home', args=[obj.pk])
+        return reverse('home', args=[obj.pk])
 
     def item_title(self, item):
         return item.title

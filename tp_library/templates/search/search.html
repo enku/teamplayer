@@ -38,10 +38,10 @@
         {% if page_obj.has_previous or page_obj.has_next %}
         <tr>
             <td colspan="2">
-                {% if page_obj.has_previous %}<a id="search_prev" href="{% url "tp_library_search" %}?q={{ query|urlencode }}&amp;page={{ page_obj.previous_page_number }}">{% endif %}&laquo; Previous{% if page_obj.has_previous %}</a>{% endif %}
+                {% if page_obj.has_previous %}<a id="search_prev" href="{% url "library_search" %}?q={{ query|urlencode }}&amp;page={{ page_obj.previous_page_number }}">{% endif %}&laquo; Previous{% if page_obj.has_previous %}</a>{% endif %}
             </td>
             <td colspan="2">
-                {% if page_obj.has_next %}<a id="search_next" href="{% url "tp_library_search" %}?q={{ query|urlencode }}&amp;page={{ page_obj.next_page_number }}">{% endif %}Next &raquo;{% if page_obj.has_next %}</a>{% endif %}
+                {% if page_obj.has_next %}<a id="search_next" href="{% url "library_search" %}?q={{ query|urlencode }}&amp;page={{ page_obj.next_page_number }}">{% endif %}Next &raquo;{% if page_obj.has_next %}</a>{% endif %}
             </td>
         </tr>
         {% endif %}
@@ -54,8 +54,8 @@ $(function() {
     var $tray = $('#library_tray');
 
     $tray.html(ich.library_tray_tmpl({
-        done_url: '{% url "teamplayer.views.show_queue" %}',
-        search_url: '{% url "tp_library_search" %}',
+        done_url: '{% url "show_queue" %}',
+        search_url: '{% url "library_search" %}',
         query: '{{ query|escapejs }}'
     }));
 
@@ -90,7 +90,7 @@ $(function() {
         var $this = $(this);
 
         $.post(
-            '{% url "tp_library.views.add_to_queue" %}', 
+            '{% url "library_add_to_queue" %}', 
             {song_id: $this.data('id')},
             function(data) {
                 $this.attr('disabled', true);

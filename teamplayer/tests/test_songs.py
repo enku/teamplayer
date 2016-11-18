@@ -16,7 +16,7 @@ class AutoFindSong(TestCase):
         # create a player
         self.player = Player.objects.create_player('test', password='test')
         self.client.login(username='test', password='test')
-        self.url = reverse('teamplayer.views.home')
+        self.url = reverse('home')
         self.client.get(self.url)
 
         self.main_station = Station.main_station()

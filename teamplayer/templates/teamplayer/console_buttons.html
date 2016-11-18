@@ -5,7 +5,7 @@
                 id="fileupload" 
                 type="file" 
                 name="files[]" 
-                data-url="{% url "teamplayer.views.add_to_queue" %}" 
+                data-url="{% url "add_to_queue" %}" 
                 data-sequential-uploads="true"
                 data-progress-interval="10"
                 multiple />
@@ -13,8 +13,8 @@
         </td>
     </tr>
     <tr>
-        <td><a class="button" onclick="return TeamPlayer.change_station(this.href)" href="{% url "teamplayer.views.previous_station" %}" title="previous station"><i class="icon-arrow-left"></i></a></td>
+        <td><a class="button" onclick="return TeamPlayer.change_station(this.href)" href="{% url "previous_station" %}" title="previous station"><i class="icon-arrow-left"></i></a></td>
         <td><a class="button" onclick="return TeamPlayer.change_station(this.href)" href="{% url "station" home %}" title="Main Station"><i class="icon-home"></i></a></td>
-        <td><a class="button" onclick="return TeamPlayer.change_station(this.href)" href="{% url "teamplayer.views.next_station" %}" title="next station"><i class="icon-arrow-right"></i></a></td>
+        <td><a class="button" onclick="return TeamPlayer.change_station(this.href)" href="{% url "next_station" %}" title="next station"><i class="icon-arrow-right"></i></a></td>
     </tr>
 </table>

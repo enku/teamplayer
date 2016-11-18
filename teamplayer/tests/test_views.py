@@ -22,7 +22,7 @@ class HomePageView(TestCase):
         self.player = Player.objects.create_player(username='test',
                                                    password='test')
         self.client.login(username='test', password='test')
-        self.url = reverse('teamplayer.views.home')
+        self.url = reverse('home')
         self.client.get(self.url)
 
     def test_home(self):
@@ -40,7 +40,7 @@ class HomePageView(TestCase):
         """Test that we can set the dj name in the view"""
         # This doesn't test the home page view per-se but it's an AJAX view
         # accessible via the home page
-        url = reverse('teamplayer.views.change_dj_name')
+        url = reverse('change_dj_name')
         response = self.client.post(url, {'dj_name': 'Liquid X'})
         self.assertEqual(response.status_code, 204)
         player = Player.objects.get(user__username='test')
@@ -63,7 +63,7 @@ class HomePageView(TestCase):
                              'station_id': 1,
                              'artist_image': '/artist/Prince/image'}
 
-        url = reverse('teamplayer.views.currently_playing')
+        url = reverse('currently_playing')
         response = self.client.get(url)
         data = json.loads(response.content.decode('utf-8'))
         self.assertEqual(data['dj'], 'DJ Skipp Traxx')
@@ -73,8 +73,7 @@ class HomePageView(TestCase):
         self.assertEqual(data['remaining_time'], 12)
         self.assertEqual(
             data['artist_image'],
-            reverse('teamplayer.views.artist_image',
-                    kwargs={'artist': 'Prince'}))
+            reverse('artist_image', kwargs={'artist': 'Prince'}))
 
     @patch('teamplayer.views.MPC.currently_playing')
     def test_currently_playing(self, mock):
@@ -86,7 +85,7 @@ class HomePageView(TestCase):
                              'station_id': 1,
                              'artist_image': '/artist/Prince/image'}
 
-        url = reverse('teamplayer.views.currently_playing')
+        url = reverse('currently_playing')
         response = self.client.post(url)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content.decode('utf-8'))
@@ -111,7 +110,7 @@ class ShowQueueView(TestCase):
         self.player = Player.objects.create_player(username='test',
                                                    password='test')
         self.client.login(username='test', password='test')
-        self.url = reverse('teamplayer.views.show_queue')
+        self.url = reverse('show_queue')
 
     def test_empty_queue(self):
         """Test that we get the appropriate info when we have an empty
@@ -139,7 +138,7 @@ class ShowQueueView(TestCase):
         current_order = [x.id for x in player.queue.entry_set.all()]
         new_order = list(reversed(current_order))
         new_order_str = ','.join([str(i) for i in new_order])
-        response = self.client.post(reverse('teamplayer.views.reorder_queue'),
+        response = self.client.post(reverse('reorder_queue'),
                                     new_order_str, content_type='text/plain')
 
         returned_order = json.loads(response.content.decode('utf-8'))
@@ -161,7 +160,7 @@ class ShowQueueView(TestCase):
         song_id = self.player.queue.entry_set.all()[0].id
 
         response = self.client.delete(
-            reverse('teamplayer.views.show_entry', args=(song_id,)))
+            reverse('show_entry', args=(song_id,)))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(self.url)
         self.assertNotContains(response, 'Purple Rain')
@@ -194,13 +193,13 @@ class AddUserView(TestCase):
         }
 
     def test_get_returns_200(self):
-        response = self.client.get(reverse('teamplayer.views.registration'))
+        response = self.client.get(reverse('registration'))
         self.assertEqual(response.status_code, 200)
 
     @patch('teamplayer.lib.websocket.IPCHandler.send_message')
     def test_can_add_user(self, mock):
         self.client.post(
-            reverse('teamplayer.views.registration'), self.form_data)
+            reverse('registration'), self.form_data)
 
         # check that the user exists
         test_player = Player.objects.get(
@@ -215,17 +214,17 @@ class AddUserView(TestCase):
         form_data = self.form_data
 
         # add user
-        self.client.post(reverse('teamplayer.views.registration'), form_data)
+        self.client.post(reverse('registration'), form_data)
 
         # now add again
-        response = self.client.post(reverse('teamplayer.views.registration'),
+        response = self.client.post(reverse('registration'),
                                     form_data, follow=True)
         self.assertContains(response, 'already exists')
 
 
 class EditStationView(TestCase):
     """Test the edit_station view"""
-    url = reverse('teamplayer.views.edit_station')
+    url = reverse('edit_station')
 
     def setUp(self):
         # create a player
@@ -431,7 +430,7 @@ class RegistrationTest(TestCase):
     def test_no_player(self):
         """Show that we don't get the flash player in the registration view."""
         # when we access the registation page
-        response = self.client.get(reverse('teamplayer.views.registration'))
+        response = self.client.get(reverse('registration'))
 
         # Then it doesn't show up.
         self.assertNotContains(response, 'flashPlayer')
@@ -439,7 +438,7 @@ class RegistrationTest(TestCase):
     def test_no_stations(self):
         """Show that we don't get the station links in the view."""
         # when we access the registation page
-        response = self.client.get(reverse('teamplayer.views.register'))
+        response = self.client.get(reverse('register'))
 
         # Then it doesn't show up.
         self.assertNotContains(response, 'next station')
@@ -447,7 +446,7 @@ class RegistrationTest(TestCase):
 
 class JSObjectTest(TestCase):
     """Tests for the js_object() view"""
-    view = 'teamplayer.views.js_object'
+    view = 'js_object'
 
     def setUp(self):
         # create a player

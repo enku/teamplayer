@@ -61,20 +61,17 @@ change_station: function (url) {
 
 
 change_station_prev: function () {
-    return TeamPlayer.change_station(
-            '{% url "teamplayer.views.previous_station" %}');
+    return TeamPlayer.change_station('{% url "previous_station" %}');
 },
 
 
 change_station_next: function () {
-    return TeamPlayer.change_station(
-            '{% url "teamplayer.views.next_station" %}');
+    return TeamPlayer.change_station('{% url "next_station" %}');
 },
 
 
 change_station_home: function() {
-    return TeamPlayer.change_station(
-            '{% url "station" home %}');
+    return TeamPlayer.change_station('{% url "station" home %}');
 },
 
 
@@ -133,7 +130,7 @@ toggle_controls: function () {
  */
 remove_from_queue: function (song_id) {
     $.ajax({
-        url: '{% url "teamplayer.views.show_queue" %}' + song_id,
+        url: '{% url "show_queue" %}' + song_id,
         type: 'DELETE',
         success: function () {
             $('tr[data-song_id="' + song_id + '"]').remove();
@@ -195,7 +192,7 @@ station_list_body: function () {
         station;
 
     $.ajax({
-        url: '{% url "teamplayer.views.show_stations" %}',
+        url: '{% url "show_stations" %}',
         dataType: 'json',
         success: function (station_info) {
             for (i = 0; i < station_info.length; i += 1) {
@@ -222,9 +219,9 @@ station_tray_body: function () {
             html = ich.station_tray({
                 station_id: station.id,
                 name: station.name,
-                edit_station_url: '{% url "teamplayer.views.edit_station" %}',
+                edit_station_url: '{% url "edit_station" %}',
                 username: TeamPlayer.username,
-                create_station_url: '{% url "teamplayer.views.create_station" %}'
+                create_station_url: '{% url "create_station" %}'
             });
             $tray.html(html);
 
@@ -249,9 +246,9 @@ station_tray_body: function () {
         },
         error: function () {
             html = ich.station_tray({
-                edit_station_url: '{% url "teamplayer.views.edit_station" %}',
+                edit_station_url: '{% url "edit_station" %}',
                 username: TeamPlayer.username,
-                create_station_url: '{% url "teamplayer.views.create_station" %}'
+                create_station_url: '{% url "create_station" %}'
             });
             $tray.html(html);
             

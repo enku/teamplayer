@@ -3,10 +3,10 @@
     <div id="top_bar">
         {% if not register %}<i class="icon-volume-up" id="mute_button" title="Mute"></i>{% endif %}
         <div id="title">
-            <i class="icon-user"></i> {% if register %}Registration{% else %}<a id="dj_name_link" title="Change DJ name" href="{% url "teamplayer.views.home" %}">{{ name }}</a>
+            <i class="icon-user"></i> {% if register %}Registration{% else %}<a id="dj_name_link" title="Change DJ name" href="{% url "home" %}">{{ name }}</a>
 
             <div id="change_dj_name" style="display: none">
-                <form method="post" id="dj_name_form" action="{% url "teamplayer.views.change_dj_name" %}">{% csrf_token %}
+                <form method="post" id="dj_name_form" action="{% url "change_dj_name" %}">{% csrf_token %}
                     <input type="text" name="dj_name" id="dj_name" value="{{ user.player.dj_name }}" placeholder="{{ username }}" />
                 </form>
             </div><!-- change_dj_name -->
@@ -21,7 +21,7 @@
         {% if not register %}
         {% include "teamplayer/controls.html" %}
         {% else %}
-        <a id="preferences" title="Exit" href="{% url "teamplayer.views.logout" %}"><i class="icon-remove"></i></a>
+        <a id="preferences" title="Exit" href="{% url "logout" %}"><i class="icon-remove"></i></a>
         {% endif %}
     </div><!-- top_bar -->
 
@@ -42,7 +42,7 @@
 
     {% if register %}
     <script type="text/javascript">
-        $('#main_view').load('{% url "teamplayer.views.registration" %}');
+        $('#main_view').load('{% url "registration" %}');
     </script>
     {% endif %}
 </div>

@@ -86,7 +86,7 @@ class AddToQueueTest(TestCase):
             mimetype='audio/mp3',
             added_by=Player.dj_ango(),
         )
-        self.url = reverse('tp_library.views.add_to_queue')
+        self.url = reverse('library_add_to_queue')
         self.player = Player.objects.create_player('test', password='test')
 
     @patch('tp_library.views.IPCHandler.send_message')
@@ -124,7 +124,7 @@ class AddSongWithUTF8Filename(TestCase):
             mimetype='audio/mp3',
             added_by=Player.dj_ango(),
         )
-        self.url = reverse('tp_library.views.add_to_queue')
+        self.url = reverse('library_add_to_queue')
         self.player = Player.objects.create_player('test', password='test')
 
     @patch('tp_library.views.IPCHandler.send_message')

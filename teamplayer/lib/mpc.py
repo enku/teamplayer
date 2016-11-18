@@ -177,7 +177,9 @@ class MPC(object):
 
         if artist:
             artist_image = reverse(
-                'teamplayer.views.artist_image', kwargs={'artist': artist})
+                'artist_image',
+                kwargs={'artist': artist}
+            )
         else:
             artist_image = songs.CLEAR_IMAGE_URL
 

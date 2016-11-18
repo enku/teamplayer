@@ -87,7 +87,7 @@ class SongFile(models.Model):
         return self.filename
 
     def get_absolute_url(self):
-        return reverse('tp_library.views.get_song', args=[str(self.pk)])
+        return reverse('library_get_song', args=[str(self.pk)])
 
     def clean(self):
         if self.artist.lower() in ('', 'unknown'):

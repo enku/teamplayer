@@ -33,7 +33,7 @@ class TeamPlayerMiddlewareTestCase(TestCase):
         user = User.objects.create_user(username='test2', password='***')
 
         # when we login and go to a page
-        url = reverse('teamplayer.views.home')
+        url = reverse('home')
         self.client.login(username='test2', password='***')
         self.client.get(url)
 
@@ -70,7 +70,7 @@ class TeamPlayerMiddlewareTestCase(TestCase):
         self.client.get(url)
 
         # then goes to another view
-        url = reverse('teamplayer.views.show_queue')
+        url = reverse('show_queue')
         response = self.client.get(url)
 
         # then the request object has the second station

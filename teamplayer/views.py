@@ -178,7 +178,7 @@ def randomize_queue(request):
     """Randomize the player's queue"""
     station = request.station
     request.player.queue.randomize(station)
-    return redirect(reverse('teamplayer.views.show_queue'))
+    return redirect(reverse('show_queue'))
 
 
 @login_required
@@ -186,7 +186,7 @@ def order_by_rank(request):
     """Order your queue according to artist rank"""
     station = request.station
     request.player.queue.order_by_rank(station)
-    return redirect(reverse('teamplayer.views.show_queue'))
+    return redirect(reverse('show_queue'))
 
 
 @login_required
@@ -303,8 +303,10 @@ def registration(request):
                     'user_created', PlayerSerializer(player).data)
                 messages.info(request, '%s registered. Please login.' %
                               username)
-                return HttpResponse('<script>window.location="%s"</script>' %
-                                    reverse('teamplayer.views.home'))
+                return HttpResponse(
+                    '<script>window.location="%s"</script>' %
+                    reverse('home')
+                )
 
     context['users'] = Player.objects.all()
     return render(request, 'teamplayer/register.html', context)
@@ -483,4 +485,4 @@ def player(request):
 def redirect_to_home(request):
     main_station = Station.main_station()
     request.session['station_id'] = main_station.pk
-    return redirect(reverse(home, args=(main_station.pk,)))
+    return redirect(reverse('home', args=(main_station.pk,)))

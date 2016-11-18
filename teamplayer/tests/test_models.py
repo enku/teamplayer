@@ -97,7 +97,7 @@ class QueueViewsTestCase(TestCase):
     def test_can_login(self, mock):
         """Assert that the user can login"""
 
-        redirect_url = reverse('teamplayer.views.home')
+        redirect_url = reverse('home')
         url = '/accounts/login/?next=%s' % redirect_url
         response = self.client.post(url, self.user_data)
         self.assertEqual(response.status_code, 302)
@@ -106,7 +106,7 @@ class QueueViewsTestCase(TestCase):
     def test_add_entries(self, mock):
         """Test that user can add entries"""
         song = open(SILENCE, 'rb')
-        view = reverse('teamplayer.views.add_to_queue')
+        view = reverse('add_to_queue')
 
         # first, verify user has an empty queue
         self.assertEqual(self.player.queue.entry_set.count(), 0)
@@ -124,7 +124,7 @@ class QueueViewsTestCase(TestCase):
         # first add the entry
         self.test_add_entries()
         song_id = self.player.queue.entry_set.all()[0].pk
-        view = reverse('teamplayer.views.show_entry', args=(song_id,))
+        view = reverse('show_entry', args=(song_id,))
         self.client.delete(view)
         self.assertEqual(self.player.queue.entry_set.count(), 0)
 
@@ -739,7 +739,7 @@ class StationTest(TestCase):
     @patch('teamplayer.views.MPC')
     def test_cannot_name_teamplayer_view(self, MockMPC):
         station = Station.create_station('My Station', self.player)
-        view = 'teamplayer.views.edit_station'
+        view = 'edit_station'
         post = {'station_id': station.pk,
                 'action': 'rename',
                 'name': 'TeamPlayer'}
@@ -749,7 +749,7 @@ class StationTest(TestCase):
             reverse(view),
             post,
             follow=True,
-            HTTP_REFERRER=reverse('teamplayer.views.show_stations'))
+            HTTP_REFERRER=reverse('show_stations'))
 
         self.assertEqual(response.status_code, 400)
         result = json.loads(response.content.decode())
