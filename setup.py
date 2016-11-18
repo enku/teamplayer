@@ -1,20 +1,6 @@
 #!/usr/bin/env python
-import os
+from setuptools import setup, find_packages
 
-from setuptools import setup
-
-
-def get_package_data(package):
-    walk = [(dirpath.replace(package + os.sep, '', 1), filenames) for dirpath,
-            dirnames, filenames in os.walk(package)
-            if not os.path.exists(os.path.join(dirpath, '__init__'))]
-
-    filepaths = []
-    for base, filenames in walk:
-        filepaths.extend([os.path.join(base, filename)
-                         for filename in filenames])
-
-    return filepaths
 
 setup(
     name='TeamPlayer',
@@ -22,9 +8,8 @@ setup(
     description='A Democratic Internet Radio Station',
     author='Albert Hopkins',
     author_email='marduk@python.net',
-    packages=['teamplayer', 'tp_library'],
-    package_data={'teamplayer': get_package_data('teamplayer'),
-                  'tp_library': get_package_data('tp_library')},
+    packages=find_packages(),
+    include_package_data=True,
     install_requires=[
         'Django>=1.8,<1.11',
         'django-haystack>=2.4,<2.5',
