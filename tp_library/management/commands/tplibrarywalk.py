@@ -1,5 +1,4 @@
 import os
-from optparse import make_option
 
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
@@ -15,16 +14,20 @@ os.environ.setdefault('LANG', 'en_US.UTF-8')
 
 
 class Command(BaseCommand):
-    args = '[--rename] <dir>'
     help = 'Walk specified directory and update the database'
 
-    option_list = BaseCommand.option_list + (
-        make_option('--rename',
-                    action='store_true',
-                    dest='rename',
-                    default=False,
-                    help='Attempt to rename non-utf-8 filenames'),
-    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--rename',
+            action='store_true',
+            dest='rename',
+            default=False,
+            help='Attempt to rename non-utf-8 filenames'
+        )
+        parser.add_argument(
+            'dir',
+            nargs='+',
+            help='Directory to walk')
 
     def handle(self, *args, **options):
         self.options = options
@@ -35,8 +38,8 @@ class Command(BaseCommand):
         self.station = Station.main_station()
         self.dj_ango = Player.dj_ango()
 
-        for arg in args:
-            path = os.path.realpath(arg)
+        for directory in options['dir']:
+            path = os.path.realpath(directory)
             for tup in os.walk(path):
                 self._handle_files(*tup)
 
