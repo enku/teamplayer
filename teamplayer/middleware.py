@@ -1,7 +1,15 @@
+import django
+
 from .models import Player, Queue, Station
 
+# For backwards compat with Django <1.10
+if django.VERSION >= (1, 10):
+    from django.utils.deprecation import MiddlewareMixin
+else:
+    MiddlewareMixin = object
 
-class TeamPlayerMiddleware(object):
+
+class TeamPlayerMiddleware(MiddlewareMixin):
     """Special middleware for TeamPlayer
 
     This middleware requires the auth and session middlewares, so be certain to
