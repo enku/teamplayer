@@ -1,7 +1,7 @@
 """TeamPlayer URL dispatcher"""
 from django.conf.urls import url
 
-from teamplayer import views
+from . import views
 
 urlpatterns = [
     url(r'^about', views.about, name='about'),
