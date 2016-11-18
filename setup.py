@@ -32,6 +32,6 @@ setup(
         'pylast>=1.2,<1.3',
         'python-mpd2',
         'tornado',
-        'djangorestframework>=2.3.10,<2.4'
+        'djangorestframework>=3.5,<3.6'
     ],
 )

@@ -5,7 +5,7 @@ from teamplayer import models
 
 
 class EntrySerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField('get_url')
+    url = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Entry
@@ -45,7 +45,7 @@ class StationSerializer(serializers.ModelSerializer):
 
 
 class PlayerSerializer(serializers.ModelSerializer):
-    username = serializers.SerializerMethodField('get_username')
+    username = serializers.SerializerMethodField()
     entries = serializers.SerializerMethodField('get_entry_count')
     paused = serializers.SerializerMethodField('get_hold_state')
 
