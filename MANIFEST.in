@@ -1,5 +1,6 @@
 include README.rst
 include AUTHORS
-recursive-include teamplayer/templates **
 recursive-include teamplayer/static **
+recursive-include teamplayer/templates **
+recursive-include teamplayer/tests/data **
 recursive-include tp_library/templates **
