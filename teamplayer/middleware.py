@@ -4,9 +4,9 @@ from .models import Player, Queue, Station
 
 # For backwards compat with Django <1.10
 if django.VERSION >= (1, 10):
-    from django.utils.deprecation import MiddlewareMixin
+    from django.utils.deprecation import MiddlewareMixin  # pragma: nocover
 else:
-    MiddlewareMixin = object
+    MiddlewareMixin = object  # pragma: nocover
 
 
 class TeamPlayerMiddleware(MiddlewareMixin):

@@ -75,3 +75,20 @@ class TeamPlayerMiddlewareTestCase(TestCase):
 
         # then the request object has the second station
         self.assertEqual(response.wsgi_request.station, station)
+
+    def test_station_in_session_does_not_exist(self):
+        # given the middleware
+        middleware = TeamPlayerMiddleware()
+
+        # given the non-existing station_id
+        station_id = -1
+        assert not Station.objects.filter(pk=station_id).exists()
+
+        # when the request session has the bogus station id and
+        # process_request is called
+        request = self.request
+        request.session['station_id'] = station_id
+        middleware.process_request(request)
+
+        # then the request gets put on the main station
+        self.assertEqual(request.station, Station.main_station())
