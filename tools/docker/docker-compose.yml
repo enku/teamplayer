@@ -9,7 +9,10 @@ services:
             - "8000-8099:8000-8099"
 
         environment:
-            - DJANGO_DEBUG=1
+            - DJANGO_DEBUG
+
+        volumes:
+            - ../..:/usr/src/teamplayer
 
     database:
         image: postgres:9.6
