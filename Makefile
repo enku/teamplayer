@@ -19,9 +19,12 @@ $(WHEEL): $(SOURCE)
 test:
 	tox -e py34-django10
 
+docker:
+	docker-compose -f tools/docker/docker-compose.yml up
+
 clean:
 	rm -rf .tox build dist
 	find . -type f -name '*.py[co]' -delete
 
 
-.PHONY: all clean sdist test wheel
+.PHONY: all clean docker sdist test wheel

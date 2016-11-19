@@ -1,0 +1,30 @@
+version: '2'
+services:
+    wsgi:
+        build: teamplayer
+        depends_on:
+            - database
+
+        ports:
+            - "8000-8099:8000-8099"
+
+        environment:
+            - DJANGO_DEBUG=1
+
+    database:
+        image: postgres:9.6
+
+    web:
+        image: nginx
+        depends_on:
+            - wsgi
+
+        ports:
+            - "80:80"
+
+        volumes:
+            - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+        volumes_from:
+            - wsgi:ro
+
