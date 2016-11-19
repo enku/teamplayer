@@ -203,3 +203,31 @@ class TpLibraryWalkTestCase(TestCase):
         expected = os.path.join(
             self.directory, 'Kass\u00e9 Mady Diabat\u00e9 - Ko Kuma Magni.mp3')
         self.assertEqual(songfile.filename, expected)
+
+
+class SearchTest(TestCase):
+    """Tests for the library search view"""
+    def test_finds_song_in_library(self):
+        # given the song in the library
+        songfile = SongFile.objects.create(
+            filename=DATURA,
+            artist='Tori Amos',
+            title='D\u0101tura',
+            album='To Venus and Back',
+            genre='Unknown',
+            length=300,
+            filesize=3000,
+            station_id=1,
+            mimetype='audio/mp3',
+            added_by=Player.dj_ango(),
+        )
+        management.call_command('rebuild_index', interactive=False)
+
+        # when we search the song
+        url = reverse('library_search') + 'q=tori'
+        response = self.client.get(url)
+
+        # then it shows up in the response context
+        context = response.context_data
+        objects = context['object_list']
+        self.assertEqual(objects[0].object, songfile)
