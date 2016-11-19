@@ -1,8 +1,16 @@
 """Tests for the autofill strategies"""
-from django.test import TestCase
+import datetime
+from unittest.mock import patch
 
-from teamplayer.lib.autofill import auto_fill_contiguous, auto_fill_random
-from teamplayer.models import Player, Station
+from django.test import TestCase
+from django.utils import timezone
+
+from teamplayer.lib.autofill import (
+    auto_fill_contiguous,
+    auto_fill_mood,
+    auto_fill_random
+)
+from teamplayer.models import Mood, Player, Station
 from tp_library.models import SongFile
 
 
@@ -137,3 +145,120 @@ class ContiguousTest(AutoFillTest, TestCase):
         # then we get back a list containing the entire queryset in order
         queryset_list = list(queryset)
         self.assertEqual(result, queryset_list)
+
+
+class MoodTest(AutoFillTest, TestCase):
+    """tests for the mood strategy"""
+    def setUp(self):
+        parent = super()
+        parent.setUp()
+
+        station = Station.main_station()
+
+        # let's set the mood ;-)
+        path = 'teamplayer.models.lib.songs.get_similar_artists'
+        patcher = patch(path)
+        get_similar_artists = patcher.start()
+        get_similar_artists.return_value = ['Artist 9', 'Artist 4']
+        Mood.log_mood('Artist 6', station)
+        Mood.log_mood('Artist 6', station)
+        Mood.log_mood('Artist 6', station)
+        get_similar_artists.return_value = ['Artist 4']
+        Mood.log_mood('Artist 7', station)
+        # make the last one kinda old
+        artist7_mood = Mood.objects.get(artist='Artist 7')
+        two_hours_ago = timezone.now() - datetime.timedelta(hours=120)
+        artist7_mood.timestamp = two_hours_ago
+        artist7_mood.save()
+        # Artist 4: 4
+        # Artist 6: 3
+        # Artist 7: 1 but 2 hours ago
+        # Artist 9: 3
+
+        self.addCleanup(patcher.stop)
+
+    def test_finds_top_artists(self):
+        # given the queryset
+        queryset = SongFile.objects.all()
+
+        # when we call the mood strategy with 1 entry needed
+        station = Station.main_station()
+        with patch('teamplayer.lib.autofill.settings') as settings:
+            settings.AUTOFILL_MOOD_TOP_ARTISTS = 1
+            settings.AUTOFILL_MOOD_HISTORY = 86400
+            result = auto_fill_mood(
+                entries_needed=1,
+                queryset=queryset,
+                station=station,
+            )
+
+        # then it gives us the one song by the top artist
+        self.assertEqual(len(result), 1)
+        song = result[0]
+        self.assertEqual(song.artist, 'Artist 4')
+
+    def test_finds_top_artists2(self):
+        # given the queryset
+        queryset = SongFile.objects.all()
+
+        # when we call the mood strategy with 3 entries needed
+        station = Station.main_station()
+        with patch('teamplayer.lib.autofill.settings') as settings:
+            settings.AUTOFILL_MOOD_TOP_ARTISTS = 3
+            settings.AUTOFILL_MOOD_HISTORY = 86400
+            result = auto_fill_mood(
+                entries_needed=3,
+                queryset=queryset,
+                station=station,
+            )
+
+        # then it gives us the songs by the top 3 artists
+        self.assertEqual(len(result), 3)
+        artists = set(i.artist for i in result)
+        self.assertEqual(artists, {'Artist 4', 'Artist 6', 'Artist 9'})
+
+    def test_does_not_return_artist_who_has_no_songs(self):
+        # given the artist who has no songs
+        songs = SongFile.objects.filter(artist='Artist 4')
+        songs.delete()
+
+        # given the queryset
+        queryset = SongFile.objects.all()
+
+        # when we call the mood strategy with 1 entry needed
+        station = Station.main_station()
+        with patch('teamplayer.lib.autofill.settings') as settings:
+            settings.AUTOFILL_MOOD_TOP_ARTISTS = 3
+            settings.AUTOFILL_MOOD_HISTORY = 86400
+            result = auto_fill_mood(
+                entries_needed=1,
+                queryset=queryset,
+                station=station,
+            )
+
+        # then obviouly we don't get the top artist because he has no
+        # songs
+        self.assertEqual(len(result), 1)
+        song = result[0]
+        self.assertNotEqual(song.artist, 'Artist 4')
+
+    def test_returns_random_artist_song_when_not_enough_artists(self):
+        # given the queryset
+        queryset = SongFile.objects.all()
+
+        # when we call the mood strategy with 4 entries needed, but only the
+        # top 3 considered
+        station = Station.main_station()
+        with patch('teamplayer.lib.autofill.settings') as settings:
+            settings.AUTOFILL_MOOD_TOP_ARTISTS = 3
+            settings.AUTOFILL_MOOD_HISTORY = 3600
+            result = auto_fill_mood(
+                entries_needed=4,
+                queryset=queryset,
+                station=station,
+            )
+
+        # then it gives us the songs by the top 3 artists and another artist
+        self.assertEqual(len(result), 4)
+        artists = set(i.artist for i in result)
+        self.assertGreater(artists, {'Artist 4', 'Artist 6', 'Artist 9'})
