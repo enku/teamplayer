@@ -18,11 +18,12 @@ included ``Makefile`` makes this convenient::
 
     $ make docker
 
-See ``tools/docker`` for the build instructions.  You can forgoe the
+See ``tools/docker`` directory for the build instructions.  You can forgoe the
 ``Makefile`` and use the docker-compose recipes manually via, for example::
 
 	$ docker-compose -f tools/docker/docker-compose.yml up
 
+----
 
 .. image:: tools/screenshot.png
     :width: 60%
