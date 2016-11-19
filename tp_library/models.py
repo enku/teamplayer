@@ -1,7 +1,6 @@
 import os
 
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
 from django.db import models
 
 from teamplayer import logger
@@ -85,9 +84,6 @@ class SongFile(models.Model):
         if self.title:
             return '"{0}" by {1}'.format(self.title, self.artist)
         return self.filename
-
-    def get_absolute_url(self):
-        return reverse('library_get_song', args=[str(self.pk)])
 
     def clean(self):
         if self.artist.lower() in ('', 'unknown'):

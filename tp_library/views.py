@@ -66,8 +66,3 @@ class SongSearchView(SearchView):
         return context
 
 song_search = SongSearchView.as_view()
-
-
-def get_song(request, song_id):
-    song = get_object_or_404(SongFile, pk=song_id)
-    return HttpResponse(open(song.filename), content_type=song.mimetype)
