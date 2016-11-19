@@ -26,5 +26,5 @@ See ``tools/docker`` directory for the build instructions.  You can forgoe the
 ----
 
 .. image:: tools/screenshot.png
-    :width: 60%
+    :width: 80%
     :align: center
