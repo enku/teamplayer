@@ -18,8 +18,11 @@ import random
 from django.db.models import Count
 from django.utils import timezone
 
+from teamplayer import logger
 from teamplayer.conf import settings
 from teamplayer.models import Mood
+
+from .songs import artists_from_tags, split_tag_into_words
 
 
 def auto_fill_random(*, queryset, entries_needed, station):
@@ -110,6 +113,33 @@ def auto_fill_mood(*, queryset, entries_needed, station, seconds=None):
             )
 
     songs = liked_songs + additional
+    random.shuffle(songs)
+
+    return songs
+
+
+def auto_fill_from_tags(*, queryset, entries_needed, station):
+    """Return at most `entries_needed` SongFiles with `station`'s tags
+
+    Gets the tags from the `station.name`, gets artists with those tags and
+    then returns random songs from `queryset` that have artists with those
+    tags.
+    """
+    stationname = station.name
+    tags = stationname.split()
+    tags = [split_tag_into_words(i[1:]) for i in tags
+            if i.startswith('#')]
+    logger.debug('Tags: %s' % ', '.join(tags))
+    artists = artists_from_tags(tags)
+    songfiles = queryset.filter(artist__in=artists)
+
+    count = songfiles.count()
+    if count > entries_needed:
+        indices = random.sample(range(count), entries_needed)
+        songs = [songfiles[i] for i in indices]
+    else:
+        songs = list(songfiles)
+
     random.shuffle(songs)
 
     return songs

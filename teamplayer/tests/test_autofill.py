@@ -1,16 +1,20 @@
 """Tests for the autofill strategies"""
 import datetime
-from unittest.mock import patch
+import pickle
+from unittest.mock import MagicMock, Mock, patch
 
 from django.test import TestCase
 from django.utils import timezone
 
+from teamplayer.lib import songs as songslib
 from teamplayer.lib.autofill import (
     auto_fill_contiguous,
+    auto_fill_from_tags,
     auto_fill_mood,
     auto_fill_random
 )
 from teamplayer.models import Mood, Player, Station
+from teamplayer.tests import utils
 from tp_library.models import SongFile
 
 
@@ -262,3 +266,61 @@ class MoodTest(AutoFillTest, TestCase):
         self.assertEqual(len(result), 4)
         artists = set(i.artist for i in result)
         self.assertGreater(artists, {'Artist 4', 'Artist 6', 'Artist 9'})
+
+
+class TagsTest(AutoFillTest, TestCase):
+    """tests for the autofill_from_tags strategy"""
+    def test_auto_fill_from_tags(self):
+        # given the (mock) queryset
+        queryset = MagicMock(name='queryset')
+        queryset.count = Mock(return_value=90)
+        queryset.filter = MagicMock(return_value=queryset)
+
+        # given the player
+        player = Player.objects.create_player('test_player', password='test')
+
+        # given the station with a tag in the name
+        station = Station.objects.create(creator=player, name='#electronic')
+
+        # when we call auto_fill_from_tags()
+        with patch('teamplayer.models.lib.songs.pylast.Tag') as Tag:
+            with utils.getdata('electronic_tags.pickle', 'rb') as fp:
+                tags = pickle.load(fp)
+            Tag().get_top_artists.return_value = tags
+            Tag.reset_mock()
+
+            result = auto_fill_from_tags(
+                entries_needed=3,
+                queryset=queryset,
+                station=station,
+            )
+
+        # then the queryset is filtered on the artists from the tags
+        artists = songslib.artists_from_tags(['electronic'])
+        queryset.filter.assert_called_with(artist__in=artists)
+
+        # and 3 items are returned
+        self.assertEqual(len(result), 3)
+
+    def test_when_more_tagged_songs_than_needed(self):
+        # given queryset
+        queryset = SongFile.objects.all()
+
+        # given the player
+        player = Player.objects.create_player('test_player', password='test')
+
+        # given the station with a tag in the name
+        station = Station.objects.create(creator=player, name='#electronic')
+
+        # when we call auto_fill_from_tags()
+        with patch('teamplayer.lib.autofill.artists_from_tags') as p:
+            p.return_value = ['Artist %d' % i for i in range(10)]
+
+            result = auto_fill_from_tags(
+                entries_needed=20,
+                queryset=queryset,
+                station=station,
+            )
+
+        # then it returns all the songs in the queryset
+        self.assertEqual(set(result), set(queryset))
