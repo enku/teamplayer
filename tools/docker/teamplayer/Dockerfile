@@ -36,7 +36,7 @@ COPY settings.py urls.py /opt/teamplayer/project/
 
 RUN python3 /opt/teamplayer/manage.py collectstatic --noinput
 
-COPY entrypoint /opt/teamplayer
+COPY entrypoint.sh /opt/teamplayer
 
 WORKDIR /opt/teamplayer
 
@@ -44,4 +44,4 @@ VOLUME /opt/teamplayer/static
 
 EXPOSE 8100
 
-CMD ["/opt/teamplayer/entrypoint"]
+CMD ["/opt/teamplayer/entrypoint.sh"]
