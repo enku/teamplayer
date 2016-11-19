@@ -21,7 +21,7 @@ test:
 	tox -e py34-django10
 
 docker:
-	docker-compose -f tools/docker/docker-compose.yml up
+	docker-compose -p teamplayer -f tools/docker/docker-compose.yml up
 
 clean:
 	rm -rf .tox build dist
