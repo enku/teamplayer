@@ -1,7 +1,7 @@
 """Tests for the autofill strategies"""
 from django.test import TestCase
 
-from teamplayer.lib.autofill import auto_fill_random
+from teamplayer.lib.autofill import auto_fill_contiguous, auto_fill_random
 from teamplayer.models import Player, Station
 from tp_library.models import SongFile
 
@@ -86,3 +86,54 @@ class RandomTest(AutoFillTest, TestCase):
         # and they're all unique
         ids = set(song.pk for song in result)
         self.assertEqual(len(ids), 5)
+
+
+class ContiguousTest(AutoFillTest, TestCase):
+    """tests for the contiguous autofill strategy"""
+    def test_empty_queryset_returns_empty_list(self):
+        # given the empty queryset
+        queryset = SongFile.objects.none()
+
+        # when we call the contiguous strategy
+        result = auto_fill_contiguous(
+            entries_needed=10,
+            queryset=queryset,
+            station=Station.main_station(),
+        )
+
+        # then it returns an empty list
+        self.assertEqual(result, [])
+
+    def test_returns_songs_in_queryset_order(self):
+        # given the queryset
+        queryset = SongFile.objects.all()
+
+        # when we call the contiguous strategy
+        result = auto_fill_contiguous(
+            entries_needed=4,
+            queryset=queryset,
+            station=Station.main_station(),
+        )
+
+        # then the songs returned are in the same order as they are in the
+        # queryset
+        queryset_list = list(queryset)
+        index = queryset_list.index(result[0])
+        ordered_songs = queryset_list[index: index + 4]
+        self.assertEqual(result, ordered_songs)
+
+    def test_entries_needed_less_than_queryset_returns_full_set_ordered(self):
+        # given the queryset
+        queryset = SongFile.objects.all()[:5]
+
+        # when we call the contiguous strategy needing more songs than are in
+        # the queryset
+        result = auto_fill_contiguous(
+            entries_needed=20,
+            queryset=queryset,
+            station=Station.main_station(),
+        )
+
+        # then we get back a list containing the entire queryset in order
+        queryset_list = list(queryset)
+        self.assertEqual(result, queryset_list)

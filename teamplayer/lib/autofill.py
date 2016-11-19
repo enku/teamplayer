@@ -33,3 +33,20 @@ def auto_fill_random(*, queryset, entries_needed, station):
         song_files.add(song_file)
 
     return list(song_files)
+
+
+def auto_fill_contiguous(*, queryset, entries_needed, station):
+    """Return at most *entries_needed* SongFiles from the *queryset*.
+
+    The songs are selected randomly but are contiguous among the *queryset*
+    """
+    song_count = queryset.count()
+
+    if not song_count:
+        return []
+
+    min_first_song = max(0, song_count - entries_needed)
+    first_song_idx = random.randint(0, min_first_song)
+    song_files = queryset[first_song_idx:first_song_idx + entries_needed]
+
+    return list(song_files)
