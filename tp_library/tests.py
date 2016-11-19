@@ -102,6 +102,45 @@ class AddToQueueTest(TestCase):
         song = Entry.objects.filter(queue=self.player.queue)
         self.assertEqual(song.count(), 1)
 
+    def test_missing_songfile_sends_error(self):
+        # given the song in the library with a file that doesn't exist
+        song = SongFile.objects.create(
+            filename='bogus_file',
+            artist='TeamPlayer',
+            title='Missing',
+            album='No Purpose',
+            genre='Unknown',
+            length=300,
+            filesize=3000,
+            station_id=1,
+            mimetype='audio/mp3',
+            added_by=Player.dj_ango(),
+        )
+
+        # given the logged in user
+        assert self.client.login(username='test', password='test')
+
+        # when the user attempts to add the song to his queue
+        response = self.client.post(self.url, {'song_id': song.pk})
+
+        # then an error message is return
+        data = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(data, {'error': 'Song could not be located'})
+
+    def test_invalid_submission_sends_error(self):
+        # given the logged in user
+        assert self.client.login(username='test', password='test')
+
+        # when the user attempts to add a song with insufficient data
+        response = self.client.post(self.url, {})  # missing song_id
+
+        # then an error message is return
+        data = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            data,
+            {'error': '* song_id\n  * This field is required.'}
+        )
+
 
 class AddSongWithUTF8Filename(TestCase):
     # The reason why I wrote this test was: It was failing in deployment.  When
