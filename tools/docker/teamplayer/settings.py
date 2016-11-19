@@ -110,6 +110,10 @@ MEDIA_ROOT = '/opt/teamplayer/media'
 
 
 TEAMPLAYER = {
+    'CROSSFADE': 5,
+    'SHAKE_THINGS_UP': 10,
+    'ALWAYS_SHAKE_THINGS_UP': True,
+    'AUTOFILL_STRATEGY': 'mood',
     'MPD_HOME': '/opt/teamplayer/mpd',
     'UPLOADED_LIBRARY_DIR': '/opt/teamplayer/library',
 }
