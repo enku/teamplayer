@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 marduk enterprises <marduk@python.net>
+ * Copyright (c) 2010-2016 marduk enterprises <marduk@python.net>
  *
  */
 
