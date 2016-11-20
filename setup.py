@@ -14,7 +14,7 @@ setup(
         'Django>=1.8,<1.11',
         'django-haystack>=2.5,<2.6',
         'mutagen>=1.29,<1.30',
-        'pylast>=1.2,<1.3',
+        'pylast>=1.6,<1.7',
         'python-mpd2',
         'tornado',
         'djangorestframework>=3.5,<3.6'
