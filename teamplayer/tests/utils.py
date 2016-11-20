@@ -1,12 +1,13 @@
 """Utilities for TeamPlayer unit tests"""
-from io import StringIO
 import os
 import threading
+from io import StringIO
+from unittest.mock import patch
 
 import django.core.files.uploadedfile
 
-import teamplayer.models
 import teamplayer.lib
+import teamplayer.models
 
 Entry = teamplayer.models.Entry
 UploadedFile = django.core.files.uploadedfile.UploadedFile
@@ -36,10 +37,12 @@ class SpinDoctor:
         self.current_player = None
         self.station = teamplayer.models.Station.main_station()
 
-    def next(self):
+    def next(self, similar_artists=None):
         """Emulate one interation of the spin management command loop"""
+        similar_artists = similar_artists or []
         self.current_song = self.previous_song
         players = teamplayer.models.Player.active_players()
+
         if self.previous_song[1] != 'TeamPlayer':
             artist = self.previous_song[1]
         else:
@@ -51,18 +54,24 @@ class SpinDoctor:
             self.previous_player,
             artist
         )
+
         if entry is None:
             self.current_song = self.silence
             self.current_player = None
+
             return self.current_song
+
         self.previous_player = entry.queue.player
         entry.delete()
 
         # log "mood"
-        threading.Thread(
-            target=teamplayer.models.Mood.log_mood,
-            args=(entry.artist, self.station)
-        ).run()
+        with patch('teamplayer.models.lib.songs.get_similar_artists') as gsa:
+            gsa.return_value = similar_artists
+            threading.Thread(
+                target=teamplayer.models.Mood.log_mood,
+                args=(entry.artist, self.station)
+            ).run()
+
         player = self.previous_player
         self.current_song = (player.dj_name, entry.artist, entry.title, 15, 0)
         self.current_player = player

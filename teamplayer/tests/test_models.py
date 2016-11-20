@@ -910,15 +910,15 @@ class QueueMasterTestCase(TestCase):
         player.auto_mode = True
         player.save()
 
-        current = self.spin.next()  # should play "Purple Rain"
+        current = self.spin.next(['The Time'])  # should play "Purple Rain"
         self.assertEqual(current[1], 'Prince')
 
-        current = self.spin.next(
-        )  # should preempt Metallica and play The Time
+        # should preempt Metallica and play The Time
+        current = self.spin.next(['Prince'])
         self.assertEqual(current[1], 'The Time')
 
-        current = self.spin.next(
-        )  # should preempt Metallica and play The Time
+        # should preempt Metallica and play The Time
+        current = self.spin.next()
         self.assertEqual(current[1], 'Metallica')
 
 

@@ -76,7 +76,9 @@ class LogMoodTest(TestCase):
         }
 
         # when we call log_mood
-        async.log_mood(sender=station, current_song=song_info)
+        with patch('teamplayer.models.lib.songs.get_similar_artists') as gsa:
+            gsa.return_value = []
+            async.log_mood(sender=station, current_song=song_info)
 
         # then a mood is added
         query = Mood.objects.filter(artist='Madonna', station=station)
