@@ -1,8 +1,6 @@
 """Unit tests for the TeamPlayer Django app"""
-import datetime
 import json
 import os
-import pickle
 from io import BytesIO
 from tempfile import TemporaryDirectory
 from unittest import mock
@@ -11,12 +9,8 @@ import django.contrib.auth.models
 import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
-from django.core.files import File
-from django.utils import timezone
 
-from teamplayer.conf import settings
-from teamplayer.lib import songs
-from teamplayer.models import Entry, Mood, Player, Queue, Station
+from teamplayer.models import Entry, Mood, Player, Station
 from teamplayer.tests import utils
 from tp_library.models import SongFile
 
@@ -203,140 +197,6 @@ class QueueTestCase(TestCase):
         new_status = queue.active
         self.assertNotEqual(new_status, original_status)
 
-    def test_auto_fill_mood(self):
-        # given the set of songs in our library
-        songs = (
-            ('Madonna', 'True Blue'),
-            ('Sleigh Bells', 'End of the Line'),
-            ('The Love Language', 'Heart to Tell'),
-            ('Pace is the Trick', 'Interpol'),
-            ('Wander (Through the Night)', 'The B of the Bang'),
-            ('Lord We Ganstas', 'Slipstick'),
-            ('Grammy', 'Purity Ring'),
-            ('Bullet in the Head', 'Gvcci Hvcci')
-        )
-        dj_ango = Player.dj_ango()
-        main_station = Station.main_station()
-        for song in songs:
-            SongFile.objects.create(
-                artist=song[0],
-                title=song[1],
-                filename='{0}-{1}.mp3'.format(*song),
-                filesize=80000,
-                album="Marduk's Mix Tape",
-                genre="Unknown",
-                station_id=main_station.pk,
-                added_by=dj_ango,
-            )
-
-        # and the current mood
-        Mood.objects.create(station=main_station, artist='Sleigh Bells')
-        Mood.objects.create(station=main_station, artist='Crystal Castles')
-        Mood.objects.create(station=main_station, artist='Sleigh Bells')
-        Mood.objects.create(station=main_station, artist='Prince')
-        Mood.objects.create(station=main_station, artist='Prince')
-        Mood.objects.create(station=main_station, artist='Prince')
-
-        # when we call Queue.auto_fill_mood()
-        qs = SongFile.objects.all()
-        needed = 2
-        result = list(Queue.auto_fill_mood(qs, needed))
-
-        # Then we get the expected two songs
-        self.assertEqual(len(result), 2)
-
-        # And the first song should be Sleigh Bells
-        self.assertEqual(result[0].artist, 'Sleigh Bells')
-
-        # And the second artists should be random but not the sleigh bells song
-        self.assertNotEqual(result[1].artist, 'Sleigh Bells')
-
-    def test_auto_fill_mood_recurses(self):
-        # given the set of songs in our library
-        songs = (
-            ('Madonna', 'True Blue'),
-            ('Sleigh Bells', 'End of the Line'),
-            ('The Love Language', 'Heart to Tell'),
-            ('Pace is the Trick', 'Interpol'),
-            ('Wander (Through the Night)', 'The B of the Bang'),
-            ('Lord We Ganstas', 'Slipstick'),
-            ('Grammy', 'Purity Ring'),
-            ('Bullet in the Head', 'Gvcci Hvcci')
-        )
-        dj_ango = Player.dj_ango()
-        main_station = Station.main_station()
-        for song in songs:
-            SongFile.objects.create(
-                artist=song[0],
-                title=song[1],
-                filename='{0}-{1}.mp3'.format(*song),
-                filesize=80000,
-                album="Marduk's Mix Tape",
-                genre="Unknown",
-                station_id=main_station.pk,
-                added_by=dj_ango,
-            )
-
-        # Given the current mood
-        now = timezone.now()
-        one_hour_ago = now - datetime.timedelta(seconds=3600)
-        Mood.objects.create(
-            station=main_station, artist='Sleigh Bells', timestamp=now)
-        Mood.objects.create(
-            station=main_station, artist='Prince', timestamp=one_hour_ago)
-
-        # when we call Queue.auto_fill_mood()
-        qs = SongFile.objects.all()
-        needed = 2
-        result = list(Queue.auto_fill_mood(qs, needed, seconds=900))
-
-        # Then we get the expected two songs
-        self.assertEqual(len(result), 2)
-
-        # And the first song should be Sleigh Bells
-        self.assertEqual(result[0].artist, 'Sleigh Bells')
-
-        # And the second should be Prince because he's not the current mood but
-        # was on the last hour
-        self.assertNotEqual(result[1].artist, 'Prince')
-
-    def test_auto_fill_mood_not_recurses(self):
-        # given the set of songs in our library
-        songs = (
-            ('Madonna', 'True Blue'),
-            ('Sleigh Bells', 'End of the Line'),
-            ('The Love Language', 'Heart to Tell'),
-            ('Pace is the Trick', 'Interpol'),
-            ('Wander (Through the Night)', 'The B of the Bang'),
-            ('Lord We Ganstas', 'Slipstick'),
-            ('Grammy', 'Purity Ring'),
-            ('Bullet in the Head', 'Gvcci Hvcci')
-        )
-        dj_ango = Player.dj_ango()
-        main_station = Station.main_station()
-        for song in songs:
-            SongFile.objects.create(
-                artist=song[0],
-                title=song[1],
-                filename='{0}-{1}.mp3'.format(*song),
-                filesize=80000,
-                album="Marduk's Mix Tape",
-                genre="Unknown",
-                station_id=main_station.pk,
-                added_by=dj_ango,
-            )
-
-        # given no mood
-        assert not Mood.objects.all().exists()
-
-        # when we call Queue.auto_fill_mood()
-        qs = SongFile.objects.all()
-        needed = 2
-        result = list(Queue.auto_fill_mood(qs, needed, seconds=900))
-
-        # Then we get the expected two songs even if there was no mood
-        self.assertEqual(len(result), 2)
-
     def test_randomize_no_repeats(self):
         Entry.objects.all().delete()
         # given the queue
@@ -407,82 +267,6 @@ class QueueAutoFill(TestCase):
         # then we don't get our 301-second songfile
         self.assertEqual(queue.entry_set.count(), 0)
 
-    def test_auto_fill_contiguous(self):
-        # given the queue
-        queue = self.dj_ango.queue
-
-        # given the setting to use contiguous
-        with patch.object(settings, 'AUTOFILL_STRATEGY', 'contiguous'):
-            # when we call auto_fill()
-            with patch('teamplayer.models.Queue.auto_fill_contiguous') \
-                    as auto_fill_contiguous:
-                auto_fill_contiguous.return_value = [self.songfile] * 10
-                queue.auto_fill(10)
-
-        # then it calls auto_fill_contiguous
-        self.assertTrue(auto_fill_contiguous.called)
-
-        # and the requested songs get added
-        self.assertEqual(queue.entry_set.count(), 10)
-
-    def test_auto_fill_mood(self):
-        # given the queue
-        queue = self.dj_ango.queue
-
-        # given the setting to use mood
-        with patch.object(settings, 'AUTOFILL_STRATEGY', 'mood'):
-            # when we call auto_fill()
-            with patch('teamplayer.models.Queue.auto_fill_mood') \
-                    as auto_fill_mood:
-                auto_fill_mood.return_value = [self.songfile] * 10
-                queue.auto_fill(10)
-
-        # then it calls auto_fill_mood
-        self.assertTrue(auto_fill_mood.called)
-
-        # and the requested songs get added
-        self.assertEqual(queue.entry_set.count(), 10)
-
-    def test_auto_fill_random(self):
-        # given the queue
-        queue = self.dj_ango.queue
-
-        # given the setting to use random
-        with patch.object(settings, 'AUTOFILL_STRATEGY', 'random'):
-            # when we call auto_fill()
-            with patch('teamplayer.models.Queue.auto_fill_random') \
-                    as auto_fill_random:
-                auto_fill_random.return_value = [self.songfile] * 10
-                queue.auto_fill(10)
-
-        # then it calls auto_fill_random
-        self.assertTrue(auto_fill_random.called)
-
-        # and the requested songs get added
-        self.assertEqual(queue.entry_set.count(), 10)
-
-    def test_auto_fill_already_has_enough_entries(self):
-        # given the queue that already has 10 entries
-        queue = self.dj_ango.queue
-        fp = File(open(self.songfile.filename, 'rb'))
-        for i in range(10):
-            queue.add_song(fp, self.station)
-        self.assertEqual(queue.entry_set.count(), 10)
-
-        # given the setting to use random
-        with patch.object(settings, 'AUTOFILL_STRATEGY', 'random'):
-            # when we call auto_fill()
-            with patch('teamplayer.models.Queue.auto_fill_random') \
-                    as auto_fill_random:
-                auto_fill_random.return_value = [self.songfile] * 10
-                queue.auto_fill(10)
-
-        # then it doesn't even bother to call auto_fill_random
-        self.assertTrue(not auto_fill_random.called)
-
-        # and no new songs get added
-        self.assertEqual(queue.entry_set.count(), 10)
-
     def test_auto_fill_user_station_with_hashtag(self):
         # given the player
         player = Player.objects.create_player('test', password='***')
@@ -491,14 +275,15 @@ class QueueAutoFill(TestCase):
         station = Station.objects.create(creator=player, name='#electronic')
 
         # when we call auto_fill() with the station
-        with patch('teamplayer.models.Queue.auto_fill_from_tags') \
+        with patch('teamplayer.lib.autofill.auto_fill_from_tags') \
                 as auto_fill_from_tags:
             auto_fill_from_tags.return_value = [self.songfile] * 10
             player.queue.auto_fill(10, station=station)
 
         # then it calls auto_fill_from_tags()
         args, kwargs = auto_fill_from_tags.call_args
-        self.assertEqual(args[1:], (10, station))
+        self.assertEqual(kwargs['entries_needed'], 10)
+        self.assertEqual(kwargs['station'], station)
 
         # and addes entries to the queue
         self.assertEqual(player.queue.entry_set.count(), 10)
@@ -511,7 +296,7 @@ class QueueAutoFill(TestCase):
         station = Station.objects.create(creator=player, name='my station')
 
         # when we call auto_fill() with the station
-        with patch('teamplayer.models.Queue.auto_fill_from_tags') \
+        with patch('teamplayer.lib.autofill.auto_fill_from_tags') \
                 as auto_fill_from_tags:
             auto_fill_from_tags.return_value = [self.songfile] * 10
             player.queue.auto_fill(10, station=station)
@@ -549,34 +334,6 @@ class QueueAutoFill(TestCase):
                 qs_filter={'length__lt': 600}
             )
             self.assertEqual(queue.entry_set.count(), 5)
-
-    def test_auto_fill_from_tags(self):
-        # given the (mock) queryset
-        queryset = mock.MagicMock(name='queryset')
-        queryset.count = mock.Mock(return_value=90)
-        queryset.filter = mock.MagicMock(return_value=queryset)
-
-        # given the player
-        player = Player.objects.create_player('test_player', password='test')
-
-        # given the station with a tag in the name
-        station = Station.objects.create(creator=player, name='#electronic')
-
-        # when we call auto_fill_from_tags()
-        with patch('teamplayer.models.lib.songs.pylast.Tag') as Tag:
-            with utils.getdata('electronic_tags.pickle', 'rb') as fp:
-                tags = pickle.load(fp)
-            Tag().get_top_artists.return_value = tags
-            Tag.reset_mock()
-
-            result = Queue.auto_fill_from_tags(queryset, 3, station)
-
-        # then the queryset is filtered on the artists from the tags
-        artists = songs.artists_from_tags(['electronic'])
-        queryset.filter.assert_called_with(artist__in=artists)
-
-        # and 3 items are returned
-        self.assertEqual(len(result), 3)
 
 
 class StationManagerTest(TestCase):
