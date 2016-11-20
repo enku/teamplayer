@@ -70,8 +70,7 @@ def auto_fill_mood(*, queryset, entries_needed, station, seconds=None):
     num_top_artists = settings.AUTOFILL_MOOD_TOP_ARTISTS
     seconds = seconds or settings.AUTOFILL_MOOD_HISTORY
     history = timezone.now() - datetime.timedelta(seconds=seconds)
-    top_artists = Mood.objects.filter(timestamp__gte=history,
-                                        station=station)
+    top_artists = Mood.objects.filter(timestamp__gte=history, station=station)
     top_artists = top_artists.exclude(artist='')
     top_artists = top_artists.values('artist')
     top_artists = top_artists.annotate(Count('id'))
