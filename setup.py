@@ -19,4 +19,11 @@ setup(
         'tornado',
         'djangorestframework>=3.5,<3.6'
     ],
+    entry_points={
+        'teamplayer.autofill_strategy': [
+            'contiguous = teamplayer.lib.autofill:auto_fill_contiguous',
+            'mood = teamplayer.lib.autofill:auto_fill_mood',
+            'random = teamplayer.lib.autofill:auto_fill_random',
+        ],
+    },
 )
