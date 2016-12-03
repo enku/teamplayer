@@ -15,10 +15,8 @@ from teamplayer.models import Entry, Player, Station
 from tp_library.models import SongFile
 
 __dir__ = os.path.dirname(__file__)
-SILENCE = os.path.join(__dir__, '..', 'teamplayer', 'tests', 'data',
-                       'silence.mp3')
-DATURA = os.path.join(__dir__, '..', 'teamplayer', 'tests', 'data',
-                      'd\u0101tura.mp3')  # dātura.mp3
+SILENCE = os.path.join(__dir__, 'data', 'silence.mp3')
+DATURA = os.path.join(__dir__,  'data', 'd\u0101tura.mp3')  # dātura.mp3
 
 
 class SongFileTest(TestCase):
