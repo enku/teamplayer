@@ -1,6 +1,6 @@
 from haystack import indexes
 
-from tp_library.models import LibraryItem
+from .models import LibraryItem
 
 
 class LibraryItemIndex(indexes.SearchIndex, indexes.Indexable):

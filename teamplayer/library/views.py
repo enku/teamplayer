@@ -8,10 +8,11 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
 from haystack.generic_views import SearchView
 from haystack.query import SearchQuerySet
+
 from teamplayer.lib.websocket import IPCHandler
 from teamplayer.library.forms import AddToQueueForm
+from teamplayer.models import LibraryItem
 from teamplayer.serializers import EntrySerializer
-from tp_library.models import LibraryItem
 
 
 @login_required

@@ -6,8 +6,7 @@ from mutagen import File
 
 from teamplayer import logger
 from teamplayer.lib import attempt_file_rename
-from teamplayer.models import Player, Station
-from tp_library.models import LibraryItem
+from teamplayer.models import LibraryItem, Player, Station
 
 # Because Python 3 sucks:
 os.environ.setdefault('LANG', 'en_US.UTF-8')

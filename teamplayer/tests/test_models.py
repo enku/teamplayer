@@ -10,9 +10,8 @@ import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
 
-from teamplayer.models import Entry, Mood, Player, Station
+from teamplayer.models import Entry, LibraryItem, Mood, Player, Station
 from teamplayer.tests import utils
-from tp_library.models import LibraryItem
 
 SILENCE = utils.SILENCE
 SpinDoctor = utils.SpinDoctor

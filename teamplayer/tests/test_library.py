@@ -11,8 +11,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from mutagen import File
 
-from teamplayer.models import Entry, Player, Station
-from tp_library.models import LibraryItem
+from teamplayer.models import Entry, LibraryItem, Player, Station
 
 __dir__ = os.path.dirname(__file__)
 SILENCE = os.path.join(__dir__, 'data', 'silence.mp3')

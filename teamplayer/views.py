@@ -29,13 +29,12 @@ from teamplayer.forms import (
 from teamplayer.lib import mktemp_file_from_request, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.websocket import IPCHandler
-from teamplayer.models import Entry, Player, Station
+from teamplayer.models import Entry, LibraryItem, Player, Station
 from teamplayer.serializers import (
     EntrySerializer,
     PlayerSerializer,
     StationSerializer
 )
-from tp_library.models import LibraryItem
 
 
 class HttpResponseNoContent(HttpResponse):
