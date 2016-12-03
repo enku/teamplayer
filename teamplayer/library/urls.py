@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-from teamplayer.library import views
+from . import views
 
 urlpatterns = [
     url(r'^search/', views.song_search, name='library_search'),

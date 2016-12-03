@@ -1,5 +1,5 @@
 """TeamPlayer URL dispatcher"""
-from django.conf.urls import url
+from django.conf.urls import include, url
 
 from . import views
 
@@ -35,4 +35,5 @@ urlpatterns = [
     url(r'^station/next', views.next_station, name='next_station'),
     url(r'^station/edit', views.edit_station, name='edit_station'),
     url(r'^station/create', views.create_station, name='create_station'),
+    url(r'^library/', include('teamplayer.library.urls')),
 ]
