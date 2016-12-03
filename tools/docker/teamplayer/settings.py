@@ -102,7 +102,7 @@ HAYSTACK_CONNECTIONS = {
     },
 }
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
-HAYSTACK_CUSTOM_HIGHLIGHTER = 'tp_library.Highlighter'
+HAYSTACK_CUSTOM_HIGHLIGHTER = 'teamplayer.library.Highlighter'
 
 AUTH_PROFILE_MODULE = 'teamplayer.UserProfile'
 
