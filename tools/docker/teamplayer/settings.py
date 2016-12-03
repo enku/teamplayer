@@ -19,7 +19,6 @@ INSTALLED_APPS = [
     'haystack',
     'rest_framework',
     'teamplayer',
-    'tp_library',
 ]
 
 MIDDLEWARE = [

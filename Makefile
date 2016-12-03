@@ -3,7 +3,7 @@ VERSION = $(shell python -c 'import teamplayer; print(teamplayer.version_string(
 
 SDIST = dist/TeamPlayer-$(VERSION).tar.gz
 WHEEL = dist/TeamPlayer-$(VERSION)-py3-none-any.whl
-SOURCE = setup.py teamplayer tp_library MANIFEST.in
+SOURCE = setup.py teamplayer MANIFEST.in
 
 export DJANGO_DEBUG
 
