@@ -89,7 +89,7 @@ class AddToQueueTest(TestCase):
         self.url = reverse('library_add_to_queue')
         self.player = Player.objects.create_player('test', password='test')
 
-    @patch('tp_library.views.IPCHandler.send_message')
+    @patch('teamplayer.library.views.IPCHandler.send_message')
     def test_add_to_queue(self, mock):
         """add_to_queue view"""
         self.client.login(username='test', password='test')
@@ -166,7 +166,7 @@ class AddSongWithUTF8Filename(TestCase):
         self.url = reverse('library_add_to_queue')
         self.player = Player.objects.create_player('test', password='test')
 
-    @patch('tp_library.views.IPCHandler.send_message')
+    @patch('teamplayer.library.views.IPCHandler.send_message')
     def test_add_utf8_filename(self, mock):
         self.client.login(username='test', password='test')
         response = self.client.post(self.url, {'song_id': self.datura.pk})
