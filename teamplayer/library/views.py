@@ -11,7 +11,7 @@ from haystack.query import SearchQuerySet
 from teamplayer.lib.websocket import IPCHandler
 from teamplayer.library.forms import AddToQueueForm
 from teamplayer.serializers import EntrySerializer
-from tp_library.models import SongFile
+from tp_library.models import LibraryItem
 
 
 @login_required
@@ -26,7 +26,7 @@ def add_to_queue(request):
     if form.is_valid():
         songfile_id = form.cleaned_data['song_id']
 
-        songfile = get_object_or_404(SongFile, pk=songfile_id)
+        songfile = get_object_or_404(LibraryItem, pk=songfile_id)
 
         if not os.path.exists(songfile.filename):
             return HttpResponse(

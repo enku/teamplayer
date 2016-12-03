@@ -22,7 +22,7 @@ from teamplayer.lib import (
     signals
 )
 from teamplayer.serializers import StationSerializer
-from tp_library.models import SongFile
+from tp_library.models import LibraryItem
 
 
 class SocketHandler(tornado.websocket.WebSocketHandler):
@@ -298,7 +298,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
             os.unlink(fullpath)
 
         try:
-            songfile, created = SongFile.metadata_get_or_create(
+            songfile, created = LibraryItem.metadata_get_or_create(
                 fullpath, metadata, entry.queue.player, entry.station.pk)
         except ValidationError as error:
             msg = 'Error adding file to library: %s' % str(error)

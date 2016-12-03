@@ -12,14 +12,14 @@ from django.test import TestCase
 from mutagen import File
 
 from teamplayer.models import Entry, Player, Station
-from tp_library.models import SongFile
+from tp_library.models import LibraryItem
 
 __dir__ = os.path.dirname(__file__)
 SILENCE = os.path.join(__dir__, 'data', 'silence.mp3')
 DATURA = os.path.join(__dir__,  'data', 'd\u0101tura.mp3')  # dātura.mp3
 
 
-class SongFileTest(TestCase):
+class LibraryItemTest(TestCase):
     def setUp(self):
         self.dj_ango = Player.dj_ango()
         self.station = Station.main_station()
@@ -27,14 +27,14 @@ class SongFileTest(TestCase):
     def test_not_exists(self):
         """Demonstrate the exists() for nonexistant files method."""
         # given the song pointing to a non-existant file
-        song = SongFile(
+        song = LibraryItem(
             filename='/this/path/does/not/exist',
             artist='DJ Ango',
             title='No Such File',
             length=300,
         )
 
-        # when we call exist() on the SongFile
+        # when we call exist() on the LibraryItem
         exists = song.exists()
 
         # then we get false
@@ -43,21 +43,21 @@ class SongFileTest(TestCase):
     def test_exists(self):
         """Demonstrate the exists() for existant files method."""
         # given the song pointing to a non-existant file
-        song = SongFile(
+        song = LibraryItem(
             filename='/dev/null',  # yeah, i know this is bad
             artist='DJ Ango',
             title='No Such File',
             length=300,
         )
 
-        # when we call exist() on the SongFile
+        # when we call exist() on the LibraryItem
         exists = song.exists()
 
         # then we get true
         self.assertTrue(exists)
 
     def test_artist_is_unknown(self):
-        # given the songfile with artist='unknown'
+        # given the LibraryItem
         metadata = File(SILENCE, easy=True)
         metadata['artist'] = 'unknown'
         contributor = self.dj_ango
@@ -66,13 +66,13 @@ class SongFileTest(TestCase):
         # then it raises ValidationError
         with self.assertRaises(ValidationError):
             # when we call metadata_get_or_create()
-            song, created = SongFile.metadata_get_or_create(
+            song, created = LibraryItem.metadata_get_or_create(
                 '/dev/null', metadata, contributor, station_id)
 
 
 class AddToQueueTest(TestCase):
     def setUp(self):
-        self.song = SongFile.objects.create(
+        self.song = LibraryItem.objects.create(
             filename=SILENCE,
             artist='TeamPlayer',
             title='Station Break',
@@ -100,9 +100,9 @@ class AddToQueueTest(TestCase):
         song = Entry.objects.filter(queue=self.player.queue)
         self.assertEqual(song.count(), 1)
 
-    def test_missing_songfile_sends_error(self):
+    def test_missing_library_item_sends_error(self):
         # given the song in the library with a file that doesn't exist
-        song = SongFile.objects.create(
+        song = LibraryItem.objects.create(
             filename='bogus_file',
             artist='TeamPlayer',
             title='Missing',
@@ -149,7 +149,7 @@ class AddSongWithUTF8Filename(TestCase):
     # version it suddenly started to work... wtf.  If it happens again I'll
     # have to come back to this and revise the test.
     def setUp(self):
-        self.datura = SongFile.objects.create(
+        self.datura = LibraryItem.objects.create(
             filename=DATURA,
             artist='Tori Amos',
             title='D\u0101tura',
@@ -201,7 +201,7 @@ class TpLibraryWalkTestCase(TestCase):
         management.call_command('tplibrarywalk', self.directory)
 
         # Then it succeeds, but we just don't get any files
-        self.assertEqual(SongFile.objects.all().count(), 0)
+        self.assertEqual(LibraryItem.objects.all().count(), 0)
 
     def test_unencodable_filename(self):
         filename = 'Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3'
@@ -219,7 +219,7 @@ class TpLibraryWalkTestCase(TestCase):
         management.call_command('tplibrarywalk', self.directory)
 
         # Then it succeeds, but we just don't get any files
-        self.assertEqual(SongFile.objects.all().count(), 0)
+        self.assertEqual(LibraryItem.objects.all().count(), 0)
 
     def test_unencodable_filename_rename(self):
         filename = 'Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3'
@@ -234,9 +234,9 @@ class TpLibraryWalkTestCase(TestCase):
             'tplibrarywalk', self.directory, rename=True)
 
         # Then it succeeds and the file is renamed
-        self.assertEqual(SongFile.objects.all().count(), 1)
+        self.assertEqual(LibraryItem.objects.all().count(), 1)
 
-        songfile = SongFile.objects.all()[0]
+        songfile = LibraryItem.objects.all()[0]
         expected = os.path.join(
             self.directory, 'Kass\u00e9 Mady Diabat\u00e9 - Ko Kuma Magni.mp3')
         self.assertEqual(songfile.filename, expected)
@@ -246,7 +246,7 @@ class SearchTest(TestCase):
     """Tests for the library search view"""
     def test_finds_song_in_library(self):
         # given the song in the library
-        songfile = SongFile.objects.create(
+        songfile = LibraryItem.objects.create(
             filename=DATURA,
             artist='Tori Amos',
             title='D\u0101tura',

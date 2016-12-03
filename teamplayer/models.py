@@ -110,7 +110,7 @@ class Queue(models.Model):
 
         If ``station`` is not provided it defaults to the "Main Station".
 
-        ``qs_fitler`` is a dict to apply to SongFile.objects.filter().
+        ``qs_fitler`` is a dict to apply to LibraryItem.objects.filter().
         If not provided it defaults to {}
 
         Note this is intented to only be used for the "DJ Ango" queue
@@ -118,7 +118,7 @@ class Queue(models.Model):
         """
         # to avoid circular imports
         from teamplayer.lib.autofill import auto_fill_from_tags
-        from tp_library.models import SongFile
+        from tp_library.models import LibraryItem
 
         qs_filter = qs_filter or {}
 
@@ -130,7 +130,7 @@ class Queue(models.Model):
             return
         entries_needed = max_entries - entries_count
 
-        song_files = SongFile.objects.filter(**qs_filter)
+        song_files = LibraryItem.objects.filter(**qs_filter)
 
         if station != Station.main_station():
             if '#' not in station.name:
@@ -158,7 +158,7 @@ class Queue(models.Model):
                 fp = File(open(songfile.filename, 'rb'))
                 self.add_song(fp, station)
             except Exception:
-                logger.error('auto_fill exception: SongFile(%s)',
+                logger.error('auto_fill exception: LibraryItem(%s)',
                              songfile.pk,
                              exc_info=True)
         if song_files:

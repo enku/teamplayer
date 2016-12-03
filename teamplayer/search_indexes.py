@@ -1,9 +1,9 @@
 from haystack import indexes
 
-from tp_library.models import SongFile
+from tp_library.models import LibraryItem
 
 
-class SongFileIndex(indexes.SearchIndex, indexes.Indexable):
+class LibraryItemIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
     artist = indexes.CharField(model_attr='artist')
     title = indexes.CharField(model_attr='title')
@@ -11,4 +11,4 @@ class SongFileIndex(indexes.SearchIndex, indexes.Indexable):
     genre = indexes.CharField(model_attr='genre', null=True)
 
     def get_model(self):
-        return SongFile
+        return LibraryItem

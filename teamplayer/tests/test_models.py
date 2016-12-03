@@ -12,7 +12,7 @@ import django.test
 
 from teamplayer.models import Entry, Mood, Player, Station
 from teamplayer.tests import utils
-from tp_library.models import SongFile
+from tp_library.models import LibraryItem
 
 SILENCE = utils.SILENCE
 SpinDoctor = utils.SpinDoctor
@@ -245,8 +245,8 @@ class QueueAutoFill(TestCase):
         self.dj_ango = Player.dj_ango()
         self.station = Station.main_station()
 
-        # create a SongFile
-        self.songfile = SongFile.objects.create(
+        # create a LibraryItem
+        self.songfile = LibraryItem.objects.create(
             filename=SILENCE,
             filesize=500,
             station_id=self.station.pk,
@@ -317,7 +317,7 @@ class QueueAutoFill(TestCase):
                 filename = '{0}.mp3'.format(i)
                 fullpath = os.path.join(tempdir, filename)
                 open(fullpath, 'wb').write(silence)
-                SongFile.objects.create(
+                LibraryItem.objects.create(
                     filename=fullpath,
                     artist='DJ Ango',
                     title='Song {0}'.format(i),
@@ -327,7 +327,7 @@ class QueueAutoFill(TestCase):
                     added_by=self.dj_ango,
                     length=301,
                 )
-            self.assertEqual(SongFile.objects.count(), 11)
+            self.assertEqual(LibraryItem.objects.count(), 11)
             queue.auto_fill(
                 max_entries=5,
                 station=self.station,
@@ -374,7 +374,7 @@ class StationManagerTest(TestCase):
             for data in song_data:
                 filename = os.path.join(tempdir, '{0}-{1}.mp3'.format(*data))
                 open(filename, 'wb').write(silence)
-                song = SongFile.objects.create(
+                song = LibraryItem.objects.create(
                     artist=data[0],
                     title=data[1],
                     filename=filename,

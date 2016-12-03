@@ -35,7 +35,7 @@ from teamplayer.serializers import (
     PlayerSerializer,
     StationSerializer
 )
-from tp_library.models import SongFile
+from tp_library.models import LibraryItem
 
 
 class HttpResponseNoContent(HttpResponse):
@@ -432,7 +432,7 @@ def create_station(request):
 
 def about(request):
     """about/copyright page"""
-    query = SongFile.objects.aggregate(Count('title'), Sum('filesize'))
+    query = LibraryItem.objects.aggregate(Count('title'), Sum('filesize'))
 
     return render(
         request,

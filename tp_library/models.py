@@ -8,7 +8,7 @@ from teamplayer.lib import first_or_none, songs
 from teamplayer.models import Player
 
 
-class SongFile(models.Model):
+class LibraryItem(models.Model):
     objects = models.Manager()
 
     filename = models.TextField(unique=True)

@@ -7,7 +7,7 @@ from mutagen import File
 from teamplayer import logger
 from teamplayer.lib import attempt_file_rename
 from teamplayer.models import Player, Station
-from tp_library.models import SongFile
+from tp_library.models import LibraryItem
 
 # Because Python 3 sucks:
 os.environ.setdefault('LANG', 'en_US.UTF-8')
@@ -98,7 +98,7 @@ class Command(BaseCommand):
                 continue
 
             try:
-                songfile, created = SongFile.metadata_get_or_create(
+                songfile, created = LibraryItem.metadata_get_or_create(
                     fullpath,
                     metadata,
                     player,

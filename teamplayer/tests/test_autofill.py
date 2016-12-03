@@ -15,7 +15,7 @@ from teamplayer.lib.autofill import (
 )
 from teamplayer.models import Mood, Player, Station
 from teamplayer.tests import utils
-from tp_library.models import SongFile
+from tp_library.models import LibraryItem
 
 
 class AutoFillTest:
@@ -28,7 +28,7 @@ class AutoFillTest:
 
         # let's fill the library with some songage
         for i in range(10):
-            songfile = SongFile(
+            songfile = LibraryItem(
                 filename='song{}.mp3'.format(i),
                 artist='Artist {}'.format(i),
                 title='Track {}'.format(i),
@@ -47,7 +47,7 @@ class RandomTest(AutoFillTest, TestCase):
     """tests for the random autofill strategy"""
     def test_empty_queryset_returns_empty_list(self):
         # given the empty queryset
-        queryset = SongFile.objects.none()
+        queryset = LibraryItem.objects.none()
 
         # when we call the random strategy
         result = auto_fill_random(
@@ -61,7 +61,7 @@ class RandomTest(AutoFillTest, TestCase):
 
     def test_queryset_less_than_needed_returns_entire_queryset(self):
         # given the queryset
-        queryset = SongFile.objects.all()[:5]
+        queryset = LibraryItem.objects.all()[:5]
 
         # given the number of entries needed
         entries_needed = 30
@@ -80,7 +80,7 @@ class RandomTest(AutoFillTest, TestCase):
 
     def test_queryset_more_than_needed_returns_only_needed(self):
         # given the queryset
-        queryset = SongFile.objects.all()
+        queryset = LibraryItem.objects.all()
 
         # given the number of entries needed
         entries_needed = 5
@@ -104,7 +104,7 @@ class ContiguousTest(AutoFillTest, TestCase):
     """tests for the contiguous autofill strategy"""
     def test_empty_queryset_returns_empty_list(self):
         # given the empty queryset
-        queryset = SongFile.objects.none()
+        queryset = LibraryItem.objects.none()
 
         # when we call the contiguous strategy
         result = auto_fill_contiguous(
@@ -118,7 +118,7 @@ class ContiguousTest(AutoFillTest, TestCase):
 
     def test_returns_songs_in_queryset_order(self):
         # given the queryset
-        queryset = SongFile.objects.all()
+        queryset = LibraryItem.objects.all()
 
         # when we call the contiguous strategy
         result = auto_fill_contiguous(
@@ -136,7 +136,7 @@ class ContiguousTest(AutoFillTest, TestCase):
 
     def test_entries_needed_less_than_queryset_returns_full_set_ordered(self):
         # given the queryset
-        queryset = SongFile.objects.all()[:5]
+        queryset = LibraryItem.objects.all()[:5]
 
         # when we call the contiguous strategy needing more songs than are in
         # the queryset
@@ -183,7 +183,7 @@ class MoodTest(AutoFillTest, TestCase):
 
     def test_finds_top_artists(self):
         # given the queryset
-        queryset = SongFile.objects.all()
+        queryset = LibraryItem.objects.all()
 
         # when we call the mood strategy with 1 entry needed
         station = Station.main_station()
@@ -203,7 +203,7 @@ class MoodTest(AutoFillTest, TestCase):
 
     def test_finds_top_artists2(self):
         # given the queryset
-        queryset = SongFile.objects.all()
+        queryset = LibraryItem.objects.all()
 
         # when we call the mood strategy with 3 entries needed
         station = Station.main_station()
@@ -223,11 +223,11 @@ class MoodTest(AutoFillTest, TestCase):
 
     def test_does_not_return_artist_who_has_no_songs(self):
         # given the artist who has no songs
-        songs = SongFile.objects.filter(artist='Artist 4')
+        songs = LibraryItem.objects.filter(artist='Artist 4')
         songs.delete()
 
         # given the queryset
-        queryset = SongFile.objects.all()
+        queryset = LibraryItem.objects.all()
 
         # when we call the mood strategy with 1 entry needed
         station = Station.main_station()
@@ -248,7 +248,7 @@ class MoodTest(AutoFillTest, TestCase):
 
     def test_returns_random_artist_song_when_not_enough_artists(self):
         # given the queryset
-        queryset = SongFile.objects.all()
+        queryset = LibraryItem.objects.all()
 
         # when we call the mood strategy with 4 entries needed, but only the
         # top 3 considered
@@ -304,7 +304,7 @@ class TagsTest(AutoFillTest, TestCase):
 
     def test_when_more_tagged_songs_than_needed(self):
         # given queryset
-        queryset = SongFile.objects.all()
+        queryset = LibraryItem.objects.all()
 
         # given the player
         player = Player.objects.create_player('test_player', password='test')

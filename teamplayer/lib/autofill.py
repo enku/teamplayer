@@ -26,7 +26,7 @@ from .songs import artists_from_tags, split_tag_into_words
 
 
 def auto_fill_random(*, queryset, entries_needed, station):
-    """Return at most *entries_needed* SongFiles from the *queryset*.
+    """Return at most *entries_needed* LibraryItems from the *queryset*.
 
     The songs are randomly scattered among the *queryset*
     """
@@ -46,7 +46,7 @@ def auto_fill_random(*, queryset, entries_needed, station):
 
 
 def auto_fill_contiguous(*, queryset, entries_needed, station):
-    """Return at most *entries_needed* SongFiles from the *queryset*.
+    """Return at most *entries_needed* LibraryItems from the *queryset*.
 
     The songs are selected randomly but are contiguous among the *queryset*
     """
@@ -63,7 +63,7 @@ def auto_fill_contiguous(*, queryset, entries_needed, station):
 
 
 def auto_fill_mood(*, queryset, entries_needed, station, seconds=None):
-    """Return at most *entries_needed* SongFIles from the *queryset*.
+    """Return at most *entries_needed* LibraryItems from the *queryset*.
 
     The songs are selected depending on the current "mood".
     """
@@ -118,7 +118,7 @@ def auto_fill_mood(*, queryset, entries_needed, station, seconds=None):
 
 
 def auto_fill_from_tags(*, queryset, entries_needed, station):
-    """Return at most `entries_needed` SongFiles with `station`'s tags
+    """Return at most `entries_needed` LibraryItems with `station`'s tags
 
     Gets the tags from the `station.name`, gets artists with those tags and
     then returns random songs from `queryset` that have artists with those
