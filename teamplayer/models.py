@@ -501,3 +501,21 @@ class LibraryItem(models.Model):
 
         self.genre = self.genre or None
         self.length = self.length or None
+
+
+class PlayLog(models.Model):
+    """A log of songs played"""
+    station = models.ForeignKey(Station, db_index=True)
+    title = models.CharField(max_length=254)
+    artist = models.CharField(max_length=254)
+    player = models.ForeignKey(Player)
+    time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [['station', 'time']]
+
+    def __str__(self):
+        _str = '|{0.time}|Station {0.station.pk}: “{0.title}” by {0.artist}'
+        _str = _str.format(self)
+
+        return _str

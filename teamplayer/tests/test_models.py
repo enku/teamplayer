@@ -9,8 +9,16 @@ import django.contrib.auth.models
 import django.core.files.uploadedfile
 import django.core.urlresolvers
 import django.test
+from django.utils import timezone
 
-from teamplayer.models import Entry, LibraryItem, Mood, Player, Station
+from teamplayer.models import (
+    Entry,
+    LibraryItem,
+    Mood,
+    Player,
+    PlayLog,
+    Station,
+)
 from teamplayer.tests import utils
 
 SILENCE = utils.SILENCE
@@ -690,3 +698,36 @@ class MoodTestCase(TestCase):
 
         # then we get the expected result
         self.assertTrue('Sleigh Bells' in result)
+
+
+class PlayLogTest(TestCase):
+    """Tests for the PlayLog model"""
+    def setUp(self):
+        parent = super(PlayLogTest, self)
+        parent.setUp()
+
+        station = Station.main_station()
+        artist = 'Earth, Wind & Fire'
+        title = 'Fantasy'
+        player = Player.dj_ango()
+        time = timezone.now()
+
+        self.playlog = PlayLog(
+            artist=artist,
+            player=player,
+            station=station,
+            time=time,
+            title=title,
+        )
+
+    def test_str(self):
+        # given the playlog entry
+        playlog = self.playlog
+
+        # when we call str() on it
+        result = str(playlog)
+
+        # then we get the expected string
+        expected = '|{0}|Station {1}: “Fantasy” by Earth, Wind & Fire'
+        expected = expected.format(playlog.time, playlog.station.pk)
+        self.assertEqual(result, expected)
