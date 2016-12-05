@@ -29,7 +29,7 @@ from teamplayer.forms import (
 from teamplayer.lib import mktemp_file_from_request, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.websocket import IPCHandler
-from teamplayer.models import Entry, LibraryItem, Player, Station
+from teamplayer.models import Entry, LibraryItem, Player, PlayLog, Station
 from teamplayer.serializers import (
     EntrySerializer,
     PlayerSerializer,
@@ -432,6 +432,8 @@ def create_station(request):
 def about(request):
     """about/copyright page"""
     query = LibraryItem.objects.aggregate(Count('title'), Sum('filesize'))
+    first_log = PlayLog.objects.earliest('time').time
+    tracks_played = PlayLog.objects.count()
 
     return render(
         request,
@@ -445,6 +447,8 @@ def about(request):
             'library_size': query['filesize__sum'],
             'scrobbler_id': getattr(settings, 'SCROBBLER_USER', ''),
             'users': Player.objects.count() - 1,
+            'first_log': first_log,
+            'tracks_played': tracks_played,
         }
     )
 

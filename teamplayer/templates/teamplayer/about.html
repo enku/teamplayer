@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load humanize %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -57,6 +58,10 @@
         <tr>
             <td class="label">Users:</td>
             <td>{{ users }} registered user{{ users|pluralize }}</td>
+        </tr>
+        <tr>
+            <td class="label">History</td>
+            <td>Since {{ first_log|naturaltime }} DJ Ango has played {{ tracks_played }} tracks.</td>
         </tr>
         <tr>
             <td class="label">Library:</td>
