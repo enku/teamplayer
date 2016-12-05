@@ -5,10 +5,10 @@ import mpd
 
 from teamplayer import logger
 from teamplayer.conf import settings
-from teamplayer.lib import signals, songs
+from teamplayer.lib import now, signals, songs
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.websocket import SocketHandler
-from teamplayer.models import Mood, Player, Station
+from teamplayer.models import Mood, Player, PlayLog, Station
 from teamplayer.serializers import EntrySerializer
 
 
@@ -233,9 +233,38 @@ def log_mood(sender, **kwargs):
     Mood.log_mood(song_info['artist'], station)
 
 
+def play_log(sender, **kwargs):
+    """Log the current song being played"""
+    station = sender
+    song_info = kwargs['current_song']
+
+    if not song_info:
+        return
+
+    artist = song_info['artist']
+    if artist in ('Unknown', '', None):
+        return
+
+    player = Player.objects.get(pk=song_info['player_id'])
+    title = song_info['title']
+    time = now()
+    playlog = PlayLog.objects.create(
+        artist=artist,
+        player=player,
+        station=station,
+        time=time,
+        title=title,
+    )
+
+    logger.debug('%s', playlog)
+
+    return playlog
+
+
 # Signal connections
 signals.song_change.connect(SocketHandler.notify_clients)
 signals.song_change.connect(log_mood)
+signals.song_change.connect(play_log)
 signals.song_change.connect(StationThread.purge_queue_dir)
 if settings.SCROBBLER_USER:
     signals.song_change.connect(scrobble_song)

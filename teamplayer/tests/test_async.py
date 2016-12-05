@@ -3,10 +3,11 @@ from unittest.mock import patch
 from unittest import skip
 
 from django.test import TestCase
+from django.utils import timezone
 
 from teamplayer.lib import async
 from teamplayer.lib.mpc import MPC
-from teamplayer.models import Mood, Player, Station
+from teamplayer.models import Mood, Player, PlayLog, Station
 
 
 class ScrobbleSongTest(TestCase):
@@ -129,6 +130,67 @@ class LogMoodTest(TestCase):
         # then a mood is not added
         query = Mood.objects.all()
         self.assertEqual(query.count(), 0)
+
+
+class PlayLogTest(TestCase):
+    """Tests for the play_log function"""
+    def test_call(self):
+        # given the current song being played
+        song = {
+            'artist': 'Earth, Wind & Fire',
+            'title': 'Fantasy',
+            'player_id': Player.dj_ango().pk,
+        }
+
+        # given the station
+        station = Station.main_station()
+
+        # when we call play_log giving the station and song
+        now = timezone.now()
+        result = async.play_log(station, current_song=song)
+
+        # then a PlayLog instance is created with our song info
+        self.assertTrue(isinstance(result, PlayLog))
+        self.assertEqual(result.artist, song['artist'])
+        self.assertEqual(result.title, song['title'])
+        self.assertEqual(result.station, station)
+        self.assertNotEqual(result.pk, None)
+        self.assertGreaterEqual(result.time, now)
+
+    def test_no_song_info_passed(self):
+        assert PlayLog.objects.count() == 0
+
+        # given the station
+        station = Station.main_station()
+
+        # when we call play_log giving the station but no song_info
+        result = async.play_log(station, current_song={})
+
+        # then nothing is logged
+        self.assertEqual(result, None)
+        self.assertEqual(PlayLog.objects.count(), 0)
+
+    def test_song_artist_unknown(self):
+        assert PlayLog.objects.count() == 0
+
+        # given the station
+        station = Station.main_station()
+
+        # given the "unknown" artists
+        for artist in (None, '', 'Unknown'):
+            # given the current song being played
+            song = {
+                'artist': artist,
+                'title': 'Fantasy',
+                'player_id': Player.dj_ango().pk,
+            }
+
+            # when we call play_log giving the station and song_info
+            result = async.play_log(station, current_song=song)
+
+            # then nothing is logged
+            self.assertEqual(result, None)
+            self.assertEqual(PlayLog.objects.count(), 0)
 
 
 @patch('teamplayer.lib.async.MPC', spec=MPC)
