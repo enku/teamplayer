@@ -1,9 +1,10 @@
 PYTHON := python3.4
-VERSION = $(shell python -c 'import teamplayer; print(teamplayer.version_string(show_revision=False))')
+NAME := $(shell $(PYTHON) setup.py --name)
+VERSION = $(shell $(PYTHON) setup.py --version)
 
-SDIST = dist/TeamPlayer-$(VERSION).tar.gz
-WHEEL = dist/TeamPlayer-$(VERSION)-py3-none-any.whl
-SOURCE = setup.py teamplayer MANIFEST.in
+SDIST = dist/$(NAME)-$(VERSION).tar.gz
+WHEEL = dist/$(NAME)-$(VERSION)-py3-none-any.whl
+SOURCE = setup.py MANIFEST.in $(shell find teamplayer -type f -print)
 
 export DJANGO_DEBUG
 
@@ -21,8 +22,8 @@ test:
 	tox -e py34-django10
 
 docker:
-	docker-compose -p teamplayer -f tools/docker/docker-compose.yml build
-	docker-compose -p teamplayer -f tools/docker/docker-compose.yml up
+	docker-compose -p $(NAME) -f tools/docker/docker-compose.yml build
+	docker-compose -p $(NAME) -f tools/docker/docker-compose.yml up
 
 clean:
 	rm -rf .tox build dist
