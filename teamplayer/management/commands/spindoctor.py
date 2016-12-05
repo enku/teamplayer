@@ -12,7 +12,7 @@ from django.core.management.base import BaseCommand
 
 from teamplayer import logger, models
 from teamplayer.conf import settings
-from teamplayer.lib.async import StationThread
+from teamplayer.lib.comm import StationThread
 from teamplayer.lib.websocket import IPCHandler, SocketHandler
 
 try:

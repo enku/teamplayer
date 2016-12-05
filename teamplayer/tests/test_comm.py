@@ -1,11 +1,11 @@
-"""Unit tests for the async module"""
+"""Unit tests for the comm module"""
 from unittest.mock import patch
 from unittest import skip
 
 from django.test import TestCase
 from django.utils import timezone
 
-from teamplayer.lib import async
+from teamplayer.lib import comm
 from teamplayer.lib.mpc import MPC
 from teamplayer.models import Mood, Player, PlayLog, Station
 
@@ -27,8 +27,8 @@ class ScrobbleSongTest(TestCase):
                      'player': self.player.username}
 
         # when we call scrobble_song
-        with patch('teamplayer.lib.async.songs.scrobble_song') as mock_scrob:
-            async.scrobble_song(
+        with patch('teamplayer.lib.comm.songs.scrobble_song') as mock_scrob:
+            comm.scrobble_song(
                 sender=main_station, previous_song=song_info, current_song=None)
 
         # then the scrobbler is called with the expected args
@@ -51,8 +51,8 @@ class ScrobbleSongTest(TestCase):
                      'player': self.player.username}
 
         # when we call scrobble_song
-        with patch('teamplayer.lib.async.songs.scrobble_song') as mock_scrob:
-            async.scrobble_song(
+        with patch('teamplayer.lib.comm.songs.scrobble_song') as mock_scrob:
+            comm.scrobble_song(
                 sender=station, previous_song=None, current_song=song_info)
 
         # then the scrobbler is not called
@@ -79,7 +79,7 @@ class LogMoodTest(TestCase):
         # when we call log_mood
         with patch('teamplayer.models.lib.songs.get_similar_artists') as gsa:
             gsa.return_value = []
-            async.log_mood(sender=station, current_song=song_info)
+            comm.log_mood(sender=station, current_song=song_info)
 
         # then a mood is added
         query = Mood.objects.filter(artist='Madonna', station=station)
@@ -102,7 +102,7 @@ class LogMoodTest(TestCase):
         }
 
         # when we call log_mood
-        async.log_mood(sender=station, current_song=song_info)
+        comm.log_mood(sender=station, current_song=song_info)
 
         # then a mood is not added
         query = Mood.objects.all()
@@ -125,7 +125,7 @@ class LogMoodTest(TestCase):
         }
 
         # when we call log_mood
-        async.log_mood(sender=station, current_song=song_info)
+        comm.log_mood(sender=station, current_song=song_info)
 
         # then a mood is not added
         query = Mood.objects.all()
@@ -147,7 +147,7 @@ class PlayLogTest(TestCase):
 
         # when we call play_log giving the station and song
         now = timezone.now()
-        result = async.play_log(station, current_song=song)
+        result = comm.play_log(station, current_song=song)
 
         # then a PlayLog instance is created with our song info
         self.assertTrue(isinstance(result, PlayLog))
@@ -164,7 +164,7 @@ class PlayLogTest(TestCase):
         station = Station.main_station()
 
         # when we call play_log giving the station but no song_info
-        result = async.play_log(station, current_song={})
+        result = comm.play_log(station, current_song={})
 
         # then nothing is logged
         self.assertEqual(result, None)
@@ -186,14 +186,14 @@ class PlayLogTest(TestCase):
             }
 
             # when we call play_log giving the station and song_info
-            result = async.play_log(station, current_song=song)
+            result = comm.play_log(station, current_song=song)
 
             # then nothing is logged
             self.assertEqual(result, None)
             self.assertEqual(PlayLog.objects.count(), 0)
 
 
-@patch('teamplayer.lib.async.MPC', spec=MPC)
+@patch('teamplayer.lib.comm.MPC', spec=MPC)
 class StationThread(TestCase):
     """Tests for the StationThread"""
     def test_station_attr(self, mock_mpc):
@@ -202,7 +202,7 @@ class StationThread(TestCase):
 
         try:
             # when we create a station off that thread
-            thread = async.StationThread(station=station)
+            thread = comm.StationThread(station=station)
 
             # then it has a station attribute
             self.assertEqual(thread.station, station)
@@ -215,7 +215,7 @@ class StationThread(TestCase):
 
         try:
             # when we create a station off that thread
-            thread = async.StationThread(station=station)
+            thread = comm.StationThread(station=station)
 
             # then it starts an mpd
             self.assertTrue(mock_mpc.called)
@@ -230,7 +230,7 @@ class StationThread(TestCase):
 
         try:
             # given the station thread
-            thread = async.StationThread(station=station)
+            thread = comm.StationThread(station=station)
 
             # when we call .stop() on the thread
             thread.stop()
@@ -248,12 +248,12 @@ class StationThread(TestCase):
         try:
             # when an exception is raised inside the thread
             with patch(
-                'teamplayer.lib.async.StationThread.wait_for'
+                'teamplayer.lib.comm.StationThread.wait_for'
             ) as wait_for:
                 wait_for.side_effect = Exception
 
-                with patch('teamplayer.lib.async.logger') as logger:
-                    thread = async.StationThread(station=station)
+                with patch('teamplayer.lib.comm.logger') as logger:
+                    thread = comm.StationThread(station=station)
                     try:
                         # given the station thread
                         thread.start()

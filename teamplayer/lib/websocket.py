@@ -228,7 +228,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     def handle_station_delete(self, station_id):
         """A station has been removed."""
         # to avoid circular imports
-        from teamplayer.lib.async import StationThread
+        from teamplayer.lib.comm import StationThread
 
         # first we broadcast so that all clients can get off the station
         SocketHandler.broadcast('station_delete', station_id)
@@ -244,7 +244,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     def handle_station_create(self, station_id):
         """A station was created. we need to start the Thread"""
         # to avoid circular imports
-        from teamplayer.lib.async import StationThread
+        from teamplayer.lib.comm import StationThread
 
         try:
             station = models.Station.objects.get(pk=station_id)

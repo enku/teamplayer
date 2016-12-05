@@ -1,4 +1,4 @@
-"""Asynchronous threads and coroutines for TeamPlayer."""
+"""Asynchronous threads and handlers TeamPlayer."""
 import threading
 
 import mpd
