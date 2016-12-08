@@ -25,13 +25,26 @@ class AutoFillTest:
 
         self.dj_ango = Player.dj_ango()
 
+        artists = (
+            'Britney Spears',
+            'KMFDM',
+            'Kanye West',
+            'Katie Melua',
+            'Marilyn Manson',
+            'Nine Inch Nails',
+            'Norah Jones',
+            'Sufjan Stevens',
+            'The Glitch Mob',
+            'edIT',
+        )
         # let's fill the library with some songage
-        for i in range(10):
+        for artist in artists:
+            filename = '{0}.mp3'.format(artist.lower().replace(' ', '_'))
             songfile = LibraryItem(
-                filename='song{}.mp3'.format(i),
-                artist='Artist {}'.format(i),
-                title='Track {}'.format(i),
-                album='Fake Album',
+                filename=filename,
+                artist=artist,
+                title='Silent Night',
+                album='Various Artists Do Silent Night',
                 genre='Unknown',
                 length=300,
                 filesize=3000,
@@ -162,21 +175,17 @@ class MoodTest(AutoFillTest, TestCase):
         path = 'teamplayer.models.lib.songs.get_similar_artists'
         patcher = patch(path)
         get_similar_artists = patcher.start()
-        get_similar_artists.return_value = ['Artist 9', 'Artist 4']
-        Mood.log_mood('Artist 6', station)
-        Mood.log_mood('Artist 6', station)
-        Mood.log_mood('Artist 6', station)
-        get_similar_artists.return_value = ['Artist 4']
-        Mood.log_mood('Artist 7', station)
+        get_similar_artists.return_value = ['Marilyn Manson', 'KMFDM']
+        Mood.log_mood('Nine Inch Nails', station)
+        Mood.log_mood('Nine Inch Nails', station)
+        Mood.log_mood('Nine Inch Nails', station)
+        get_similar_artists.return_value = ['KMFDM']  # I know, nothing like NJ
+        Mood.log_mood('Norah Jones', station)
         # make the last one kinda old
-        artist7_mood = Mood.objects.get(artist='Artist 7')
+        norah_jones_mood = Mood.objects.get(artist='Norah Jones')
         two_hours_ago = timezone.now() - datetime.timedelta(hours=120)
-        artist7_mood.timestamp = two_hours_ago
-        artist7_mood.save()
-        # Artist 4: 4
-        # Artist 6: 3
-        # Artist 7: 1 but 2 hours ago
-        # Artist 9: 3
+        norah_jones_mood.timestamp = two_hours_ago
+        norah_jones_mood.save()
 
         self.addCleanup(patcher.stop)
 
@@ -198,7 +207,7 @@ class MoodTest(AutoFillTest, TestCase):
         # then it gives us the one song by the top artist
         self.assertEqual(len(result), 1)
         song = result[0]
-        self.assertEqual(song.artist, 'Artist 4')
+        self.assertEqual(song.artist, 'KMFDM')
 
     def test_finds_top_artists2(self):
         # given the queryset
@@ -218,7 +227,10 @@ class MoodTest(AutoFillTest, TestCase):
         # then it gives us the songs by the top 3 artists
         self.assertEqual(len(result), 3)
         artists = set(i.artist for i in result)
-        self.assertEqual(artists, {'Artist 4', 'Artist 6', 'Artist 9'})
+        self.assertEqual(
+            artists,
+            {'Nine Inch Nails', 'KMFDM', 'Marilyn Manson'}
+        )
 
     def test_does_not_return_artist_who_has_no_songs(self):
         # given the artist who has no songs
@@ -264,7 +276,10 @@ class MoodTest(AutoFillTest, TestCase):
         # then it gives us the songs by the top 3 artists and another artist
         self.assertEqual(len(result), 4)
         artists = set(i.artist for i in result)
-        self.assertGreater(artists, {'Artist 4', 'Artist 6', 'Artist 9'})
+        self.assertGreater(
+            artists,
+            {'KMFDM', 'Nine Inch Nails', 'Marilyn Manson'}
+        )
 
 
 class TagsTest(AutoFillTest, TestCase):
@@ -313,7 +328,7 @@ class TagsTest(AutoFillTest, TestCase):
 
         # when we call auto_fill_from_tags()
         with patch('teamplayer.lib.autofill.artists_from_tags') as p:
-            p.return_value = ['Artist %d' % i for i in range(10)]
+            p.return_value = [i.artist for i in queryset]
 
             result = auto_fill_from_tags(
                 entries_needed=20,
