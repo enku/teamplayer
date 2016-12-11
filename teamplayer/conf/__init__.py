@@ -68,5 +68,6 @@ class TeamPlayerSettings(object):
 
         return val
 
+
 settings = TeamPlayerSettings(USER_SETTINGS, DEFAULTS)
 del PATH

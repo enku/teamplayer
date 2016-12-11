@@ -18,7 +18,8 @@ from teamplayer.lib.websocket import IPCHandler, SocketHandler
 try:
     from setproctitle import setproctitle
 except ImportError:
-    setproctitle = lambda x: None  # NOQA
+    def setproctitle(_):  # pragma: nocover
+        return
 
 
 class Command(BaseCommand):
@@ -72,5 +73,6 @@ def start_socket_server():
     application.listen(settings.WEBSOCKET_PORT)
 
     tornado.ioloop.IOLoop.instance().start()
+
 
 logger.info('TeamPlayer: DJ Ango at your service!')

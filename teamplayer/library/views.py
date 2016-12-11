@@ -65,4 +65,5 @@ class SongSearchView(SearchView):
 
         return context
 
+
 song_search = SongSearchView.as_view()

@@ -72,7 +72,7 @@ class StationThread(threading.Thread):
         return cls.__station_threads.copy()
 
     def wait_for(self, song):
-        """Let clients and scrobbler know the song is playing and wait to end"""
+        """Wait for **song** to end."""
         secs = song['remaining_time'] - self.secs_to_inject_new_song
         secs = max(0, secs)
         logger.debug('%s: Waiting %s seconds', self.name, secs)

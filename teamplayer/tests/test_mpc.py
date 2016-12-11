@@ -173,7 +173,8 @@ class MPCTest(TestCase):
         }
         self.assertEqual(result, expected)
 
-    def test_currently_playing_song_ends_before_status_called(self, mpd_client):
+    def test_currently_playing_song_ends_before_status_called(
+            self, mpd_client):
         # this can happen, ex, for a 0-length song
         # given the mpc instance
         mpc = self.mpc
@@ -181,8 +182,11 @@ class MPCTest(TestCase):
         # when we call .currently_playing() and and the "currentsong" mpd
         # command succeeds but the "status" command doesn't show a song
         config = {
-            'currentsong.return_value':
-                {'file': '1-t.mp3', 'artist': 'Prince', 'title': 'Purple Rain'},
+            'currentsong.return_value': {
+                'file': '1-t.mp3',
+                'artist': 'Prince',
+                'title': 'Purple Rain',
+            },
             'status.return_value':
                 {},
             'sticker_list.return_value': {'dj': '', 'player_id': 1}

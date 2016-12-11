@@ -29,7 +29,10 @@ class ScrobbleSongTest(TestCase):
         # when we call scrobble_song
         with patch('teamplayer.lib.comm.songs.scrobble_song') as mock_scrob:
             comm.scrobble_song(
-                sender=main_station, previous_song=song_info, current_song=None)
+                sender=main_station,
+                previous_song=song_info,
+                current_song=None,
+            )
 
         # then the scrobbler is called with the expected args
         mock_scrob.assert_called_with(song_info, now_playing=False)
