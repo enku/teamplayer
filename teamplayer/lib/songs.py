@@ -51,12 +51,14 @@ def get_song_metadata(filename):
         mutagen_data = File(filename, easy=True)
         artist = first_or_none(mutagen_data, 'artist') or 'Unknown'
         title = first_or_none(mutagen_data, 'title') or 'Unknown'
+        album = first_or_none(mutagen_data, 'album')
         mimetype = mutagen_data.mime[0]
         filetype = MIME_MAP[mimetype]
 
         return {
             'artist': artist,
             'title': title,
+            'album': album,
             'type': filetype,
             'mimetype': mimetype
         }

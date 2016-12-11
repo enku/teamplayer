@@ -57,6 +57,7 @@ class LibSongs(TestCase):
             metadata,
             {'artist': 'TeamPlayer',
              'title': 'Station Break',
+             'album': 'Songs of Silence',
              'type': 'mp3',
              'mimetype': 'audio/mp3'}
         )
