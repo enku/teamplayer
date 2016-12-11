@@ -190,6 +190,20 @@ class QueueTestCase(TestCase):
             self.assertTrue(isinstance(result, Entry))
             self.assertFalse('.' in result.song.name)
 
+    def test_added_song_has_album(self):
+        # given the queue
+        queue = self.player.queue
+
+        with open(SILENCE, 'rb') as fp:
+            # given the song file
+            song_file = UploadedFile(fp, 'silence.mp3')
+
+            # when we add the file to our queue
+            result = queue.add_song(song_file, self.station)
+
+            # then the Entry has the same album as the uploaded file
+            self.assertEqual(result.album, 'Songs of Silence')
+
     def test_queue_user_property(self):
         queue = self.player.queue
         user = self.player.user

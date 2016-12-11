@@ -54,6 +54,7 @@ class Queue(models.Model):
             raise
         entry.artist = metadata['artist']
         entry.title = metadata['title']
+        entry.album = metadata['album']
         entry.filetype = metadata['type']
         entry.save()
         return entry
@@ -177,6 +178,7 @@ class Entry(models.Model):
     song = models.FileField(upload_to='songs')
     title = models.CharField(default='Unknown', max_length=254)
     artist = models.CharField('Unknown', max_length=254)
+    album = models.CharField(max_length=254, null=True)
     filetype = models.CharField(max_length=4, blank=False)
 
     def __str__(self):
