@@ -154,7 +154,12 @@ class AutoFindSong(TestCase):
 class ScrobbleSongTest(TestCase):
     def test_now_playing(self):
         # given the song dict
-        song = {'artist': 'Prince', 'title': 'Purple Rain', 'total_time': 190}
+        song = {
+            'artist': 'Prince',
+            'title': 'Purple Rain',
+            'album': 'Purple Rain',
+            'total_time': 190,
+        }
 
         # when we call scrobble_song() with now_playing=True
         with patch('teamplayer.lib.songs.pylast.LastFMNetwork') as Network:
@@ -162,11 +167,20 @@ class ScrobbleSongTest(TestCase):
 
         # then it makes the appropriate call to the scrobbler
         Network.return_value.update_now_playing.assert_called_with(
-            'Prince', 'Purple Rain', duration=190)
+            'Prince',
+            'Purple Rain',
+            album='Purple Rain',
+            duration=190,
+        )
 
     def test_not_now_playing(self):
         # given the song dict
-        song = {'artist': 'Prince', 'title': 'Purple Rain', 'total_time': 190}
+        song = {
+            'artist': 'Prince',
+            'title': 'Purple Rain',
+            'album': 'Purple Rain',
+            'total_time': 190
+        }
 
         # when we call scrobble_song() with now_playing=False
         with patch('teamplayer.lib.songs.pylast.LastFMNetwork') as Network:
@@ -176,11 +190,21 @@ class ScrobbleSongTest(TestCase):
         # then it makes the appropriate call to the scrobbler
         timestamp = int(now().timestamp()) - 190
         Network.return_value.scrobble.assert_called_with(
-            'Prince', 'Purple Rain', timestamp, duration=190)
+            'Prince',
+            'Purple Rain',
+            timestamp,
+            album='Purple Rain',
+            duration=190,
+        )
 
     def test_returns_True_on_success(self):
         # given the song dict
-        song = {'artist': 'Prince', 'title': 'Purple Rain', 'total_time': 190}
+        song = {
+            'artist': 'Prince',
+            'title': 'Purple Rain',
+            'album': 'Purple Rain',
+            'total_time': 190
+        }
 
         # when we call scrobble_song()
         with patch('teamplayer.lib.songs.pylast.LastFMNetwork'):
@@ -191,7 +215,12 @@ class ScrobbleSongTest(TestCase):
 
     def test_returns_False_on_failure(self):
         # given the song dict
-        song = {'artist': 'Prince', 'title': 'Purple Rain', 'total_time': 190}
+        song = {
+            'artist': 'Prince',
+            'title': 'Purple Rain',
+            'album': 'Purple Rain',
+            'total_time': 190,
+        }
 
         # when we call scrobble_song() and an error is raised by pylast
         with patch('teamplayer.lib.songs.pylast.LastFMNetwork') as Network:
