@@ -76,10 +76,17 @@ class MPCTest(TestCase):
 
         # when we call .currently_playing()
         config = {
-            'status.return_value':
-                {'state': 'play', 'time': '100:300', 'remaining_time': '0:15'},
-            'currentsong.return_value':
-                {'file': '1-t.mp3', 'artist': 'Prince', 'title': 'Purple Rain'},
+            'status.return_value': {
+                'state': 'play',
+                'time': '100:300',
+                'remaining_time': '0:15',
+            },
+            'currentsong.return_value': {
+                'file': '1-t.mp3',
+                'artist': 'Prince',
+                'title': 'Purple Rain',
+                'album': 'Purple Rain',
+            },
             'sticker_list.return_value': {'dj': '', 'player_id': 1}
         }
         mpd_client.return_value.configure_mock(**config)
@@ -89,6 +96,7 @@ class MPCTest(TestCase):
         expected = {
             'artist': 'Prince',
             'title': 'Purple Rain',
+            'album': 'Purple Rain',
             'artist_image': '/artist/Prince/image',
             'total_time': 300,
             'remaining_time': 200,
@@ -104,10 +112,15 @@ class MPCTest(TestCase):
         # when we call .currently_playing() and mpd's currentsong returns not
         # "artist" key
         config = {
-            'currentsong.return_value':
-                {'file': '1-silence.mp3', 'title': 'Purple Rain'},
-            'status.return_value':
-                {'state': 'play', 'time': '100:300', 'remaining_time': '0:15'},
+            'currentsong.return_value': {
+                'file': '1-silence.mp3',
+                'title': 'Purple Rain',
+            },
+            'status.return_value': {
+                'state': 'play',
+                'time': '100:300',
+                'remaining_time': '0:15',
+            },
             'sticker_list.return_value': {'dj': '', 'player_id': 1}
         }
         mpd_client.return_value.configure_mock(**config)
@@ -117,6 +130,7 @@ class MPCTest(TestCase):
         expected = {
             'artist': None,
             'title': 'Purple Rain',
+            'album': None,
             'artist_image': CLEAR_IMAGE_URL,
             'total_time': 300,
             'remaining_time': 200,
@@ -129,13 +143,18 @@ class MPCTest(TestCase):
         # given the mpc instance
         mpc = self.mpc
 
-        # when we call .currently_playing() and mpd's currentsong returns not
-        # "title" key
+        # when we call .currently_playing() and mpd's currentsong
+        # returns no "title" key
         config = {
-            'currentsong.return_value':
-                {'file': '1-silence.mp3', 'artist': 'Prince'},
-            'status.return_value':
-                {'state': 'play', 'time': '100:300', 'remaining_time': '0:15'},
+            'currentsong.return_value': {
+                'file': '1-silence.mp3',
+                'artist': 'Prince',
+            },
+            'status.return_value': {
+                'state': 'play',
+                'time': '100:300',
+                'remaining_time': '0:15',
+            },
             'sticker_list.return_value': {'dj': '', 'player_id': 1}
         }
         mpd_client.return_value.configure_mock(**config)
@@ -145,6 +164,7 @@ class MPCTest(TestCase):
         expected = {
             'artist': 'Prince',
             'title': None,
+            'album': None,
             'artist_image': '/artist/Prince/image',
             'total_time': 300,
             'remaining_time': 200,
@@ -174,6 +194,7 @@ class MPCTest(TestCase):
         expected = {
             'artist': None,
             'title': None,
+            'album': None,
             'dj': 'DJ Ango',
             'total_time': 0,
             'remaining_time': 0,

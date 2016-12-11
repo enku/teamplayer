@@ -132,6 +132,7 @@ class MPC(object):
             {
                 'artist': 'Spoon',
                 'title': 'New York Kiss',
+                'album': 'They Want My Soul',
                 'dj': 'DJ Scratch',
                 'total_time': 207,
                 'remaining_time': 46,
@@ -149,6 +150,7 @@ class MPC(object):
         not_playing = {
             'artist': None,
             'title': None,
+            'album': None,
             'dj': 'DJ Ango',
             'total_time': 0,
             'remaining_time': 0,
@@ -174,6 +176,7 @@ class MPC(object):
         filename = current_song['file']
         artist = current_song.get('artist', None)
         title = current_song.get('title', None)
+        album = current_song.get('album', None)
 
         if artist:
             artist_image = reverse(
@@ -186,6 +189,7 @@ class MPC(object):
         data = {
             'artist': artist,
             'title': title,
+            'album': album,
             'total_time': total_time,
             'remaining_time': total_time - elapsed_time,
             'station_id': self.station_id,
