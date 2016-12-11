@@ -25,17 +25,17 @@ def add_to_queue(request):
     station = request.station
     form = AddToQueueForm(request.POST)
     if form.is_valid():
-        songfile_id = form.cleaned_data['song_id']
+        library_id = form.cleaned_data['song_id']
 
-        songfile = get_object_or_404(LibraryItem, pk=songfile_id)
+        library_item = get_object_or_404(LibraryItem, pk=library_id)
 
-        if not os.path.exists(songfile.filename):
+        if not os.path.exists(library_item.filename):
             return HttpResponse(
                 json.dumps({'error': 'Song could not be located'}),
                 content_type='application/json'
             )
 
-        fp = File(open(songfile.filename, 'rb'))
+        fp = File(open(library_item.filename, 'rb'))
 
         entry = request.player.queue.add_song(fp, station)
 
