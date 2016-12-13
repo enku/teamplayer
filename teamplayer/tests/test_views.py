@@ -6,7 +6,7 @@ from unittest.mock import patch
 import django.core.urlresolvers
 import django.test
 
-from teamplayer.models import Player, Station
+from teamplayer.models import Player, PlayLog, Station
 from teamplayer.tests import utils
 
 SpinDoctor = utils.SpinDoctor
@@ -424,6 +424,20 @@ class EditStationView(TestCase):
 
         # then an IPC message is sent alerting that the station was removed
         send_message.assert_called_with('station_delete', station.id)
+
+
+class AboutView(TestCase):
+    """tests for the /about view"""
+    def test_with_empty_playlog(self):
+        # given the empty playlog
+        assert PlayLog.objects.count() == 0
+
+        # when we go to the about view
+        url = reverse('about')
+        response = self.client.get(url, HTTP_USER_AGENT='Django Test')
+
+        # then it shows DJ Ango hasn't played any tracks
+        self.assertContains(response, "DJ Ango hasn't played any tracks")
 
 
 class RegistrationTest(TestCase):

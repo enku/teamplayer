@@ -435,8 +435,12 @@ def create_station(request):
 def about(request):
     """about/copyright page"""
     query = LibraryItem.objects.aggregate(Count('title'), Sum('filesize'))
-    first_log = PlayLog.objects.earliest('time').time
     tracks_played = PlayLog.objects.count()
+
+    if tracks_played:
+        first_log = PlayLog.objects.earliest('time').time
+    else:
+        first_log = None
 
     return render(
         request,

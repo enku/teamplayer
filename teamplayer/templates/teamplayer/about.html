@@ -61,7 +61,11 @@
         </tr>
         <tr>
             <td class="label">History:</td>
+            {% if tracks_played %}
             <td>Since {{ first_log|naturaltime }} DJ Ango has played {{ tracks_played }} tracks.</td>
+            {% else %}
+            <td>DJ Ango hasn't played any tracks.</td>
+            {% endif %}
         </tr>
         <tr>
             <td class="label">Library:</td>
