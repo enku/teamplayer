@@ -3,15 +3,20 @@ import json
 import re
 from unittest.mock import patch
 
+from teamplayer.models import Entry
+from teamplayer.models import Player
+from teamplayer.models import PlayLog
+from teamplayer.models import Station
+from teamplayer.tests import utils
+
 import django.core.urlresolvers
 import django.test
-
-from teamplayer.models import Player, PlayLog, Station
-from teamplayer.tests import utils
 
 SpinDoctor = utils.SpinDoctor
 TestCase = django.test.TestCase
 reverse = django.core.urlresolvers.reverse
+
+SILENCE = utils.SILENCE
 
 
 class HomePageView(TestCase):
@@ -179,6 +184,68 @@ class ShowQueueView(TestCase):
         response = self.client.get(self.url)
         self.assertNotContains(response, 'Prince')
         self.assertNotContains(response, 'Purple Rain')
+
+
+class ClearQueueView(TestCase):
+    """tests for the teamplayer.views.clear_queue view"""
+    def setUp(self):
+        self.player = Player.objects.create_player(username='test',
+                                                   password='test')
+        self.client.login(username='test', password='test')
+        self.url = reverse('show_queue')
+
+        # create a player station
+        self.station = Station.objects.create_station(
+            creator=self.player,
+            name='test_station',
+        )
+
+    def test_clears_queue(self):
+        # given the player's songs
+        song = SILENCE
+        queue = self.player.queue
+        station = Station.main_station()
+
+        for i in range(3):
+            Entry.objects.create(song=song, queue=queue, station=station)
+
+        queue_count = Entry.objects.filter(queue=queue).count()
+        self.assertEqual(queue_count, 3)
+
+        # when we POST to the clear queue view
+        url = reverse('clear_queue', args=[station.pk])
+        with patch('teamplayer.views.IPCHandler') as IPCHandler:
+            response = self.client.post(url)
+
+        # then it clears the queue
+        self.assertEqual(response.status_code, 204)
+        queue_count = Entry.objects.filter(queue=queue).count()
+        self.assertEqual(queue_count, 0)
+
+        # and messages are sent
+        self.assertEqual(IPCHandler.send_message.call_count, 3)
+
+    def test_only_clears_songs_for_station(self):
+        # given the player's songs in different stations
+        song = SILENCE
+        queue = self.player.queue
+        main_station = Station.main_station()
+        my_station = self.station
+
+        for i in range(3):
+            Entry.objects.create(song=song, queue=queue, station=main_station)
+        Entry.objects.create(song=song, queue=queue, station=my_station)
+
+        # when we POST to the clear queue view for the main station
+        url = reverse('clear_queue', args=[main_station.pk])
+        with patch('teamplayer.views.IPCHandler'):
+            self.client.post(url)
+
+        # then it clears only the songs from the main station
+        entries = Entry.objects.filter(queue=queue)
+        self.assertEqual(entries.count(), 1)
+        my_song = entries.get()
+        self.assertEqual(my_song.station, my_station)
 
 
 class AddUserView(TestCase):

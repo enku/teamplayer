@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^stations/$', views.show_stations, name='show_stations'),
     url(r'^stations/(\d+|mine)$', views.station_detail, name='station_detail'),
     url(r'^$', views.home, name='home'),
+    url(r'^station/(\d+)/clear_queue$', views.clear_queue, name='clear_queue'),
     url(r'^station/(\d+)/', views.home, name='station'),
     url(r'^station/prev', views.previous_station, name='previous_station'),
     url(r'^station/next', views.next_station, name='next_station'),
