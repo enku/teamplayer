@@ -1,48 +1,48 @@
 {% load staticfiles %}
 <script type="text/javascript">
-    function toggle_menu(div, toggle_url) {
-        var element = $(div);
-        element.click(function() {
-            $.post(toggle_url, {});
-            $('input', element)[0].checked = !$('input', element)[0].checked;
-        });
-        $('input', element).click(function() {
-            this.checked = !this.checked;
-            return true;
-        });
-    };
+function toggle_menu(div, toggle_url) {
+  var element = $(div);
+  element.click(function() {
+    $.post(toggle_url, {});
+    $('input', element)[0].checked = !$('input', element)[0].checked;
+  });
+  $('input', element).click(function() {
+    this.checked = !this.checked;
+    return true;
+  });
+};
 
-    $(function() {
-        toggle_menu('#toggle_hold', '{% url "toggle_queue_status" %}');
-        toggle_menu('#toggle_auto', '{% url "toggle_auto_mode" %}');
-    });
+$(function() {
+  toggle_menu('#toggle_hold', '{% url "toggle_queue_status" %}');
+  toggle_menu('#toggle_auto', '{% url "toggle_auto_mode" %}');
+});
 </script>
 <div id="controls" style="display: none">
-    <div class="control"
-        title="Shuffle queue"
-        onclick="SongWidget.get_and_songlist('{% url "randomize_queue" %}', {})">Shuffle
-    </div>
-    <div class="control"
-        title="Order your queue by artist's current rank"
-        onclick="SongWidget.get_and_songlist('{% url "order_by_rank" %}', {})">Auto Sort
-    </div>
-    <div class="control" title="Put queue on hold" id="toggle_hold">Hold
-        <input type="checkbox" {% if not user.player.queue.active %}checked="checked"{% endif %} />
-    </div>
-    <div class="control" title="Automatically pick the best song to play next" id="toggle_auto">Auto
-        <input type="checkbox" {% if user.player.auto_mode %}checked="checked"{% endif %} />
-    </div>
-    <div class="control" title="View/Add/Change Stations"
-        onclick="MainView.show('stations')">Stations
-    </div>
-    <div class="control" title="Search Library"
-        onclick="MainView.show('library')">Library
-    </div>
-    <div class="control" title="About TeamPlayer"
-        onclick="window.open('{% url "about" %}')">About
-    </div>
-    <div class="control" title="Exit" 
-        style="border-top: 1px solid #BFBFBF; margin-top: 3px;"
-        onclick="window.location='{% url "logout" %}'">Exit
-    </div>
+  <div class="control"
+       title="Shuffle queue"
+       onclick="SongWidget.get_and_songlist('{% url "randomize_queue" %}', {})">Shuffle
+  </div>
+  <div class="control"
+       title="Order your queue by artist's current rank"
+       onclick="SongWidget.get_and_songlist('{% url "order_by_rank" %}', {})">Auto Sort
+  </div>
+  <div class="control" title="Put queue on hold" id="toggle_hold">Hold
+    <input type="checkbox" {% if not user.player.queue.active %}checked="checked"{% endif %} />
+  </div>
+  <div class="control" title="Automatically pick the best song to play next" id="toggle_auto">Auto
+    <input type="checkbox" {% if user.player.auto_mode %}checked="checked"{% endif %} />
+  </div>
+  <div class="control" title="View/Add/Change Stations"
+                       onclick="MainView.show('stations')">Stations
+  </div>
+  <div class="control" title="Search Library"
+                       onclick="MainView.show('library')">Library
+  </div>
+  <div class="control" title="About TeamPlayer"
+                       onclick="window.open('{% url "about" %}')">About
+  </div>
+  <div class="control" title="Exit"
+                       style="border-top: 1px solid #BFBFBF; margin-top: 3px;"
+                       onclick="window.location='{% url "logout" %}'">Exit
+  </div>
 </div>
