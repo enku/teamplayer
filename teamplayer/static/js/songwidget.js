@@ -149,5 +149,11 @@ var SongWidget = (function(){
                 dataType: 'json',
                 success: function(data) {set_songwidget(data); nextsong();},
                 })
-    }}
+    },
+
+    clear_queue: function(url) {
+        return $.ajax({ url: url, type: "POST", async: true, cache: false})
+    }
+
+    }
 })();

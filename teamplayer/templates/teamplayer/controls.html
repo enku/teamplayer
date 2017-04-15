@@ -32,6 +32,9 @@ $(function() {
   <div class="control" title="Automatically pick the best song to play next" id="toggle_auto">Auto
     <input type="checkbox" {% if user.player.auto_mode %}checked="checked"{% endif %} />
   </div>
+  <div class="control" title="Clear queue"
+                       onclick="SongWidget.clear_queue('{% url "clear_queue" station.pk %}')">Clear
+  </div>
   <div class="control" title="View/Add/Change Stations"
                        onclick="MainView.show('stations')">Stations
   </div>
