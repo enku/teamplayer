@@ -6,14 +6,14 @@ from unittest.mock import Mock, call, patch
 
 from django.core.files.uploadedfile import UploadedFile
 from django.test import TestCase
-from mpd import CommandError, ConnectionError, MPDClient
+from mpd import CommandError, ConnectionError
 
 from teamplayer.lib.mpc import MPC
 from teamplayer.lib.songs import CLEAR_IMAGE_URL
 from teamplayer.models import Entry, Player, Station
 
 
-@patch('teamplayer.lib.mpc.mpd.MPDClient', autospec=MPDClient)
+@patch('teamplayer.lib.mpc.mpd.MPDClient', autospec=True)
 class MPCTest(TestCase):
     def setUp(self):
         self.station = Station.main_station()
