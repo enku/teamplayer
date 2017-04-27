@@ -501,7 +501,8 @@ class AboutView(TestCase):
 
         # when we go to the about view
         url = reverse('about')
-        response = self.client.get(url, HTTP_USER_AGENT='Django Test')
+        with patch('teamplayer.lib.mpc.MPC.get_version'):
+            response = self.client.get(url, HTTP_USER_AGENT='Django Test')
 
         # then it shows DJ Ango hasn't played any tracks
         self.assertContains(response, "DJ Ango hasn't played any tracks")

@@ -468,6 +468,7 @@ def about(request):
             'user_agent': request.META['HTTP_USER_AGENT'],
             'library_count': query['title__count'],
             'library_size': query['filesize__sum'],
+            'mpd_version': MPC.get_version(),
             'scrobbler_id': getattr(settings, 'SCROBBLER_USER', ''),
             'users': Player.objects.count() - 1,
             'first_log': first_log,
