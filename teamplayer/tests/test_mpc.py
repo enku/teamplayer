@@ -446,3 +446,12 @@ class MPCTest(TestCase):
 
         # then it only waits for 2 seconds
         self.assertAlmostEqual(elapsed, 1, 2)
+
+    def test_get_version(self, mpd_client):
+        """test the .get_version() class method"""
+        mpd_client.return_value.mpd_version = '0.19.0'
+        # when we call MPC.get_version()
+        version = MPC.get_version()
+
+        # then we get the version of the mpd server
+        self.assertEqual(version, '0.19.0')

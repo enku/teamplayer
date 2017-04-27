@@ -15,6 +15,7 @@ from django.core.urlresolvers import reverse
 from teamplayer import logger
 from teamplayer.conf import settings
 from teamplayer.lib import songs
+from teamplayer.models import Station
 
 MPD_UPDATE_MAX = 20  # seconds
 MPD_UPDATE_WAIT = 0.5  # seconds
@@ -339,3 +340,12 @@ class MPC(object):
 
         Thread(target=set_idle_done_event).start()
         return idle_done.wait(secs)
+
+    @classmethod
+    def get_version(cls):
+
+        main_station = Station.main_station()
+        client = cls(main_station)
+
+        with client.connect() as conn:
+            return conn.mpd_version
