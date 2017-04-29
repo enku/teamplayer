@@ -213,7 +213,7 @@ class ClearQueueView(TestCase):
         self.assertEqual(queue_count, 3)
 
         # when we POST to the clear queue view
-        url = reverse('clear_queue', args=[station.pk])
+        url = reverse('clear_queue')
         with patch('teamplayer.views.IPCHandler') as IPCHandler:
             response = self.client.post(url)
 
@@ -237,7 +237,7 @@ class ClearQueueView(TestCase):
         Entry.objects.create(song=song, queue=queue, station=my_station)
 
         # when we POST to the clear queue view for the main station
-        url = reverse('clear_queue', args=[main_station.pk])
+        url = reverse('clear_queue')
         with patch('teamplayer.views.IPCHandler'):
             self.client.post(url)
 

@@ -434,8 +434,8 @@ def create_station(request):
 
 @login_required
 @require_POST
-def clear_queue(request, station_id):
-    station = get_object_or_404(Station, pk=station_id)
+def clear_queue(request):
+    station = request.station
     queue = request.player.queue
     entries = Entry.objects.filter(queue=queue, station=station)
     entry_ids = [i.pk for i in entries]
