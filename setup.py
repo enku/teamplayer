@@ -7,7 +7,7 @@ setup(
     version=__import__('teamplayer').version_string(show_revision=False),
     description='A Democratic Internet Radio Station',
     author='Albert Hopkins',
-    author_email='marduk@python.net',
+    author_email='marduk@letterboxes.org',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[

@@ -2,7 +2,7 @@ FROM ubuntu
 
 LABEL Description "TeamPlayer wsgi service"
 
-MAINTAINER Albert Hopkins <marduk@python.net>
+MAINTAINER Albert Hopkins <marduk@letterboxes.org>
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
