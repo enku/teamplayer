@@ -260,7 +260,7 @@ class SearchTest(TestCase):
         management.call_command('rebuild_index', interactive=False)
 
         # when we search the song
-        url = reverse('library_search') + 'q=tori'
+        url = reverse('library_search') + '?q=tori'
         response = self.client.get(url)
 
         # then it shows up in the response context
