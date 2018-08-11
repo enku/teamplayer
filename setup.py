@@ -11,8 +11,8 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'Django>=1.8,<1.11',
-        'django-haystack>=2.5,<2.6',
+        'Django>=1.10,<1.12',
+        'django-haystack>=2.8,<2.9',
         'djangorestframework>=3.5,<3.6',
         'mutagen>=1.29,<1.30',
         'pylast>=1.6,<1.7',
