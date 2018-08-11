@@ -20,7 +20,7 @@ from teamplayer.serializers import EntrySerializer
 def add_to_queue(request):
     """Add song to the queue.
 
-    Return the dictified entry on success.  Or {'error', message} on failure.
+    Return the dictified entry on success.  Or {'error': message} on failure.
     """
     station = request.station
     form = AddToQueueForm(request.POST)
