@@ -172,8 +172,12 @@ class Entry(models.Model):
 
     """A song entry pointing to a file on the filesystem"""
     objects = models.Manager()
-    queue = models.ForeignKey(Queue)
-    station = models.ForeignKey('Station', related_name='entries')
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
+    station = models.ForeignKey(
+        'Station',
+        on_delete=models.CASCADE,
+        related_name='entries',
+    )
     place = models.IntegerField(default=0)
     song = models.FileField(upload_to='songs')
     title = models.CharField(default='Unknown', max_length=254)
@@ -213,7 +217,7 @@ class Mood(models.Model):
 
     """Artists that TeamPlayer "likes" (have been played)"""
     objects = models.Manager()
-    station = models.ForeignKey('Station')
+    station = models.ForeignKey('Station', on_delete=models.CASCADE)
     artist = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -276,7 +280,7 @@ class Station(models.Model):
 
     objects = StationManager()
     name = models.CharField(max_length=128, unique=True)
-    creator = models.OneToOneField('Player')
+    creator = models.OneToOneField('Player', on_delete=models.CASCADE)
     enabled = models.BooleanField(default=True)
 
     def __str__(self):
@@ -365,8 +369,13 @@ class Player(models.Model):
 
     """Player: misc. data assocated with a User"""
     objects = PlayerManager()
-    user = models.OneToOneField(User, unique=True, related_name='player')
-    queue = models.OneToOneField(Queue)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        unique=True,
+        related_name='player',
+    )
+    queue = models.OneToOneField(Queue, on_delete=models.CASCADE)
     dj_name = models.CharField(blank=True, max_length=25)
     auto_mode = models.BooleanField(default=False)
 
@@ -431,7 +440,11 @@ class LibraryItem(models.Model):
     genre = models.TextField(null=True, blank=True)
     date_added = models.DateTimeField(auto_now_add=True)
     station_id = models.IntegerField()
-    added_by = models.ForeignKey(Player, related_name='library_songs')
+    added_by = models.ForeignKey(
+        Player,
+        on_delete=models.CASCADE,
+        related_name='library_songs',
+    )
 
     class Meta:
         unique_together = (('artist', 'title', 'album'),)
@@ -507,10 +520,14 @@ class LibraryItem(models.Model):
 
 class PlayLog(models.Model):
     """A log of songs played"""
-    station = models.ForeignKey(Station, db_index=True)
+    station = models.ForeignKey(
+        Station,
+        on_delete=models.CASCADE,
+        db_index=True,
+    )
     title = models.CharField(max_length=254)
     artist = models.CharField(max_length=254)
-    player = models.ForeignKey(Player)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now_add=True)
 
     class Meta:

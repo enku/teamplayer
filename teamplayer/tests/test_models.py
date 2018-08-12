@@ -7,8 +7,8 @@ from unittest import mock
 
 import django.contrib.auth.models
 import django.core.files.uploadedfile
-import django.core.urlresolvers
 import django.test
+import django.urls
 from django.utils import timezone
 
 from teamplayer.models import (
@@ -27,7 +27,7 @@ TestCase = django.test.TestCase
 UploadedFile = django.core.files.uploadedfile.UploadedFile
 
 patch = mock.patch
-reverse = django.core.urlresolvers.reverse
+reverse = django.urls.reverse
 
 
 class PlayerTestCase(TestCase):

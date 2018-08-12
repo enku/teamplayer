@@ -65,7 +65,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, serialize=False, verbose_name='ID', primary_key=True)),
                 ('name', models.CharField(unique=True, max_length=128)),
-                ('creator', models.ForeignKey(to='teamplayer.Player', unique=True)),
+                ('creator', models.ForeignKey(to='teamplayer.Player', on_delete=models.CASCADE, unique=True)),
             ],
             options={
             },
@@ -74,31 +74,31 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='player',
             name='queue',
-            field=models.OneToOneField(to='teamplayer.Queue'),
+            field=models.OneToOneField(to='teamplayer.Queue', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='player',
             name='user',
-            field=models.OneToOneField(to=settings.AUTH_USER_MODEL, related_name='player'),
+            field=models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='player'),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='mood',
             name='station',
-            field=models.ForeignKey(to='teamplayer.Station'),
+            field=models.ForeignKey(to='teamplayer.Station', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='entry',
             name='queue',
-            field=models.ForeignKey(to='teamplayer.Queue'),
+            field=models.ForeignKey(to='teamplayer.Queue', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='entry',
             name='station',
-            field=models.ForeignKey(to='teamplayer.Station', related_name='entries'),
+            field=models.ForeignKey(to='teamplayer.Station', on_delete=models.CASCADE, related_name='entries'),
             preserve_default=True,
         ),
     ]

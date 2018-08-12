@@ -10,7 +10,7 @@ from time import sleep, time
 
 import mpd
 from django.conf import settings as django_settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from teamplayer import logger
 from teamplayer.conf import settings

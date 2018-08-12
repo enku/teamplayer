@@ -10,7 +10,7 @@ import tornado.web
 import tornado.websocket
 from django.conf import settings as django_settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from mutagen import File
 
 from teamplayer import logger, models

@@ -9,12 +9,12 @@ from teamplayer.models import PlayLog
 from teamplayer.models import Station
 from teamplayer.tests import utils
 
-import django.core.urlresolvers
 import django.test
+import django.urls
 
 SpinDoctor = utils.SpinDoctor
 TestCase = django.test.TestCase
-reverse = django.core.urlresolvers.reverse
+reverse = django.urls.reverse
 
 SILENCE = utils.SILENCE
 

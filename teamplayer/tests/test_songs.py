@@ -3,8 +3,8 @@ import pickle
 from unittest.mock import Mock, patch
 
 import pylast
-from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.urls import reverse
 
 from teamplayer.lib import songs
 from teamplayer.models import Entry, Mood, Player, Station

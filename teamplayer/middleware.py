@@ -17,7 +17,7 @@ class TeamPlayerMiddleware(MiddlewareMixin):
     """
     def process_request(self, request):
         """Add a "player" attribute to the request object."""
-        if hasattr(request, 'user') and request.user.is_authenticated():
+        if hasattr(request, 'user') and request.user.is_authenticated:
             user = request.user
             try:
                 player = Player.objects.get(user=user)

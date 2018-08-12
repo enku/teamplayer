@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='station',
             name='creator',
-            field=models.OneToOneField(to='teamplayer.Player'),
+            field=models.OneToOneField(to='teamplayer.Player', on_delete=models.CASCADE),
         ),
     ]

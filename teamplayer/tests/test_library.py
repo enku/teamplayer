@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 from django.core import management
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.urls import reverse
 from mutagen import File
 
 from teamplayer.models import Entry, LibraryItem, Player, Station

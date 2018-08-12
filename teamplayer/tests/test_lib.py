@@ -3,8 +3,8 @@ import json
 from unittest import mock
 
 import django.contrib.auth.models
-import django.core.urlresolvers
 import django.test
+import django.urls
 
 import teamplayer.models
 from teamplayer import version_string
@@ -16,7 +16,7 @@ Mood = teamplayer.models.Mood
 TestCase = django.test.TestCase
 call = mock.call
 patch = mock.patch
-reverse = django.core.urlresolvers.reverse
+reverse = django.urls.reverse
 
 
 class Lib(TestCase):
