@@ -3,11 +3,13 @@
 This command is responsible for starting the mpd daemons and continually
 grabbing entries from users' queues and adding them to the mpd playlist
 """
+import asyncio
 import os
 import signal
 import sys
 
 import tornado.web
+from tornado.platform.asyncio import AnyThreadEventLoopPolicy
 from django.core.management.base import BaseCommand
 
 from teamplayer import logger, models
@@ -31,6 +33,11 @@ class Command(BaseCommand):
         setproctitle('spindoctor')
 
     def handle(self, *args, **options):
+        # If we don't do this then we have to manually creat an asyncio loop in
+        # each thread where we want do work with tornado. Since threads
+        # spindoctor threads in teamplayer are dynamic and all use tornado, the
+        # below ensures that every thread (in this process) has an event loop
+        asyncio.set_event_loop_policy(AnyThreadEventLoopPolicy())
 
         # Update DJ Ango's queue according to ALWAYS_SHAKE_THINGS_UP
         queue = models.Player.dj_ango().queue
