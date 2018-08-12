@@ -44,12 +44,13 @@ class LibSongs(TestCase):
         self.player = teamplayer.models.Player.objects.create_player(
             **self.user_data)
         self.user = self.player.user
-        song = open(SILENCE, 'rb')
         view = reverse('add_to_queue')
 
         self.client.login(username=self.user_data['username'],
                           password=self.user_data['password'])
-        self.client.post(view, {'song': song}, follow=True)
+
+        with open(SILENCE, 'rb') as song:
+            self.client.post(view, {'song': song}, follow=True)
 
     def test_can_get_metadata(self):
         metadata = teamplayer.lib.songs.get_song_metadata(SILENCE)

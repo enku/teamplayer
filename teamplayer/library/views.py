@@ -35,9 +35,8 @@ def add_to_queue(request):
                 content_type='application/json'
             )
 
-        fp = File(open(library_item.filename, 'rb'))
-
-        entry = request.player.queue.add_song(fp, station)
+        with open(library_item.filename, 'rb') as fp:
+            entry = request.player.queue.add_song(File(fp), station)
 
         # notify the Spin Doctor
         IPCHandler.send_message('song_added', entry.pk)

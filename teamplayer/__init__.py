@@ -27,16 +27,17 @@ def version_string(version=VERSION, show_revision=True):
 
     if show_revision and REVISION is None:
         dirname = os.path.dirname(__file__)
-        try:
-            popen = subprocess.Popen(
-                ['hg', 'id', '-i', '--cwd', dirname],
-                stdout=subprocess.PIPE,
-                stderr=open(os.devnull, 'w')
-            )
-            if popen.wait() == 0:
-                REVISION = popen.stdout.read().decode('ascii').strip()
-        except OSError:
-            REVISION = ''
+        with open(os.devnull, 'w') as devnull:
+            try:
+                popen = subprocess.Popen(
+                    ['hg', 'id', '-i', '--cwd', dirname],
+                    stdout=subprocess.PIPE,
+                    stderr=devnull
+                )
+                if popen.wait() == 0:
+                    REVISION = popen.stdout.read().decode('ascii').strip()
+            except OSError:
+                REVISION = ''
 
     string = '.'.join(str(i) for i in version[:3])
 

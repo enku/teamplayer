@@ -107,7 +107,6 @@ class QueueViewsTestCase(TestCase):
     @patch('teamplayer.views.IPCHandler.send_message')
     def test_add_entries(self, mock):
         """Test that user can add entries"""
-        song = open(SILENCE, 'rb')
         view = reverse('add_to_queue')
 
         # first, verify user has an empty queue
@@ -115,7 +114,9 @@ class QueueViewsTestCase(TestCase):
         # log in as the user
         self.client.login(username=self.user_data['username'],
                           password=self.user_data['password'])
-        self.client.post(view, {'song': song}, follow=True)
+
+        with open(SILENCE, 'rb') as song:
+            self.client.post(view, {'song': song}, follow=True)
         self.assertEqual(self.player.queue.entry_set.count(), 1)
 
     @patch('teamplayer.views.IPCHandler.send_message')
@@ -332,12 +333,14 @@ class QueueAutoFill(TestCase):
         """We can have multiple files and get back as many as we ask for"""
         queue = self.dj_ango.queue
         with TemporaryDirectory() as tempdir:
-            silence = open(SILENCE, 'rb').read()
+            with open(SILENCE, 'rb') as fp:
+                silence = fp.read()
             filesize = len(silence)
             for i in range(10):
                 filename = '{0}.mp3'.format(i)
                 fullpath = os.path.join(tempdir, filename)
-                open(fullpath, 'wb').write(silence)
+                with open(fullpath, 'wb') as fp:
+                    fp.write(silence)
                 LibraryItem.objects.create(
                     filename=fullpath,
                     artist='DJ Ango',
@@ -391,10 +394,13 @@ class StationManagerTest(TestCase):
         main_station = Station.main_station()
         songs = []
         with TemporaryDirectory() as tempdir:
-            silence = open(SILENCE, 'rb').read()
+            with open(SILENCE, 'rb') as fp:
+                silence = fp.read()
+
             for data in song_data:
                 filename = os.path.join(tempdir, '{0}-{1}.mp3'.format(*data))
-                open(filename, 'wb').write(silence)
+                with open(filename, 'wb') as fp:
+                    fp.write(silence)
                 song = LibraryItem.objects.create(
                     artist=data[0],
                     title=data[1],
@@ -493,8 +499,8 @@ class StationTest(TestCase):
 
         # when i call .add_song() on a queue
         queue = self.player.queue
-        entry = queue.add_song(
-            UploadedFile(open(SILENCE, 'rb')), station=station)
+        with open(SILENCE, 'rb') as songfile:
+            entry = queue.add_song(UploadedFile(songfile), station=station)
 
         # the song is created in the user's queue and with the station
         self.assertEqual(entry.queue, self.player.queue)

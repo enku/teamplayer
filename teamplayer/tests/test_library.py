@@ -194,7 +194,9 @@ class TpLibraryWalkTestCase(TestCase):
         # Given the bad flac file
         filename = 'bad.flac'
         filename = os.path.join(self.directory, filename)
-        open(filename, 'w').write('This is not a good FLAC file')
+
+        with open(filename, 'w') as fp:
+            fp.write('This is not a good FLAC file')
 
         # When we run tplibrarywalk on the directory
         management.call_command('tplibrarywalk', self.directory)

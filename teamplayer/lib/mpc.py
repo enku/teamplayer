@@ -79,7 +79,6 @@ class MPC(object):
 
     def create_config(self):
         """Create the mpd config file and write the config to it"""
-        mpd_file = open(self.conf_file, 'w')
         context = {
             'ADDRESS': self.address,
             'DB_FILE': self.db_file,
@@ -96,29 +95,30 @@ class MPC(object):
             'NAME': 'TeamPlayer: %s\'s station' % self.station.creator
         }
 
-        mpd_file.write("""# Automatically generated.  Do not edit.
+        with open(self.conf_file, 'w') as mpd_file:
+            mpd_file.write("""# Automatically generated.  Do not edit.
 
-    port                    "{PORT}"
-    bind_to_address         "{ADDRESS}"
-    music_directory         "{QUEUE_DIR}"
-    pid_file                "{PID_FILE}"
-    db_file                 "{DB_FILE}"
-    sticker_file            "{STICKER_FILE}"
-    log_file                "{MPD_LOG}"
-    max_connections         "{MPD_MAX_CONNECTIONS}"
-    max_output_buffer_size  "{MAX_OUTPUT_BUFFER_SIZE}"
+        port                    "{PORT}"
+        bind_to_address         "{ADDRESS}"
+        music_directory         "{QUEUE_DIR}"
+        pid_file                "{PID_FILE}"
+        db_file                 "{DB_FILE}"
+        sticker_file            "{STICKER_FILE}"
+        log_file                "{MPD_LOG}"
+        max_connections         "{MPD_MAX_CONNECTIONS}"
+        max_output_buffer_size  "{MAX_OUTPUT_BUFFER_SIZE}"
 
-    audio_output {{
-        enabled             "yes"
-        always_on           "yes"
-        type                "httpd"
-        name                "{NAME}"
-        encoder             "lame"
-        port                "{HTTP_PORT}"
-        bitrate             "{STREAM_BITRATE}"
-        format              "{STREAM_FORMAT}"
-    }}
-    """.format(**context))
+        audio_output {{
+            enabled             "yes"
+            always_on           "yes"
+            type                "httpd"
+            name                "{NAME}"
+            encoder             "lame"
+            port                "{HTTP_PORT}"
+            bitrate             "{STREAM_BITRATE}"
+            format              "{STREAM_FORMAT}"
+        }}
+        """.format(**context))
 
         # make sure the config queue dir exists
         if not os.path.isdir(settings.QUEUE_DIR):

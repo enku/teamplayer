@@ -157,8 +157,9 @@ class Queue(models.Model):
         for songfile in song_files:
             logging.debug(songfile)
             try:
-                fp = File(open(songfile.filename, 'rb'))
-                self.add_song(fp, station)
+                with open(songfile.filename, 'rb') as fp:
+                    model_file = File(fp)
+                    self.add_song(model_file, station)
             except Exception:
                 logger.error('auto_fill exception: LibraryItem(%s)',
                              songfile.pk,
