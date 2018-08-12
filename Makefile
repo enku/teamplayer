@@ -19,7 +19,7 @@ $(WHEEL): $(SOURCE)
 	$(PYTHON) setup.py bdist_wheel
 
 test:
-	tox -e py36-django11
+	tox -e py36-django20
 
 docker:
 	docker-compose -p $(NAME) -f tools/docker/docker-compose.yml build
