@@ -20,8 +20,7 @@ from teamplayer.lib.websocket import IPCHandler, SocketHandler
 try:
     from setproctitle import setproctitle
 except ImportError:
-    def setproctitle(_):  # pragma: nocover
-        return
+    setproctitle = None
 
 
 class Command(BaseCommand):
@@ -30,7 +29,9 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
-        setproctitle('spindoctor')
+
+        if setproctitle:
+            setproctitle('spindoctor')
 
     def handle(self, *args, **options):
         # If we don't do this then we have to manually creat an asyncio loop in
