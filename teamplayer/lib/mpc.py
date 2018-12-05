@@ -79,46 +79,31 @@ class MPC(object):
 
     def create_config(self):
         """Create the mpd config file and write the config to it"""
-        context = {
-            'ADDRESS': self.address,
-            'DB_FILE': self.db_file,
-            'STICKER_FILE': self.sticker_file,
-            'HTTP_PORT': self.http_port,
-            'MPD_LOG': settings.MPD_LOG,
-            'MAX_OUTPUT_BUFFER_SIZE': settings.MAX_OUTPUT_BUFFER_SIZE,
-            'MPD_MAX_CONNECTIONS': settings.MPD_MAX_CONNECTIONS,
-            'PID_FILE': self.pid_file,
-            'PORT': self.port,
-            'QUEUE_DIR': self.queue_dir,
-            'STREAM_BITRATE': settings.STREAM_BITRATE,
-            'STREAM_FORMAT': settings.STREAM_FORMAT,
-            'NAME': 'TeamPlayer: %s\'s station' % self.station.creator
-        }
 
         with open(self.conf_file, 'w') as mpd_file:
-            mpd_file.write("""# Automatically generated.  Do not edit.
+            mpd_file.write(f"""# Automatically generated.  Do not edit.
 
-        port                    "{PORT}"
-        bind_to_address         "{ADDRESS}"
-        music_directory         "{QUEUE_DIR}"
-        pid_file                "{PID_FILE}"
-        db_file                 "{DB_FILE}"
-        sticker_file            "{STICKER_FILE}"
-        log_file                "{MPD_LOG}"
-        max_connections         "{MPD_MAX_CONNECTIONS}"
-        max_output_buffer_size  "{MAX_OUTPUT_BUFFER_SIZE}"
+        port                    "{self.port}"
+        bind_to_address         "{self.address}"
+        music_directory         "{self.queue_dir}"
+        pid_file                "{self.pid_file}"
+        db_file                 "{self.db_file}"
+        sticker_file            "{self.sticker_file}"
+        log_file                "{settings.MPD_LOG}"
+        max_connections         "{settings.MPD_MAX_CONNECTIONS}"
+        max_output_buffer_size  "{settings.MAX_OUTPUT_BUFFER_SIZE}"
 
         audio_output {{
             enabled             "yes"
             always_on           "yes"
             type                "httpd"
-            name                "{NAME}"
+            name                "TeamPlayer: {self.station.creator}'s station"
             encoder             "lame"
-            port                "{HTTP_PORT}"
-            bitrate             "{STREAM_BITRATE}"
-            format              "{STREAM_FORMAT}"
+            port                "{self.http_port}"
+            bitrate             "{settings.STREAM_BITRATE}"
+            format              "{settings.STREAM_FORMAT}"
         }}
-        """.format(**context))
+        """)
 
         # make sure the config queue dir exists
         if not os.path.isdir(settings.QUEUE_DIR):
@@ -245,7 +230,7 @@ class MPC(object):
         filename = os.path.join(django_settings.MEDIA_ROOT, song.name)
         basename = os.path.basename(filename)
 
-        new_filename = '{0}-{1}'.format(player.pk, basename)
+        new_filename = f'{player.pk}-{basename}'
         logger.debug('copying to %s', new_filename)
 
         new_path = os.path.join(self.queue_dir, new_filename)
