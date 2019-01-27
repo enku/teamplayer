@@ -3,15 +3,18 @@ import json
 import re
 from unittest.mock import patch
 
+from teamplayer.conf import settings
 from teamplayer.models import Entry
 from teamplayer.models import Player
 from teamplayer.models import PlayLog
 from teamplayer.models import Station
 from teamplayer.tests import utils
+from teamplayer import views
 
 import django.test
 import django.urls
 
+RequestFactory = django.test.RequestFactory
 SpinDoctor = utils.SpinDoctor
 TestCase = django.test.TestCase
 reverse = django.urls.reverse
@@ -533,3 +536,26 @@ class JSObjectTest(TestCase):
 
         # Then we get a big javascript object
         self.assertContains(response, "var TeamPlayer =")
+
+
+class GetMPDUrl(TestCase):
+    """Tests for the get_mpd_url() helper function"""
+
+    def setUp(self):
+        self.player = Player.objects.create_player(username="test", password="test")
+
+        # create a player station
+        self.station = Station.objects.create_station(
+            creator=self.player, name="test_station"
+        )
+
+    def test(self):
+        request = RequestFactory().get(f"/channel/{self.station.id}/")
+        request.station = self.station
+
+        url = views.get_mpd_url(request, self.station)
+
+        server = request.META["SERVER_NAME"]
+        port = settings.HTTP_PORT
+
+        self.assertEqual(url, f"http://{server}:{port + self.station.id}/mpd.mp3")
