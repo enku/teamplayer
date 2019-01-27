@@ -1,6 +1,6 @@
 {% load staticfiles %}
 /*
- * Copyright (c) 2010-2018 marduk enterprises <marduk@letterboxes.org>
+ * Copyright (c) 2010-2019 marduk enterprises <marduk@letterboxes.org>
  *
  */
 
