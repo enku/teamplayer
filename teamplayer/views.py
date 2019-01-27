@@ -14,6 +14,7 @@ from django.db import transaction
 from django.db.models import Count, Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import get_template
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
@@ -44,12 +45,11 @@ class HttpResponseNoContent(HttpResponse):
 
 
 def get_mpd_url(request, station):
-    http_host = request.META.get('HTTP_HOST', 'localhost')
-    http_host = http_host.partition(':')[0]
     station = request.station
-    station_id = station.pk
-    port = settings.HTTP_PORT + station_id
-    return 'http://{0}:{1}/mpd.mp3'.format(http_host, port)
+    template = get_template('teamplayer/mpd_channel_url.txt')
+    context = {'request': request, 'station': station, 'settings': settings}
+
+    return template.render(context).strip()
 
 
 def get_websocket_url(request):

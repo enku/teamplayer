@@ -1,0 +1,1 @@
+http://{{ request.META.SERVER_NAME }}:{{ settings.HTTP_PORT|add:station.id }}/mpd.mp3
