@@ -1,6 +1,0 @@
-.*\.pyc
-settings_local\.py
-.ropeproject
-.*\.egg-info/
-^\.tox
-^\.coverage$
