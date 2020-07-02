@@ -20,8 +20,7 @@ logger = logging.getLogger('teamplayer')
 def version_string(version=VERSION, show_revision=True):
     """Return *version* as a string.
 
-    If inside a mercurial repo and "hg" is available, also append the revision
-    hash.
+    If inside a git repo and "git" is available, also append the revision hash.
     """
     global REVISION
 
@@ -30,7 +29,7 @@ def version_string(version=VERSION, show_revision=True):
         with open(os.devnull, 'w') as devnull:
             try:
                 popen = subprocess.Popen(
-                    ['hg', 'id', '-i', '--cwd', dirname],
+                    ["git", "-C", dirname, "rev-parse", "--short", "HEAD"],
                     stdout=subprocess.PIPE,
                     stderr=devnull
                 )

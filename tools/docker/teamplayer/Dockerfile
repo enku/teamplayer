@@ -22,7 +22,7 @@ USER teamplayer
 
 RUN pip3 install -U --user pip setuptools && \
     /opt/teamplayer/.local/bin/pip install --user --no-cache \
-        hg+https://bitbucket.org/marduk/teamplayer/ \
+        git+https://github.com/enku/teamplayer/ \
         gunicorn \
         psycopg2 \
         whoosh && \
