@@ -7,7 +7,7 @@ MAINTAINER Albert Hopkins <marduk@letterboxes.org>
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
-    mercurial \
+    git \
     mpd \
     python3 \
     python3-dev \
