@@ -1,4 +1,4 @@
-PYTHON := python3.6
+PYTHON := python3.8
 NAME := $(shell $(PYTHON) setup.py --name)
 VERSION = $(shell $(PYTHON) setup.py --version)
 
@@ -19,7 +19,7 @@ $(WHEEL): $(SOURCE)
 	$(PYTHON) setup.py bdist_wheel
 
 test:
-	tox -e py36-django20
+	tox -e py38-django22
 
 docker:
 	docker-compose -p $(NAME) -f tools/docker/docker-compose.yml build

@@ -1,8 +1,10 @@
-FROM ubuntu:18.04
+FROM ubuntu
 
 LABEL Description "TeamPlayer wsgi service"
 
 MAINTAINER Albert Hopkins <marduk@letterboxes.org>
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \

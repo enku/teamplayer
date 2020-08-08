@@ -13,9 +13,9 @@ from mutagen import File
 
 from teamplayer.models import Entry, LibraryItem, Player, Station
 
-__dir__ = os.path.dirname(__file__)
-SILENCE = os.path.join(__dir__, 'data', 'silence.mp3')
-DATURA = os.path.join(__dir__,  'data', 'd\u0101tura.mp3')  # dātura.mp3
+DIR = os.path.dirname(__file__)
+SILENCE = os.path.join(DIR, 'data', 'silence.mp3')
+DATURA = os.path.join(DIR, 'data', 'd\u0101tura.mp3')  # dātura.mp3
 
 
 class LibraryItemTest(TestCase):

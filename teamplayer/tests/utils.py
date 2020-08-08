@@ -12,12 +12,12 @@ import teamplayer.models
 Entry = teamplayer.models.Entry
 UploadedFile = django.core.files.uploadedfile.UploadedFile
 
-__dir__ = os.path.dirname(__file__)
-SILENCE = os.path.join(__dir__, 'data', 'silence.mp3')
+DIR = os.path.dirname(__file__)
+SILENCE = os.path.join(DIR, 'data', 'silence.mp3')
 
 
 def getdata(filename, flags='r'):
-    fullpath = os.path.join(__dir__, 'data', filename)
+    fullpath = os.path.join(DIR, 'data', filename)
     return open(fullpath, flags)
 
 
