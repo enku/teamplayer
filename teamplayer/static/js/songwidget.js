@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 marduk enterprises <marduk@letterboxes.org>
+ * Copyright (c) 2010-2020 marduk enterprises <marduk@letterboxes.org>
  *
  */
 
