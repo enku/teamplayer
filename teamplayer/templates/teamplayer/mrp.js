@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 // This is ffmp3's js but pointing to the internal flash and turning tracking
 // off
 var MRP=function(){}

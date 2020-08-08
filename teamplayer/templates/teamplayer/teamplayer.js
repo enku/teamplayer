@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 /*
  * Copyright (c) 2010-2020 marduk enterprises <marduk@letterboxes.org>
  *
