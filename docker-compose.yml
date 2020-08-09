@@ -17,24 +17,24 @@ services:
     volumes:
       - static:/opt/teamplayer/static
 
-    database:
-      image: postgres:9.6
-      environment:
-        - POSTGRES_DB=teamplayer
-        - POSTGRES_PASSWORD=teamplayer
-        - POSTGRES_USER=teamplayer
+  database:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_DB=teamplayer
+      - POSTGRES_PASSWORD=teamplayer
+      - POSTGRES_USER=teamplayer
 
-    web:
-      image: nginx:1.19
-      depends_on:
-        - app
+  web:
+    image: nginx:1.19
+    depends_on:
+      - app
 
-      ports:
-        - "80:80"
+    ports:
+      - "80:80"
 
-      volumes:
-        - ./tools/docker/nginx.conf:/etc/nginx/nginx.conf:ro
-        - static:/opt/teamplayer/static
+    volumes:
+      - ./tools/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - static:/opt/teamplayer/static
 
 volumes:
   static:
