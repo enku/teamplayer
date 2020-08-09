@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    depends_on:
+      - database
+
+    ports:
+      - "8000-8099:8000-8099"
+
+    environment:
+      - DATABASE_HOST=database
+      - DATABASE_PASSWORD=teamplayer
+      - DATABASE_USER=teamplayer
+      - DJANGO_DEBUG
+
+    volumes:
+      - static:/opt/teamplayer/static
+
+    database:
+      image: postgres:9.6
+      environment:
+        - POSTGRES_DB=teamplayer
+        - POSTGRES_PASSWORD=teamplayer
+        - POSTGRES_USER=teamplayer
+
+    web:
+      image: nginx:1.19
+      depends_on:
+        - app
+
+      ports:
+        - "80:80"
+
+      volumes:
+        - ./tools/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+        - static:/opt/teamplayer/static
+
+volumes:
+  static:

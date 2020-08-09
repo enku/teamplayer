@@ -1,6 +1,6 @@
 *.pyc
-settings_local.py
-.ropeproject/
-.*.egg-info/
-.tox/
 .coverage
+.ropeproject/
+.tox/
+TeamPlayer.egg-info/
+settings_local.py

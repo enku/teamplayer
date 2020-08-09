@@ -22,8 +22,7 @@ test:
 	tox -e py38-django22
 
 docker:
-	docker-compose -p $(NAME) -f tools/docker/docker-compose.yml build
-	docker-compose -p $(NAME) -f tools/docker/docker-compose.yml up
+	docker-compose up
 
 clean:
 	rm -rf .tox build dist
