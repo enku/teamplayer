@@ -14,8 +14,8 @@ from mutagen import File
 from teamplayer.models import Entry, LibraryItem, Player, Station
 
 DIR = os.path.dirname(__file__)
-SILENCE = os.path.join(DIR, 'data', 'silence.mp3')
-DATURA = os.path.join(DIR, 'data', 'd\u0101tura.mp3')  # dātura.mp3
+SILENCE = os.path.join(DIR, "data", "silence.mp3")
+DATURA = os.path.join(DIR, "data", "d\u0101tura.mp3")  # dātura.mp3
 
 
 class LibraryItemTest(TestCase):
@@ -27,9 +27,9 @@ class LibraryItemTest(TestCase):
         """Demonstrate the exists() for nonexistant files method."""
         # given the song pointing to a non-existant file
         song = LibraryItem(
-            filename='/this/path/does/not/exist',
-            artist='DJ Ango',
-            title='No Such File',
+            filename="/this/path/does/not/exist",
+            artist="DJ Ango",
+            title="No Such File",
             length=300,
         )
 
@@ -43,9 +43,9 @@ class LibraryItemTest(TestCase):
         """Demonstrate the exists() for existant files method."""
         # given the song pointing to a non-existant file
         song = LibraryItem(
-            filename='/dev/null',  # yeah, i know this is bad
-            artist='DJ Ango',
-            title='No Such File',
+            filename="/dev/null",  # yeah, i know this is bad
+            artist="DJ Ango",
+            title="No Such File",
             length=300,
         )
 
@@ -58,7 +58,7 @@ class LibraryItemTest(TestCase):
     def test_artist_is_unknown(self):
         # given the LibraryItem
         metadata = File(SILENCE, easy=True)
-        metadata['artist'] = 'unknown'
+        metadata["artist"] = "unknown"
         contributor = self.dj_ango
         station_id = self.station.pk
 
@@ -66,34 +66,35 @@ class LibraryItemTest(TestCase):
         with self.assertRaises(ValidationError):
             # when we call metadata_get_or_create()
             song, created = LibraryItem.metadata_get_or_create(
-                '/dev/null', metadata, contributor, station_id)
+                "/dev/null", metadata, contributor, station_id
+            )
 
 
 class AddToQueueTest(TestCase):
     def setUp(self):
         self.song = LibraryItem.objects.create(
             filename=SILENCE,
-            artist='TeamPlayer',
-            title='Station Break',
-            album='You Complete Me',
-            genre='Unknown',
+            artist="TeamPlayer",
+            title="Station Break",
+            album="You Complete Me",
+            genre="Unknown",
             length=300,
             filesize=3000,
             station_id=1,
-            mimetype='audio/mp3',
+            mimetype="audio/mp3",
             added_by=Player.dj_ango(),
         )
-        self.url = reverse('library_add_to_queue')
-        self.player = Player.objects.create_player('test', password='test')
+        self.url = reverse("library_add_to_queue")
+        self.player = Player.objects.create_player("test", password="test")
 
-    @patch('teamplayer.library.views.IPCHandler.send_message')
+    @patch("teamplayer.library.views.IPCHandler.send_message")
     def test_add_to_queue(self, mock):
         """add_to_queue view"""
-        self.client.login(username='test', password='test')
-        response = self.client.post(self.url, {'song_id': self.song.pk})
+        self.client.login(username="test", password="test")
+        response = self.client.post(self.url, {"song_id": self.song.pk})
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content.decode('utf-8'))
-        self.assertTrue('error' not in data)
+        data = json.loads(response.content.decode("utf-8"))
+        self.assertTrue("error" not in data)
 
         # look in the user's queue, we should have that song
         song = Entry.objects.filter(queue=self.player.queue)
@@ -102,41 +103,38 @@ class AddToQueueTest(TestCase):
     def test_missing_library_item_sends_error(self):
         # given the song in the library with a file that doesn't exist
         song = LibraryItem.objects.create(
-            filename='bogus_file',
-            artist='TeamPlayer',
-            title='Missing',
-            album='No Purpose',
-            genre='Unknown',
+            filename="bogus_file",
+            artist="TeamPlayer",
+            title="Missing",
+            album="No Purpose",
+            genre="Unknown",
             length=300,
             filesize=3000,
             station_id=1,
-            mimetype='audio/mp3',
+            mimetype="audio/mp3",
             added_by=Player.dj_ango(),
         )
 
         # given the logged in user
-        assert self.client.login(username='test', password='test')
+        assert self.client.login(username="test", password="test")
 
         # when the user attempts to add the song to his queue
-        response = self.client.post(self.url, {'song_id': song.pk})
+        response = self.client.post(self.url, {"song_id": song.pk})
 
         # then an error message is return
-        data = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(data, {'error': 'Song could not be located'})
+        data = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(data, {"error": "Song could not be located"})
 
     def test_invalid_submission_sends_error(self):
         # given the logged in user
-        assert self.client.login(username='test', password='test')
+        assert self.client.login(username="test", password="test")
 
         # when the user attempts to add a song with insufficient data
         response = self.client.post(self.url, {})  # missing song_id
 
         # then an error message is return
-        data = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(
-            data,
-            {'error': '* song_id\n  * This field is required.'}
-        )
+        data = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(data, {"error": "* song_id\n  * This field is required."})
 
 
 class AddSongWithUTF8Filename(TestCase):
@@ -150,26 +148,26 @@ class AddSongWithUTF8Filename(TestCase):
     def setUp(self):
         self.datura = LibraryItem.objects.create(
             filename=DATURA,
-            artist='Tori Amos',
-            title='D\u0101tura',
-            album='To Venus and Back',
-            genre='Unknown',
+            artist="Tori Amos",
+            title="D\u0101tura",
+            album="To Venus and Back",
+            genre="Unknown",
             length=300,
             filesize=3000,
             station_id=1,
-            mimetype='audio/mp3',
+            mimetype="audio/mp3",
             added_by=Player.dj_ango(),
         )
-        self.url = reverse('library_add_to_queue')
-        self.player = Player.objects.create_player('test', password='test')
+        self.url = reverse("library_add_to_queue")
+        self.player = Player.objects.create_player("test", password="test")
 
-    @patch('teamplayer.library.views.IPCHandler.send_message')
+    @patch("teamplayer.library.views.IPCHandler.send_message")
     def test_add_utf8_filename(self, mock):
-        self.client.login(username='test', password='test')
-        response = self.client.post(self.url, {'song_id': self.datura.pk})
+        self.client.login(username="test", password="test")
+        response = self.client.post(self.url, {"song_id": self.datura.pk})
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content.decode('utf-8'))
-        self.assertTrue('error' not in data)
+        data = json.loads(response.content.decode("utf-8"))
+        self.assertTrue("error" not in data)
 
         # look in the user's queue, we should have that song
         song = Entry.objects.filter(queue=self.player.queue)
@@ -178,9 +176,10 @@ class AddSongWithUTF8Filename(TestCase):
 
 class TpLibraryWalkTestCase(TestCase):
     """Tests for the tplibrarywalk management command"""
+
     def setUp(self):
         self.directory = tempfile.mkdtemp()
-        self.logger = logging.getLogger('tplibrarywalk')
+        self.logger = logging.getLogger("tplibrarywalk")
         self.orig_loglevel = self.logger.getEffectiveLevel()
         self.logger.setLevel(logging.CRITICAL)
 
@@ -192,20 +191,20 @@ class TpLibraryWalkTestCase(TestCase):
     def test_bad_flac_file(self):
         """Bad FLAC file"""
         # Given the bad flac file
-        filename = 'bad.flac'
+        filename = "bad.flac"
         filename = os.path.join(self.directory, filename)
 
-        with open(filename, 'w') as fp:
-            fp.write('This is not a good FLAC file')
+        with open(filename, "w") as fp:
+            fp.write("This is not a good FLAC file")
 
         # When we run tplibrarywalk on the directory
-        management.call_command('tplibrarywalk', self.directory)
+        management.call_command("tplibrarywalk", self.directory)
 
         # Then it succeeds, but we just don't get any files
         self.assertEqual(LibraryItem.objects.all().count(), 0)
 
     def test_unencodable_filename(self):
-        filename = 'Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3'
+        filename = "Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3"
         filename = os.path.join(self.directory, filename)
 
         # encoding this as utf-8 causes the following error:
@@ -217,13 +216,13 @@ class TpLibraryWalkTestCase(TestCase):
         shutil.copy(DATURA, filename)
 
         # When we call the management command on it
-        management.call_command('tplibrarywalk', self.directory)
+        management.call_command("tplibrarywalk", self.directory)
 
         # Then it succeeds, but we just don't get any files
         self.assertEqual(LibraryItem.objects.all().count(), 0)
 
     def test_unencodable_filename_rename(self):
-        filename = 'Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3'
+        filename = "Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3"
         filename = os.path.join(self.directory, filename)
 
         # This is because the filename is actually latin-1, encoded but
@@ -231,41 +230,42 @@ class TpLibraryWalkTestCase(TestCase):
         shutil.copy(DATURA, filename)
 
         # When we call the management command on it with --rename
-        management.call_command(
-            'tplibrarywalk', self.directory, rename=True)
+        management.call_command("tplibrarywalk", self.directory, rename=True)
 
         # Then it succeeds and the file is renamed
         self.assertEqual(LibraryItem.objects.all().count(), 1)
 
         songfile = LibraryItem.objects.all()[0]
         expected = os.path.join(
-            self.directory, 'Kass\u00e9 Mady Diabat\u00e9 - Ko Kuma Magni.mp3')
+            self.directory, "Kass\u00e9 Mady Diabat\u00e9 - Ko Kuma Magni.mp3"
+        )
         self.assertEqual(songfile.filename, expected)
 
 
 class SearchTest(TestCase):
     """Tests for the library search view"""
+
     def test_finds_song_in_library(self):
         # given the song in the library
         songfile = LibraryItem.objects.create(
             filename=DATURA,
-            artist='Tori Amos',
-            title='D\u0101tura',
-            album='To Venus and Back',
-            genre='Unknown',
+            artist="Tori Amos",
+            title="D\u0101tura",
+            album="To Venus and Back",
+            genre="Unknown",
             length=300,
             filesize=3000,
             station_id=1,
-            mimetype='audio/mp3',
+            mimetype="audio/mp3",
             added_by=Player.dj_ango(),
         )
-        management.call_command('rebuild_index', interactive=False)
+        management.call_command("rebuild_index", interactive=False)
 
         # when we search the song
-        url = reverse('library_search') + '?q=tori'
+        url = reverse("library_search") + "?q=tori"
         response = self.client.get(url)
 
         # then it shows up in the response context
         context = response.context_data
-        objects = context['object_list']
+        objects = context["object_list"]
         self.assertEqual(objects[0].object, songfile)

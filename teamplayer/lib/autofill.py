@@ -57,7 +57,7 @@ def auto_fill_contiguous(*, queryset, entries_needed, station):
 
     min_first_song = max(0, song_count - entries_needed)
     first_song_idx = random.randint(0, min_first_song)
-    song_files = queryset[first_song_idx:first_song_idx + entries_needed]
+    song_files = queryset[first_song_idx : first_song_idx + entries_needed]
 
     return list(song_files)
 
@@ -71,12 +71,12 @@ def auto_fill_mood(*, queryset, entries_needed, station, seconds=None):
     seconds = seconds or settings.AUTOFILL_MOOD_HISTORY
     history = timezone.now() - datetime.timedelta(seconds=seconds)
     top_artists = Mood.objects.filter(timestamp__gte=history, station=station)
-    top_artists = top_artists.exclude(artist='')
-    top_artists = top_artists.values('artist')
-    top_artists = top_artists.annotate(Count('id'))
-    top_artists = top_artists.order_by('-id__count')
+    top_artists = top_artists.exclude(artist="")
+    top_artists = top_artists.values("artist")
+    top_artists = top_artists.annotate(Count("id"))
+    top_artists = top_artists.order_by("-id__count")
     top_artists = top_artists[:num_top_artists]
-    top_artists = [i['artist'] for i in top_artists]
+    top_artists = [i["artist"] for i in top_artists]
     random.shuffle(top_artists)
 
     liked_songs = []
@@ -102,13 +102,11 @@ def auto_fill_mood(*, queryset, entries_needed, station, seconds=None):
                 queryset=qs,
                 entries_needed=still_needed,
                 station=station,
-                seconds=seconds
+                seconds=seconds,
             )
         else:
             additional = auto_fill_random(
-                entries_needed=still_needed,
-                queryset=qs,
-                station=station,
+                entries_needed=still_needed, queryset=qs, station=station,
             )
 
     songs = liked_songs + additional
@@ -126,9 +124,8 @@ def auto_fill_from_tags(*, queryset, entries_needed, station):
     """
     stationname = station.name
     tags = stationname.split()
-    tags = [split_tag_into_words(i[1:]) for i in tags
-            if i.startswith('#')]
-    logger.debug('Tags: %s' % ', '.join(tags))
+    tags = [split_tag_into_words(i[1:]) for i in tags if i.startswith("#")]
+    logger.debug("Tags: %s" % ", ".join(tags))
     artists = artists_from_tags(tags)
     songfiles = queryset.filter(artist__in=artists)
 

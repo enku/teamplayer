@@ -24,6 +24,7 @@ DJ_ANGO = None
 class Queue(models.Model):
 
     """A player's queue containing song entries"""
+
     objects = models.Manager()
     active = models.BooleanField(default=True)
 
@@ -34,9 +35,9 @@ class Queue(models.Model):
         """Add <<song_file>> to queue"""
 
         # get the extension of the original filename
-        dot = song_file.name.rfind('.')
+        dot = song_file.name.rfind(".")
         if dot != -1:
-            extension = song_file.name[dot + 1:]
+            extension = song_file.name[dot + 1 :]
         else:
             extension = None
 
@@ -52,10 +53,10 @@ class Queue(models.Model):
             entry.song.delete()
             entry.delete()
             raise
-        entry.artist = metadata['artist']
-        entry.title = metadata['title']
-        entry.album = metadata['album']
-        entry.filetype = metadata['type']
+        entry.artist = metadata["artist"]
+        entry.title = metadata["title"]
+        entry.album = metadata["album"]
+        entry.filetype = metadata["type"]
         entry.save()
         return entry
 
@@ -89,7 +90,7 @@ class Queue(models.Model):
             entry.place = order
             entry.save()
 
-        return self.entry_set.values('id', 'artist', 'title')
+        return self.entry_set.values("id", "artist", "title")
 
     @transaction.atomic
     def order_by_rank(self, station):
@@ -135,35 +136,32 @@ class Queue(models.Model):
         song_files = LibraryItem.objects.filter(**qs_filter)
 
         if station != Station.main_station():
-            if '#' not in station.name:
+            if "#" not in station.name:
                 return
 
-            logger.debug('Station name has a #. Filling based on tags')
+            logger.debug("Station name has a #. Filling based on tags")
             strategy = auto_fill_from_tags
         else:
             strategy_name = settings.AUTOFILL_STRATEGY
             iter_ = pkg_resources.iter_entry_points(
-                'teamplayer.autofill_strategy',
-                strategy_name,
+                "teamplayer.autofill_strategy", strategy_name,
             )
             strategy = next(iter_).load()
 
         song_files = strategy(
-            entries_needed=entries_needed,
-            queryset=song_files,
-            station=station,
+            entries_needed=entries_needed, queryset=song_files, station=station,
         )
 
         for songfile in song_files:
             logging.debug(songfile)
             try:
-                with open(songfile.filename, 'rb') as fp:
+                with open(songfile.filename, "rb") as fp:
                     model_file = File(fp)
                     self.add_song(model_file, station)
             except Exception:
-                logger.error('auto_fill exception: LibraryItem(%s)',
-                             songfile.pk,
-                             exc_info=True)
+                logger.error(
+                    "auto_fill exception: LibraryItem(%s)", songfile.pk, exc_info=True
+                )
         if song_files:
             signals.QUEUE_CHANGE_EVENT.set()
             signals.QUEUE_CHANGE_EVENT.clear()
@@ -172,17 +170,16 @@ class Queue(models.Model):
 class Entry(models.Model):
 
     """A song entry pointing to a file on the filesystem"""
+
     objects = models.Manager()
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
     station = models.ForeignKey(
-        'Station',
-        on_delete=models.CASCADE,
-        related_name='entries',
+        "Station", on_delete=models.CASCADE, related_name="entries",
     )
     place = models.IntegerField(default=0)
-    song = models.FileField(upload_to='songs')
-    title = models.CharField(default='Unknown', max_length=254)
-    artist = models.CharField('Unknown', max_length=254)
+    song = models.FileField(upload_to="songs")
+    title = models.CharField(default="Unknown", max_length=254)
+    artist = models.CharField("Unknown", max_length=254)
     album = models.CharField(max_length=254, null=True)
     filetype = models.CharField(max_length=4, blank=False)
 
@@ -205,20 +202,22 @@ class Entry(models.Model):
         qs = Mood.objects.filter(
             artist__iexact=self.artist,
             station=station,
-            timestamp__gt=lib.now() - datetime.timedelta(hours=24)
+            timestamp__gt=lib.now() - datetime.timedelta(hours=24),
         )
         return qs.count()
 
     class Meta:
         """ORM metadata"""
-        ordering = ('-place', 'id')
+
+        ordering = ("-place", "id")
 
 
 class Mood(models.Model):
 
     """Artists that TeamPlayer "likes" (have been played)"""
+
     objects = models.Manager()
-    station = models.ForeignKey('Station', on_delete=models.CASCADE)
+    station = models.ForeignKey("Station", on_delete=models.CASCADE)
     artist = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -226,26 +225,21 @@ class Mood(models.Model):
         return f"{self.artist}: {self.timestamp}"
 
     class Meta:
-        ordering = ('-timestamp', 'artist')
+        ordering = ("-timestamp", "artist")
 
     @classmethod
     def log_mood(cls, artist, station):
         """Log the artist and similar artists in the Mood database"""
-        cls.objects.create(
-            artist=artist,
-            station=station
-        )
+        cls.objects.create(artist=artist, station=station)
 
         similar_artists = lib.songs.get_similar_artists(artist)
         for artist in similar_artists:
             cls.objects.create(
-                artist=artist,
-                station=station,
+                artist=artist, station=station,
             )
 
 
 class StationManager(models.Manager):
-
     def get_queryset(self):
         """Override default queryset to only return enabled stations"""
         return super(StationManager, self).get_queryset().filter(enabled=True)
@@ -256,8 +250,8 @@ class StationManager(models.Manager):
         return super(StationManager, self).get_queryset().filter(enabled=False)
 
     def create_station(self, **kwargs):
-        songs = kwargs.pop('songs', [])
-        creator = kwargs.pop('creator')
+        songs = kwargs.pop("songs", [])
+        creator = kwargs.pop("creator")
 
         qs = super(StationManager, self).get_queryset()
         station, _ = qs.get_or_create(creator=creator)
@@ -269,7 +263,7 @@ class StationManager(models.Manager):
 
         queue = station.creator.queue
         for songfile in songs:
-            with open(songfile.filename, 'rb') as fp:
+            with open(songfile.filename, "rb") as fp:
                 django_file = File(fp)
                 queue.add_song(django_file, station)
 
@@ -281,7 +275,7 @@ class Station(models.Model):
 
     objects = StationManager()
     name = models.CharField(max_length=128, unique=True)
-    creator = models.OneToOneField('Player', on_delete=models.CASCADE)
+    creator = models.OneToOneField("Player", on_delete=models.CASCADE)
     enabled = models.BooleanField(default=True)
 
     def __str__(self):
@@ -289,36 +283,28 @@ class Station(models.Model):
 
     def get_songs(self):
         """Return queryset of all (active) songs in the station"""
-        return Entry.objects.filter(
-            station=self,
-            queue__active=True,
-        )
+        return Entry.objects.filter(station=self, queue__active=True,)
 
     def participants(self):
         """Return the set of Users with songs ready for this station."""
-        entries_qs = Entry.objects.filter(
-            station=self,
-            queue__active=True
-        )
-        return Player.objects.filter(
-            queue__entry__in=entries_qs,
-        ).distinct()
+        entries_qs = Entry.objects.filter(station=self, queue__active=True)
+        return Player.objects.filter(queue__entry__in=entries_qs,).distinct()
 
     @classmethod
     def get_stations(cls):
-        return cls.objects.all().order_by('pk')
+        return cls.objects.all().order_by("pk")
 
     def current_song(self):
         return lib.mpc.MPC(station=self).currently_playing()
 
     def url(self, request):
         try:
-            http_host = request.META.get('HTTP_HOST', 'localhost')
+            http_host = request.META.get("HTTP_HOST", "localhost")
         except AttributeError:
             http_host = request.host
 
-        if ':' in http_host:
-            http_host = http_host.split(':', 1)[0]
+        if ":" in http_host:
+            http_host = http_host.split(":", 1)[0]
 
         mpc = lib.mpc.MPC(station=self)
         return f"http://{http_host}:{mpc.http_port}/mpd.mp3"
@@ -338,40 +324,33 @@ class Station(models.Model):
     @classmethod
     def main_station(cls):
         if not cls.__main_station:
-            cls.__main_station = cls.objects.get(name='Main Station')
+            cls.__main_station = cls.objects.get(name="Main Station")
         return cls.__main_station
 
 
 class PlayerManager(models.Manager):
-
     def create_player(self, username, **kwargs):
         """Create a player with username"""
-        user_kwargs = {'username': username}
-        password = kwargs.pop('password', None)
+        user_kwargs = {"username": username}
+        password = kwargs.pop("password", None)
 
         if password is not None:
-            user_kwargs['password'] = password
+            user_kwargs["password"] = password
 
         user = User.objects.create_user(**user_kwargs)
         queue = Queue.objects.create()
 
-        player = Player.objects.create(
-            user=user,
-            queue=queue,
-            dj_name=''
-        )
+        player = Player.objects.create(user=user, queue=queue, dj_name="")
         return player
 
 
 class Player(models.Model):
 
     """Player: misc. data assocated with a User"""
+
     objects = PlayerManager()
     user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        unique=True,
-        related_name='player',
+        User, on_delete=models.CASCADE, unique=True, related_name="player",
     )
     queue = models.OneToOneField(Queue, on_delete=models.CASCADE)
     dj_name = models.CharField(blank=True, max_length=25)
@@ -399,16 +378,13 @@ class Player(models.Model):
     @classmethod
     def player_stats(cls):
         """Return a dictionary of player stats (all players)"""
-        active_queues = Queue.objects.filter(
-            active=True).values_list('pk', flat=True)
-        songs_in_queue = Entry.objects.filter(
-            queue__pk__in=active_queues,
-        )
+        active_queues = Queue.objects.filter(active=True).values_list("pk", flat=True)
+        songs_in_queue = Entry.objects.filter(queue__pk__in=active_queues,)
 
         return {
-            'active_queues': len(active_queues),
-            'songs': len(songs_in_queue),
-            'stations': Station.get_stations().count(),
+            "active_queues": len(active_queues),
+            "songs": len(songs_in_queue),
+            "stations": Station.get_stations().count(),
         }
 
     @classmethod
@@ -417,7 +393,7 @@ class Player(models.Model):
         if DJ_ANGO:
             return DJ_ANGO
 
-        DJ_ANGO = cls.objects.get(user__username='DJ Ango')
+        DJ_ANGO = cls.objects.get(user__username="DJ Ango")
         return DJ_ANGO
 
     @classmethod
@@ -439,18 +415,14 @@ class LibraryItem(models.Model):
     date_added = models.DateTimeField(auto_now_add=True)
     station_id = models.IntegerField()
     added_by = models.ForeignKey(
-        Player,
-        on_delete=models.CASCADE,
-        related_name='library_songs',
+        Player, on_delete=models.CASCADE, related_name="library_songs",
     )
 
     class Meta:
-        unique_together = (('artist', 'title', 'album'),)
+        unique_together = (("artist", "title", "album"),)
 
     def similar_artists(self):
-        return (lib.songs.get_similar_artists(self.artist)
-                if self.artist
-                else None)
+        return lib.songs.get_similar_artists(self.artist) if self.artist else None
 
     def exists(self):
         return os.path.exists(self.filename)
@@ -458,10 +430,10 @@ class LibraryItem(models.Model):
     @classmethod
     def metadata_get_or_create(cls, filename, metadata, contributer, st_id):
         try:
-            artist = lib.first_or_none(metadata, 'artist') or ''
-            title = lib.first_or_none(metadata, 'title') or ''
-            album = lib.first_or_none(metadata, 'album') or ''
-            genre = lib.first_or_none(metadata, 'genre') or None
+            artist = lib.first_or_none(metadata, "artist") or ""
+            title = lib.first_or_none(metadata, "title") or ""
+            album = lib.first_or_none(metadata, "album") or ""
+            genre = lib.first_or_none(metadata, "genre") or None
             length = metadata.info.length
 
             if length:
@@ -470,15 +442,17 @@ class LibraryItem(models.Model):
                 length = None
 
         except Exception as error:
-            logger.error('Error getting metadata for %s: %s', filename, error)
+            logger.error("Error getting metadata for %s: %s", filename, error)
             raise
 
         # see if we already have a file with said metadata
         try:
-            return (cls.objects.get(artist__iexact=artist,
-                                    title__iexact=title,
-                                    album__iexact=album),
-                    False)
+            return (
+                cls.objects.get(
+                    artist__iexact=artist, title__iexact=title, album__iexact=album
+                ),
+                False,
+            )
         except cls.DoesNotExist:
             pass
 
@@ -492,7 +466,7 @@ class LibraryItem(models.Model):
             length=length,
             genre=genre,
             station_id=st_id,
-            added_by=contributer
+            added_by=contributer,
         )
         songfile.full_clean()  # callers should trap me
         songfile.save()
@@ -509,7 +483,7 @@ class LibraryItem(models.Model):
         return self.filename
 
     def clean(self):
-        if self.artist.lower() in ('', 'unknown'):
+        if self.artist.lower() in ("", "unknown"):
             raise ValidationError(f"Invalid artist: {self.artist}")
 
         self.genre = self.genre or None
@@ -518,18 +492,15 @@ class LibraryItem(models.Model):
 
 class PlayLog(models.Model):
     """A log of songs played"""
-    station = models.ForeignKey(
-        Station,
-        on_delete=models.CASCADE,
-        db_index=True,
-    )
+
+    station = models.ForeignKey(Station, on_delete=models.CASCADE, db_index=True,)
     title = models.CharField(max_length=254)
     artist = models.CharField(max_length=254)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = [['station', 'time']]
+        unique_together = [["station", "time"]]
 
     def __str__(self):
         return (

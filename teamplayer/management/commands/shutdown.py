@@ -9,7 +9,8 @@ from teamplayer.lib.websocket import IPCHandler
 
 class Command(BaseCommand):
     """Command to stop the spindoctor"""
+
     help = "Stop the TeamPlayer service"
 
     def handle(self, *args, **options):
-        IPCHandler.send_message('shutdown', None)
+        IPCHandler.send_message("shutdown", None)

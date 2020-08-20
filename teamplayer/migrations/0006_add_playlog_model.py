@@ -9,23 +9,42 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('teamplayer', '0005_move_libraryitem_to_teamplayer'),
+        ("teamplayer", "0005_move_libraryitem_to_teamplayer"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PlayLog',
+            name="PlayLog",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=254)),
-                ('artist', models.CharField(max_length=254)),
-                ('time', models.DateTimeField(auto_now_add=True)),
-                ('player', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='teamplayer.Player')),
-                ('station', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='teamplayer.Station')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=254)),
+                ("artist", models.CharField(max_length=254)),
+                ("time", models.DateTimeField(auto_now_add=True)),
+                (
+                    "player",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="teamplayer.Player",
+                    ),
+                ),
+                (
+                    "station",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="teamplayer.Station",
+                    ),
+                ),
             ],
         ),
         migrations.AlterUniqueTogether(
-            name='playlog',
-            unique_together=set([('station', 'time')]),
+            name="playlog", unique_together=set([("station", "time")]),
         ),
     ]

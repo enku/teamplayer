@@ -7,29 +7,28 @@ from teamplayer import models
 
 class EditStationForm(forms.Form):
     name = forms.CharField(max_length=128)
-    action = forms.ChoiceField(choices=(('rename', 'Rename'),
-                                        ('remove', 'Remove')))
+    action = forms.ChoiceField(choices=(("rename", "Rename"), ("remove", "Remove")))
     station_id = forms.IntegerField()
 
     def clean_name(self):
-        name = self.cleaned_data['name']
+        name = self.cleaned_data["name"]
 
         name = name.strip()
-        if name.lower() == 'teamplayer':
-            raise forms.ValidationError(f'“{name}” is an invalid name.')
+        if name.lower() == "teamplayer":
+            raise forms.ValidationError(f"“{name}” is an invalid name.")
 
         if len(name) > 128:
-            raise forms.ValidationError('The name is too long.')
+            raise forms.ValidationError("The name is too long.")
 
         return name
 
     def clean(self):
         cleaned_data = super(EditStationForm, self).clean()
 
-        if 'name' in cleaned_data:
-            name = cleaned_data['name']
-            station_id = self.cleaned_data['station_id']
-            already_taken = 'That name is already taken.'
+        if "name" in cleaned_data:
+            name = cleaned_data["name"]
+            station_id = self.cleaned_data["station_id"]
+            already_taken = "That name is already taken."
 
             try:
                 station = models.Station.objects.get(name__iexact=name)
@@ -47,24 +46,23 @@ class CreateStationForm(forms.Form):
 
 class ChangeDJNameForm(forms.Form):
     dj_name = forms.CharField(max_length=25, required=False)
-    allowable_characters = (string.ascii_letters
-                            + string.digits
-                            + string.punctuation
-                            + ' _-')
+    allowable_characters = (
+        string.ascii_letters + string.digits + string.punctuation + " _-"
+    )
 
     def __init__(self, *args, **kwargs):
-        self.player = kwargs.pop('player')
+        self.player = kwargs.pop("player")
         super(ChangeDJNameForm, self).__init__(*args, **kwargs)
 
     def clean_dj_name(self):
-        name = self.cleaned_data['dj_name'].strip()
-        already_taken = 'That name is already taken.'
+        name = self.cleaned_data["dj_name"].strip()
+        already_taken = "That name is already taken."
 
         if not name:
-            return ''
+            return ""
 
         if not self.legal_name(name):
-            raise forms.ValidationError(f'“{name}” is an invalid name.')
+            raise forms.ValidationError(f"“{name}” is an invalid name.")
 
         try:
             player = models.Player.objects.get(dj_name__iexact=name)
@@ -76,7 +74,7 @@ class ChangeDJNameForm(forms.Form):
         return name
 
     def legal_name(self, name):
-        if name.lower() in ('dj ango', 'dj_ango', 'django'):
+        if name.lower() in ("dj ango", "dj_ango", "django"):
             return False
 
         for c in name:

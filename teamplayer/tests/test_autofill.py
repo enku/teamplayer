@@ -11,7 +11,7 @@ from teamplayer.lib.autofill import (
     auto_fill_contiguous,
     auto_fill_from_tags,
     auto_fill_mood,
-    auto_fill_random
+    auto_fill_random,
 )
 from teamplayer.models import LibraryItem, Mood, Player, Station
 from teamplayer.tests import utils
@@ -19,6 +19,7 @@ from teamplayer.tests import utils
 
 class AutoFillTest:
     """Mixin for the autofill tests"""
+
     def setUp(self):
         parent = super()
         parent.setUp()
@@ -26,16 +27,16 @@ class AutoFillTest:
         self.dj_ango = Player.dj_ango()
 
         artists = (
-            'Britney Spears',
-            'KMFDM',
-            'Kanye West',
-            'Katie Melua',
-            'Marilyn Manson',
-            'Nine Inch Nails',
-            'Norah Jones',
-            'Sufjan Stevens',
-            'The Glitch Mob',
-            'edIT',
+            "Britney Spears",
+            "KMFDM",
+            "Kanye West",
+            "Katie Melua",
+            "Marilyn Manson",
+            "Nine Inch Nails",
+            "Norah Jones",
+            "Sufjan Stevens",
+            "The Glitch Mob",
+            "edIT",
         )
         # let's fill the library with some songage
         for artist in artists:
@@ -43,13 +44,13 @@ class AutoFillTest:
             songfile = LibraryItem(
                 filename=filename,
                 artist=artist,
-                title='Silent Night',
-                album='Various Artists Do Silent Night',
-                genre='Unknown',
+                title="Silent Night",
+                album="Various Artists Do Silent Night",
+                genre="Unknown",
                 length=300,
                 filesize=3000,
                 station_id=1,
-                mimetype='audio/mp3',
+                mimetype="audio/mp3",
                 added_by=self.dj_ango,
             )
             songfile.save()
@@ -57,15 +58,14 @@ class AutoFillTest:
 
 class RandomTest(AutoFillTest, TestCase):
     """tests for the random autofill strategy"""
+
     def test_empty_queryset_returns_empty_list(self):
         # given the empty queryset
         queryset = LibraryItem.objects.none()
 
         # when we call the random strategy
         result = auto_fill_random(
-            entries_needed=10,
-            queryset=queryset,
-            station=Station.main_station(),
+            entries_needed=10, queryset=queryset, station=Station.main_station(),
         )
 
         # then it returns an empty list
@@ -114,15 +114,14 @@ class RandomTest(AutoFillTest, TestCase):
 
 class ContiguousTest(AutoFillTest, TestCase):
     """tests for the contiguous autofill strategy"""
+
     def test_empty_queryset_returns_empty_list(self):
         # given the empty queryset
         queryset = LibraryItem.objects.none()
 
         # when we call the contiguous strategy
         result = auto_fill_contiguous(
-            entries_needed=10,
-            queryset=queryset,
-            station=Station.main_station(),
+            entries_needed=10, queryset=queryset, station=Station.main_station(),
         )
 
         # then it returns an empty list
@@ -134,16 +133,14 @@ class ContiguousTest(AutoFillTest, TestCase):
 
         # when we call the contiguous strategy
         result = auto_fill_contiguous(
-            entries_needed=4,
-            queryset=queryset,
-            station=Station.main_station(),
+            entries_needed=4, queryset=queryset, station=Station.main_station(),
         )
 
         # then the songs returned are in the same order as they are in the
         # queryset
         queryset_list = list(queryset)
         index = queryset_list.index(result[0])
-        ordered_songs = queryset_list[index: index + 4]
+        ordered_songs = queryset_list[index : index + 4]
         self.assertEqual(result, ordered_songs)
 
     def test_entries_needed_less_than_queryset_returns_full_set_ordered(self):
@@ -153,9 +150,7 @@ class ContiguousTest(AutoFillTest, TestCase):
         # when we call the contiguous strategy needing more songs than are in
         # the queryset
         result = auto_fill_contiguous(
-            entries_needed=20,
-            queryset=queryset,
-            station=Station.main_station(),
+            entries_needed=20, queryset=queryset, station=Station.main_station(),
         )
 
         # then we get back a list containing the entire queryset in order
@@ -165,6 +160,7 @@ class ContiguousTest(AutoFillTest, TestCase):
 
 class MoodTest(AutoFillTest, TestCase):
     """tests for the mood strategy"""
+
     def setUp(self):
         parent = super()
         parent.setUp()
@@ -172,17 +168,17 @@ class MoodTest(AutoFillTest, TestCase):
         station = Station.main_station()
 
         # let's set the mood ;-)
-        path = 'teamplayer.models.lib.songs.get_similar_artists'
+        path = "teamplayer.models.lib.songs.get_similar_artists"
         patcher = patch(path)
         get_similar_artists = patcher.start()
-        get_similar_artists.return_value = ['Marilyn Manson', 'KMFDM']
-        Mood.log_mood('Nine Inch Nails', station)
-        Mood.log_mood('Nine Inch Nails', station)
-        Mood.log_mood('Nine Inch Nails', station)
-        get_similar_artists.return_value = ['KMFDM']  # I know, nothing like NJ
-        Mood.log_mood('Norah Jones', station)
+        get_similar_artists.return_value = ["Marilyn Manson", "KMFDM"]
+        Mood.log_mood("Nine Inch Nails", station)
+        Mood.log_mood("Nine Inch Nails", station)
+        Mood.log_mood("Nine Inch Nails", station)
+        get_similar_artists.return_value = ["KMFDM"]  # I know, nothing like NJ
+        Mood.log_mood("Norah Jones", station)
         # make the last one kinda old
-        norah_jones_mood = Mood.objects.get(artist='Norah Jones')
+        norah_jones_mood = Mood.objects.get(artist="Norah Jones")
         two_hours_ago = timezone.now() - datetime.timedelta(hours=120)
         norah_jones_mood.timestamp = two_hours_ago
         norah_jones_mood.save()
@@ -195,19 +191,17 @@ class MoodTest(AutoFillTest, TestCase):
 
         # when we call the mood strategy with 1 entry needed
         station = Station.main_station()
-        with patch('teamplayer.lib.autofill.settings') as settings:
+        with patch("teamplayer.lib.autofill.settings") as settings:
             settings.AUTOFILL_MOOD_TOP_ARTISTS = 1
             settings.AUTOFILL_MOOD_HISTORY = 86400
             result = auto_fill_mood(
-                entries_needed=1,
-                queryset=queryset,
-                station=station,
+                entries_needed=1, queryset=queryset, station=station,
             )
 
         # then it gives us the one song by the top artist
         self.assertEqual(len(result), 1)
         song = result[0]
-        self.assertEqual(song.artist, 'KMFDM')
+        self.assertEqual(song.artist, "KMFDM")
 
     def test_finds_top_artists2(self):
         # given the queryset
@@ -215,26 +209,21 @@ class MoodTest(AutoFillTest, TestCase):
 
         # when we call the mood strategy with 3 entries needed
         station = Station.main_station()
-        with patch('teamplayer.lib.autofill.settings') as settings:
+        with patch("teamplayer.lib.autofill.settings") as settings:
             settings.AUTOFILL_MOOD_TOP_ARTISTS = 3
             settings.AUTOFILL_MOOD_HISTORY = 86400
             result = auto_fill_mood(
-                entries_needed=3,
-                queryset=queryset,
-                station=station,
+                entries_needed=3, queryset=queryset, station=station,
             )
 
         # then it gives us the songs by the top 3 artists
         self.assertEqual(len(result), 3)
         artists = set(i.artist for i in result)
-        self.assertEqual(
-            artists,
-            {'Nine Inch Nails', 'KMFDM', 'Marilyn Manson'}
-        )
+        self.assertEqual(artists, {"Nine Inch Nails", "KMFDM", "Marilyn Manson"})
 
     def test_does_not_return_artist_who_has_no_songs(self):
         # given the artist who has no songs
-        songs = LibraryItem.objects.filter(artist='Artist 4')
+        songs = LibraryItem.objects.filter(artist="Artist 4")
         songs.delete()
 
         # given the queryset
@@ -242,20 +231,18 @@ class MoodTest(AutoFillTest, TestCase):
 
         # when we call the mood strategy with 1 entry needed
         station = Station.main_station()
-        with patch('teamplayer.lib.autofill.settings') as settings:
+        with patch("teamplayer.lib.autofill.settings") as settings:
             settings.AUTOFILL_MOOD_TOP_ARTISTS = 3
             settings.AUTOFILL_MOOD_HISTORY = 86400
             result = auto_fill_mood(
-                entries_needed=1,
-                queryset=queryset,
-                station=station,
+                entries_needed=1, queryset=queryset, station=station,
             )
 
         # then obviouly we don't get the top artist because he has no
         # songs
         self.assertEqual(len(result), 1)
         song = result[0]
-        self.assertNotEqual(song.artist, 'Artist 4')
+        self.assertNotEqual(song.artist, "Artist 4")
 
     def test_returns_random_artist_song_when_not_enough_artists(self):
         # given the queryset
@@ -264,53 +251,47 @@ class MoodTest(AutoFillTest, TestCase):
         # when we call the mood strategy with 4 entries needed, but only the
         # top 3 considered
         station = Station.main_station()
-        with patch('teamplayer.lib.autofill.settings') as settings:
+        with patch("teamplayer.lib.autofill.settings") as settings:
             settings.AUTOFILL_MOOD_TOP_ARTISTS = 3
             settings.AUTOFILL_MOOD_HISTORY = 3600
             result = auto_fill_mood(
-                entries_needed=4,
-                queryset=queryset,
-                station=station,
+                entries_needed=4, queryset=queryset, station=station,
             )
 
         # then it gives us the songs by the top 3 artists and another artist
         self.assertEqual(len(result), 4)
         artists = set(i.artist for i in result)
-        self.assertGreater(
-            artists,
-            {'KMFDM', 'Nine Inch Nails', 'Marilyn Manson'}
-        )
+        self.assertGreater(artists, {"KMFDM", "Nine Inch Nails", "Marilyn Manson"})
 
 
 class TagsTest(AutoFillTest, TestCase):
     """tests for the autofill_from_tags strategy"""
+
     def test_auto_fill_from_tags(self):
         # given the (mock) queryset
-        queryset = MagicMock(name='queryset')
+        queryset = MagicMock(name="queryset")
         queryset.count = Mock(return_value=90)
         queryset.filter = MagicMock(return_value=queryset)
 
         # given the player
-        player = Player.objects.create_player('test_player', password='test')
+        player = Player.objects.create_player("test_player", password="test")
 
         # given the station with a tag in the name
-        station = Station.objects.create(creator=player, name='#electronic')
+        station = Station.objects.create(creator=player, name="#electronic")
 
         # when we call auto_fill_from_tags()
-        with patch('teamplayer.models.lib.songs.pylast.Tag') as Tag:
-            with utils.getdata('electronic_tags.pickle', 'rb') as fp:
+        with patch("teamplayer.models.lib.songs.pylast.Tag") as Tag:
+            with utils.getdata("electronic_tags.pickle", "rb") as fp:
                 tags = pickle.load(fp)
             Tag().get_top_artists.return_value = tags
             Tag.reset_mock()
 
             result = auto_fill_from_tags(
-                entries_needed=3,
-                queryset=queryset,
-                station=station,
+                entries_needed=3, queryset=queryset, station=station,
             )
 
         # then the queryset is filtered on the artists from the tags
-        artists = songslib.artists_from_tags(['electronic'])
+        artists = songslib.artists_from_tags(["electronic"])
         queryset.filter.assert_called_with(artist__in=artists)
 
         # and 3 items are returned
@@ -321,19 +302,17 @@ class TagsTest(AutoFillTest, TestCase):
         queryset = LibraryItem.objects.all()
 
         # given the player
-        player = Player.objects.create_player('test_player', password='test')
+        player = Player.objects.create_player("test_player", password="test")
 
         # given the station with a tag in the name
-        station = Station.objects.create(creator=player, name='#electronic')
+        station = Station.objects.create(creator=player, name="#electronic")
 
         # when we call auto_fill_from_tags()
-        with patch('teamplayer.lib.autofill.artists_from_tags') as p:
+        with patch("teamplayer.lib.autofill.artists_from_tags") as p:
             p.return_value = [i.artist for i in queryset]
 
             result = auto_fill_from_tags(
-                entries_needed=20,
-                queryset=queryset,
-                station=station,
+                entries_needed=20, queryset=queryset, station=station,
             )
 
         # then it returns all the songs in the queryset

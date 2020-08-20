@@ -19,7 +19,7 @@ from teamplayer.lib import (
     get_player_from_session_id,
     get_random_filename,
     get_station_id_from_session_id,
-    signals
+    signals,
 )
 from teamplayer.serializers import StationSerializer
 
@@ -28,14 +28,14 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     clients = []
 
     def open(self):
-        logger.debug('WebSocket connection opened')
+        logger.debug("WebSocket connection opened")
         station_id = None
         self.clients.append(self)
         self.broadcast_player_stats()
         self.player = None
 
-        if 'sessionid' in self.request.cookies:
-            session_id = self.request.cookies['sessionid'].value
+        if "sessionid" in self.request.cookies:
+            session_id = self.request.cookies["sessionid"].value
             try:
                 self.player = get_player_from_session_id(session_id)
             except ObjectDoesNotExist:
@@ -44,15 +44,14 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             station_id = get_station_id_from_session_id(session_id)
 
         if station_id and self.player:
-            current_song = models.Station.objects.get(
-                pk=station_id).current_song()
+            current_song = models.Station.objects.get(pk=station_id).current_song()
 
-            self.message(self.player, 'song_change', current_song)
+            self.message(self.player, "song_change", current_song)
 
-        self.broadcast('new_connection', self.player.username, exclude=[self])
+        self.broadcast("new_connection", self.player.username, exclude=[self])
 
     def on_close(self):
-        logger.debug('WebSocket connection closed')
+        logger.debug("WebSocket connection closed")
         self.clients.remove(self)
         self.broadcast_player_stats()
 
@@ -67,12 +66,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """Send a message to all connections associated with player"""
         clients = [i for i in cls.clients if i.player == player]
         for client in clients:
-            client.write_message(dumps(
-                {
-                    'type': message_type,
-                    'data': data,
-                }
-            ))
+            client.write_message(dumps({"type": message_type, "data": data,}))
         return len(clients)
 
     @classmethod
@@ -81,39 +75,36 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         for client in cls.clients:
             if client in exclude:
                 continue
-            client.write_message(dumps(
-                {
-                    'type': message_type,
-                    'data': data,
-                }
-            ))
+            client.write_message(dumps({"type": message_type, "data": data,}))
 
     @classmethod
     def broadcast_player_stats(cls):
         stats = models.Player.player_stats()
-        stats['users'] = len(cls.clients)
-        cls.broadcast('user_stats', stats)
+        stats["users"] = len(cls.clients)
+        cls.broadcast("user_stats", stats)
 
     @classmethod
     def broadcast_station_stats(cls):
         stations = models.Station.get_stations()
         for client in cls.clients:
-            client.write_message(dumps({
-                'type': 'station_stats',
-                'data': StationSerializer(
-                    stations,
-                    many=True,
-                    context={'request': client.request}).data
-            }))
+            client.write_message(
+                dumps(
+                    {
+                        "type": "station_stats",
+                        "data": StationSerializer(
+                            stations, many=True, context={"request": client.request}
+                        ).data,
+                    }
+                )
+            )
 
     @classmethod
     def notify_clients(cls, sender, **kwargs):
         """Signal handler to send a message to clients when the song changes.
         """
-        current_song = kwargs['current_song']
+        current_song = kwargs["current_song"]
         cls.broadcast(
-            'song_change',
-            current_song,
+            "song_change", current_song,
         )
         cls.broadcast_player_stats()
         cls.broadcast_station_stats()
@@ -124,23 +115,24 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     """
     WebSocketHandler for ipc messages.
     """
+
     conn = None
 
     def open(self):
-        logger.debug('IPC connection opened')
+        logger.debug("IPC connection opened")
 
     def on_message(self, message):
         """Handle message"""
         message = loads(message)
 
-        if message.get('key') != django_settings.SECRET_KEY:
-            logger.critical('Someone is trying to hack me!', extra=message)
+        if message.get("key") != django_settings.SECRET_KEY:
+            logger.critical("Someone is trying to hack me!", extra=message)
             return
 
-        message_type = message['type']
-        data = message['data']
-        handler_name = f"handle_{message_type}"
-        logger.debug('Message received: %s', message_type)
+        message_type = message["type"]
+        data = message["data"]
+        handler_name = "handle_%s" % message_type
+        logger.debug("Message received: %s", message_type)
 
         if hasattr(self, handler_name):
             handler = getattr(self, handler_name)
@@ -150,8 +142,9 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     def get_conn():
         url = f"ws://localhost:{settings.WEBSOCKET_PORT}/ipc"
         ioloop = tornado.ioloop.IOLoop.current()
-        conn = ioloop.run_sync(functools.partial(
-            tornado.websocket.websocket_connect, url))
+        conn = ioloop.run_sync(
+            functools.partial(tornado.websocket.websocket_connect, url)
+        )
         return conn
 
     @classmethod
@@ -160,18 +153,16 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         Create a websocket connection and send a message to the handler.
         """
         cls.conn = cls.conn or cls.get_conn()
-        cls.conn.write_message(dumps(
-            {
-                'type': message_type,
-                'key': django_settings.SECRET_KEY,
-                'data': data,
-            }
-        ))
+        cls.conn.write_message(
+            dumps(
+                {"type": message_type, "key": django_settings.SECRET_KEY, "data": data,}
+            )
+        )
 
-# - Message Handlers ----------------------------------------------------------
+    # - Message Handlers ----------------------------------------------------------
     def handle_wall(self, message):
         """Handler for wall messages."""
-        SocketHandler.broadcast('wall', message)
+        SocketHandler.broadcast("wall", message)
 
     def handle_song_added(self, song_id):
         signals.song_added.send(models.Entry, song_id=song_id)
@@ -203,18 +194,17 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
 
     def handle_station_rename(self, data):
         """A station's name has changed"""
-        SocketHandler.broadcast('station_rename', data)
+        SocketHandler.broadcast("station_rename", data)
         SocketHandler.broadcast_station_stats()
 
         # station names with hashtags cause DJ Ango to empty his queue for
         # that station and re-fill it
         stationid, stationname = data
-        if '#' in stationname:
-            logger.debug('# found in station name. Clearing queue')
+        if "#" in stationname:
+            logger.debug("# found in station name. Clearing queue")
             dj_ango = models.Player.dj_ango()
             models.Entry.objects.filter(
-                station__id=stationid,
-                queue=dj_ango.queue
+                station__id=stationid, queue=dj_ango.queue
             ).delete()
             station = models.Station.objects.get(pk=stationid)
             dj_ango.queue.auto_fill(
@@ -231,7 +221,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         from teamplayer.lib.comm import StationThread
 
         # first we broadcast so that all clients can get off the station
-        SocketHandler.broadcast('station_delete', station_id)
+        SocketHandler.broadcast("station_delete", station_id)
         SocketHandler.broadcast_player_stats()
         SocketHandler.broadcast_station_stats()
 
@@ -251,26 +241,30 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         except models.Station.DoesNotExist:
             return
 
-        logger.debug('Creating thread for new station: %s', station)
+        logger.debug("Creating thread for new station: %s", station)
         StationThread.create(station)
         signals.station_create.send(models.Station, station_id=station_id)
 
         # Let 'em know
         for client in SocketHandler.clients:
             request = client.request
-            client.write_message(dumps({
-                'type': 'station_create',
-                'data': StationSerializer(
-                    station,
-                    context={'request': request}).data
-            }))
+            client.write_message(
+                dumps(
+                    {
+                        "type": "station_create",
+                        "data": StationSerializer(
+                            station, context={"request": request}
+                        ).data,
+                    }
+                )
+            )
         SocketHandler.broadcast_player_stats()
         SocketHandler.broadcast_station_stats()
 
     def handle_library_add(self, entry_id):
         """Add an entry to the TeamPlayer library."""
         entry = models.Entry.objects.get(pk=entry_id)
-        logger.debug('Adding %s to Library.', entry)
+        logger.debug("Adding %s to Library.", entry)
         filename = get_random_filename(entry.filetype)
         fullpath = os.path.join(settings.UPLOADED_LIBRARY_DIR, filename)
         entry_name = os.path.join(django_settings.MEDIA_ROOT, entry.song.name)
@@ -283,7 +277,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
                 shutil.copy(entry_name, fullpath)
             except Exception:
                 # Ok, I give up
-                logger.exception(f'Error copying {filename} to library.', exc_info=True)
+                logger.exception(f"Error copying {filename} to library.", exc_info=True)
                 return
 
         # try to add it to the library
@@ -295,7 +289,8 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
 
         try:
             songfile, created = models.LibraryItem.metadata_get_or_create(
-                fullpath, metadata, entry.queue.player, entry.station.pk)
+                fullpath, metadata, entry.queue.player, entry.station.pk
+            )
         except ValidationError as error:
             msg = f"Error adding file to library: {error}"
             logger.debug(msg)
@@ -303,33 +298,29 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
 
         if created:
             song_info = {
-                'station_id': songfile.station_id,
-                'title': songfile.title,
-                'artist': songfile.artist,
-                'artist_image': reverse(
-                    'artist_image',
-                    kwargs={'artist': songfile.artist}
+                "station_id": songfile.station_id,
+                "title": songfile.title,
+                "artist": songfile.artist,
+                "artist_image": reverse(
+                    "artist_image", kwargs={"artist": songfile.artist}
                 ),
-                'total_time': songfile.length,
-                'path': songfile.filename,
+                "total_time": songfile.length,
+                "path": songfile.filename,
             }
             signals.library_add.send(
-                models.Player,
-                player=entry.queue.player,
-                song_info=song_info,
+                models.Player, player=entry.queue.player, song_info=song_info,
             )
         else:
             os.unlink(fullpath)
 
     def handle_dj_name_change(self, data):
         SocketHandler.broadcast(
-            'dj_name_change',
-            {
-                'previous_dj_name': data['previous_dj_name'],
-                'dj_name': data['dj_name'],
-            },
+            "dj_name_change",
+            {"previous_dj_name": data["previous_dj_name"], "dj_name": data["dj_name"],},
         )
 
     def handle_user_created(self, data):
-        SocketHandler.broadcast('roster_change', data)
+        SocketHandler.broadcast("roster_change", data)
+
+
 # -----------------------------------------------------------------------------

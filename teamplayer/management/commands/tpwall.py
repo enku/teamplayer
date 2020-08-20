@@ -14,19 +14,18 @@ import teamplayer.conf
 
 
 class Command(BaseCommand):
-    help = 'Send a wall command over TeamPlayer'
+    help = "Send a wall command over TeamPlayer"
 
     def handle(self, *args, **options):
         settings = teamplayer.conf.settings
         message = sys.stdin.read()
         url = f"ws://localhost:{settings.WEBSOCKET_PORT}/ipc"
         ioloop = tornado.ioloop.IOLoop()
-        conn = ioloop.run_sync(functools.partial(
-            tornado.websocket.websocket_connect, url))
-        conn.write_message(json.dumps(
-            {
-                'type': 'wall',
-                'key': django_settings.SECRET_KEY,
-                'data': message,
-            }
-        ))
+        conn = ioloop.run_sync(
+            functools.partial(tornado.websocket.websocket_connect, url)
+        )
+        conn.write_message(
+            json.dumps(
+                {"type": "wall", "key": django_settings.SECRET_KEY, "data": message,}
+            )
+        )

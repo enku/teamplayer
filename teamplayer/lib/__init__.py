@@ -20,7 +20,7 @@ def list_iter(list_, previous=None):
     if previous is not None:
         try:
             index = my_list.index(previous)
-            my_list = my_list[index + 1:] + my_list[:index + 1]
+            my_list = my_list[index + 1 :] + my_list[: index + 1]
         except ValueError:
             pass
 
@@ -33,9 +33,9 @@ def get_random_filename(ext=None):
     As the name implies, returns a random filename. if ext is supplied,
     the filename will have an .ext extension
     """
-    uuid_str = str(uuid.uuid4()).replace('-', '')[::2]
+    uuid_str = str(uuid.uuid4()).replace("-", "")[::2]
     if ext is not None and isinstance(ext, str):
-        uuid_str = f'{uuid_str}.{ext}'
+        uuid_str = f"{uuid_str}.{ext}"
     return uuid_str
 
 
@@ -65,7 +65,7 @@ def get_player_from_session_id(session_id):
         raise ObjectDoesNotExist
 
     try:
-        user_id = session.get_decoded().get('_auth_user_id')
+        user_id = session.get_decoded().get("_auth_user_id")
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
         raise ObjectDoesNotExist
@@ -79,7 +79,7 @@ def get_station_id_from_session_id(session_id):
     except Session.DoesNotExist:
         return None
 
-    return session.get_decoded().get('station_id', None)
+    return session.get_decoded().get("station_id", None)
 
 
 def now():
@@ -125,15 +125,15 @@ def attempt_file_rename(fullpath):
         return None
 
     try:
-        dirname.encode('utf-8')
+        dirname.encode("utf-8")
     except UnicodeEncodeError:
         return None
 
     original_filename = filename
-    filename = filename.encode(errors='surrogateescape')
+    filename = filename.encode(errors="surrogateescape")
 
     re_decoded = False
-    for encoding in ['latin-1', 'windows-1252']:
+    for encoding in ["latin-1", "windows-1252"]:
         try:
             filename = filename.decode(encoding)
             re_decoded = True

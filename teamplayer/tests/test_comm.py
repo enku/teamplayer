@@ -15,23 +15,22 @@ class ScrobbleSongTest(TestCase):
 
     def test_calls_scrobbler(self):
         # given the player
-        self.player = Player.objects.create_player('test_player',
-                                                   password='***')
+        self.player = Player.objects.create_player("test_player", password="***")
         # given the main station
         main_station = Station.main_station()
 
         # given the song_info dict
-        song_info = {'artist': 'Prince',
-                     'title': 'Purple Rain',
-                     'station_id': main_station.pk,
-                     'player': self.player.username}
+        song_info = {
+            "artist": "Prince",
+            "title": "Purple Rain",
+            "station_id": main_station.pk,
+            "player": self.player.username,
+        }
 
         # when we call scrobble_song
-        with patch('teamplayer.lib.comm.songs.scrobble_song') as mock_scrob:
+        with patch("teamplayer.lib.comm.songs.scrobble_song") as mock_scrob:
             comm.scrobble_song(
-                sender=main_station,
-                previous_song=song_info,
-                current_song=None,
+                sender=main_station, previous_song=song_info, current_song=None,
             )
 
         # then the scrobbler is called with the expected args
@@ -39,24 +38,26 @@ class ScrobbleSongTest(TestCase):
 
     def test_called_not_main_station(self):
         # given the player
-        self.player = Player.objects.create_player('test_player',
-                                                   password='***')
+        self.player = Player.objects.create_player("test_player", password="***")
         # given the station that's not the main station
         station = Station()
         station.creator = self.player
-        station.name = 'test station'
+        station.name = "test station"
         station.save()
 
         # given the song_info dict
-        song_info = {'artist': 'Prince',
-                     'title': 'Purple Rain',
-                     'station_id': station.pk,
-                     'player': self.player.username}
+        song_info = {
+            "artist": "Prince",
+            "title": "Purple Rain",
+            "station_id": station.pk,
+            "player": self.player.username,
+        }
 
         # when we call scrobble_song
-        with patch('teamplayer.lib.comm.songs.scrobble_song') as mock_scrob:
+        with patch("teamplayer.lib.comm.songs.scrobble_song") as mock_scrob:
             comm.scrobble_song(
-                sender=station, previous_song=None, current_song=song_info)
+                sender=station, previous_song=None, current_song=song_info
+            )
 
         # then the scrobbler is not called
         self.assertEqual(mock_scrob.mock_calls, [])
@@ -64,44 +65,45 @@ class ScrobbleSongTest(TestCase):
 
 class LogMoodTest(TestCase):
     """Tests for the async.log_mood function"""
+
     def test_call(self):
         # given the player
-        player = Player.objects.create_player('test_player', password='***')
+        player = Player.objects.create_player("test_player", password="***")
         # given the station
         station = Station.main_station()
 
         # given the song_info dict
         song_info = {
-            'artist': 'Madonna',
-            'title': 'True Blue',
-            'file': f'{player.pk}-123456789.mp3',
-            'dj': '',
-            'player_id': player.pk
+            "artist": "Madonna",
+            "title": "True Blue",
+            "file": f"{player.pk}-123456789.mp3",
+            "dj": "",
+            "player_id": player.pk,
         }
 
         # when we call log_mood
-        with patch('teamplayer.models.lib.songs.get_similar_artists') as gsa:
+        with patch("teamplayer.models.lib.songs.get_similar_artists") as gsa:
             gsa.return_value = []
             comm.log_mood(sender=station, current_song=song_info)
 
         # then a mood is added
-        query = Mood.objects.filter(artist='Madonna', station=station)
+        query = Mood.objects.filter(artist="Madonna", station=station)
         self.assertEqual(query.count(), 1)
 
     def test_unknown(self):
         # given the player
-        player = Player.objects.create_player('test_player', password='***')
+        player = Player.objects.create_player("test_player", password="***")
 
         # given the station
         station = Station.main_station()
 
         # given the song_info with "Unknown" artist
         song_info = {
-            'artist': 'Unknown',
-            'title': 'Hidden Track',
-            'file': '{player.pk}-123456789.mp3',
-            'player_id': '1',
-            'dj': ''
+            "artist": "Unknown",
+            "title": "Hidden Track",
+            "file": "{player.pk}-123456789.mp3",
+            "player_id": "1",
+            "dj": "",
         }
 
         # when we call log_mood
@@ -120,11 +122,11 @@ class LogMoodTest(TestCase):
 
         # given the song_info from DJ Ango
         song_info = {
-            'artist': 'Limp Bizkit',
-            'title': 'Break Stuff',
-            'file': '{dj_ango.pk}-123456789.mp3',
-            'player_id': str(dj_ango.pk),  # the sticker is a string object
-            'dj': 'DJ Ango'
+            "artist": "Limp Bizkit",
+            "title": "Break Stuff",
+            "file": "{dj_ango.pk}-123456789.mp3",
+            "player_id": str(dj_ango.pk),  # the sticker is a string object
+            "dj": "DJ Ango",
         }
 
         # when we call log_mood
@@ -137,12 +139,13 @@ class LogMoodTest(TestCase):
 
 class PlayLogTest(TestCase):
     """Tests for the play_log function"""
+
     def test_call(self):
         # given the current song being played
         song = {
-            'artist': 'Earth, Wind & Fire',
-            'title': 'Fantasy',
-            'player_id': Player.dj_ango().pk,
+            "artist": "Earth, Wind & Fire",
+            "title": "Fantasy",
+            "player_id": Player.dj_ango().pk,
         }
 
         # given the station
@@ -154,8 +157,8 @@ class PlayLogTest(TestCase):
 
         # then a PlayLog instance is created with our song info
         self.assertTrue(isinstance(result, PlayLog))
-        self.assertEqual(result.artist, song['artist'])
-        self.assertEqual(result.title, song['title'])
+        self.assertEqual(result.artist, song["artist"])
+        self.assertEqual(result.title, song["title"])
         self.assertEqual(result.station, station)
         self.assertNotEqual(result.pk, None)
         self.assertGreaterEqual(result.time, now)
@@ -180,12 +183,12 @@ class PlayLogTest(TestCase):
         station = Station.main_station()
 
         # given the "unknown" artists
-        for artist in (None, '', 'Unknown'):
+        for artist in (None, "", "Unknown"):
             # given the current song being played
             song = {
-                'artist': artist,
-                'title': 'Fantasy',
-                'player_id': Player.dj_ango().pk,
+                "artist": artist,
+                "title": "Fantasy",
+                "player_id": Player.dj_ango().pk,
             }
 
             # when we call play_log giving the station and song_info
@@ -196,9 +199,10 @@ class PlayLogTest(TestCase):
             self.assertEqual(PlayLog.objects.count(), 0)
 
 
-@patch('teamplayer.lib.comm.MPC', spec=MPC)
+@patch("teamplayer.lib.comm.MPC", spec=MPC)
 class StationThread(TestCase):
     """Tests for the StationThread"""
+
     def test_station_attr(self, mock_mpc):
         # given the station
         station = Station.main_station()
@@ -243,19 +247,17 @@ class StationThread(TestCase):
         finally:
             thread.running = False
 
-    @skip('This test passes but the thread blows up and it is ugly.')
+    @skip("This test passes but the thread blows up and it is ugly.")
     def test_exception_logging_self(self, mock_mpc):
         # given the station
         station = Station.main_station()
 
         try:
             # when an exception is raised inside the thread
-            with patch(
-                'teamplayer.lib.comm.StationThread.wait_for'
-            ) as wait_for:
+            with patch("teamplayer.lib.comm.StationThread.wait_for") as wait_for:
                 wait_for.side_effect = Exception
 
-                with patch('teamplayer.lib.comm.logger') as logger:
+                with patch("teamplayer.lib.comm.logger") as logger:
                     thread = comm.StationThread(station=station)
                     try:
                         # given the station thread
@@ -266,7 +268,8 @@ class StationThread(TestCase):
 
             # then it stops the mpd
             logger.exception.assert_called_with(
-                f'Station {station.id}: Error inside main loop')
+                f"Station {station.id}: Error inside main loop"
+            )
             self.assertTrue(logger.error.called)
         finally:
             thread.stop()

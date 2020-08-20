@@ -13,18 +13,18 @@ from teamplayer import logger, models
 from teamplayer.conf import settings
 from teamplayer.lib import first_or_none, list_iter, now
 
-CLEAR_IMAGE_URL = django_settings.STATIC_URL + 'images/clear.png'
+CLEAR_IMAGE_URL = django_settings.STATIC_URL + "images/clear.png"
 MIME_MAP = {
-    'audio/ape': 'ape',
-    'audio/flac': 'flac',
-    'audio/mp1': 'mp3',
-    'audio/mp2': 'mp3',
-    'audio/mp3': 'mp3',
-    'audio/mp4': 'mp4',
-    'audio/mpeg': 'mp3',
-    'audio/ogg': 'ogg',
-    'audio/vorbis': 'ogg',
-    'audio/x-flac': 'flac',
+    "audio/ape": "ape",
+    "audio/flac": "flac",
+    "audio/mp1": "mp3",
+    "audio/mp2": "mp3",
+    "audio/mp3": "mp3",
+    "audio/mp4": "mp4",
+    "audio/mpeg": "mp3",
+    "audio/ogg": "ogg",
+    "audio/vorbis": "ogg",
+    "audio/x-flac": "flac",
 }
 LASTFM_APIKEY = settings.LASTFM_APIKEY
 
@@ -32,6 +32,7 @@ LASTFM_APIKEY = settings.LASTFM_APIKEY
 class SongMetadataError(Exception):
 
     """When song metadata could not be parsed"""
+
     pass
 
 
@@ -49,18 +50,18 @@ def get_song_metadata(filename):
     """
     try:
         mutagen_data = File(filename, easy=True)
-        artist = first_or_none(mutagen_data, 'artist') or 'Unknown'
-        title = first_or_none(mutagen_data, 'title') or 'Unknown'
-        album = first_or_none(mutagen_data, 'album')
+        artist = first_or_none(mutagen_data, "artist") or "Unknown"
+        title = first_or_none(mutagen_data, "title") or "Unknown"
+        album = first_or_none(mutagen_data, "album")
         mimetype = mutagen_data.mime[0]
         filetype = MIME_MAP[mimetype]
 
         return {
-            'artist': artist,
-            'title': title,
-            'album': album,
-            'type': filetype,
-            'mimetype': mimetype
+            "artist": artist,
+            "title": title,
+            "album": album,
+            "type": filetype,
+            "mimetype": mimetype,
         }
 
     except Exception as error:
@@ -73,9 +74,9 @@ def time_to_secs(time_str):
     int number of seconds
     """
 
-    parts = time_str.split(':')
+    parts = time_str.split(":")
     if len(parts) == 2:
-        parts = ['0'] + parts
+        parts = ["0"] + parts
     hours = int(parts[0])
     minutes = int(parts[1])
     seconds = int(parts[2])
@@ -171,15 +172,15 @@ def split_tag_into_words(tag):
 
         "love_songs" -> "love songs"
     """
-    words = ['']
+    words = [""]
     word = 0
 
     for char in tag:
-        if words[word] == '':
+        if words[word] == "":
             words[word] = char
 
-        elif char == '_':
-            words.append('')
+        elif char == "_":
+            words.append("")
             word = word + 1
             prevchar = char
             continue
@@ -192,7 +193,7 @@ def split_tag_into_words(tag):
             words[word] = words[word] + char
         prevchar = char
 
-    return ' '.join(words).lower().strip()
+    return " ".join(words).lower().strip()
 
 
 def best_song_from_player(player, station, previous_artist=None):
@@ -257,8 +258,9 @@ def auto_find_song(previous_artist, queue, station):
     be found, return the first entry in *queue*. If *queue* is empty,
     return None
     """
-    entries = (queue.entry_set.filter(station=station)
-               .exclude(artist__iexact=previous_artist))
+    entries = queue.entry_set.filter(station=station).exclude(
+        artist__iexact=previous_artist
+    )
 
     if entries.count() == 0:
         return None
@@ -269,17 +271,18 @@ def auto_find_song(previous_artist, queue, station):
         return entries[0]
 
     one_day = now() - datetime.timedelta(hours=24)
-    mood_artists = (models.Mood.objects
-                    .filter(timestamp__gt=one_day, station=station)
-                    .exclude(artist__iexact=previous_artist)
-                    .values('artist')
-                    .order_by()
-                    .annotate(Count('artist'))
-                    .order_by('-artist__count'))
+    mood_artists = (
+        models.Mood.objects.filter(timestamp__gt=one_day, station=station)
+        .exclude(artist__iexact=previous_artist)
+        .values("artist")
+        .order_by()
+        .annotate(Count("artist"))
+        .order_by("-artist__count")
+    )
     for mood_artist in mood_artists:
-        a = mood_artist['artist'].lower()
+        a = mood_artist["artist"].lower()
         if a in artists:
-            logger.info('“%s” fits the mood', mood_artist['artist'])
+            logger.info("“%s” fits the mood", mood_artist["artist"])
             return entries.filter(artist__iexact=a)[0]
 
     return entries[0]
@@ -296,31 +299,24 @@ def scrobble_song(song, now_playing=False):
         api_key=LASTFM_APIKEY,
         api_secret=settings.LASTFM_APISECRET,
         username=settings.SCROBBLER_USER,
-        password_hash=password_hash
+        password_hash=password_hash,
     )
 
-    artist = song['artist']
-    title = song['title']
-    album = song['album']
-    length = song['total_time']
+    artist = song["artist"]
+    title = song["title"]
+    album = song["album"]
+    length = song["total_time"]
 
     try:
-        logger.debug('Scrobbling “%s” by %s', song['title'], song['artist'])
+        logger.debug("Scrobbling “%s” by %s", song["title"], song["artist"])
         if now_playing:
             network.update_now_playing(
-                artist,
-                title,
-                album=album,
-                duration=length,
+                artist, title, album=album, duration=length,
             )
         else:
             timestamp = int(now().timestamp()) - length
             network.scrobble(
-                artist,
-                title,
-                timestamp,
-                album=album,
-                duration=length,
+                artist, title, timestamp, album=album, duration=length,
             )
     except pylast.WSError:
         return False

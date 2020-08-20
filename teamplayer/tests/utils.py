@@ -13,11 +13,11 @@ Entry = teamplayer.models.Entry
 UploadedFile = django.core.files.uploadedfile.UploadedFile
 
 DIR = os.path.dirname(__file__)
-SILENCE = os.path.join(DIR, 'data', 'silence.mp3')
+SILENCE = os.path.join(DIR, "data", "silence.mp3")
 
 
-def getdata(filename, flags='r'):
-    fullpath = os.path.join(DIR, 'data', filename)
+def getdata(filename, flags="r"):
+    fullpath = os.path.join(DIR, "data", filename)
     return open(fullpath, flags)
 
 
@@ -29,10 +29,12 @@ class SpinDoctor:
         * scrobbling
         * logging
     """
+
     def __init__(self):
-        self.previous_player = teamplayer.models.Player.active_players()\
-            .order_by('user__username')[0]
-        self.silence = ('DJ Ango', 'TeamPlayer', 'Station Break', 15, 0)
+        self.previous_player = teamplayer.models.Player.active_players().order_by(
+            "user__username"
+        )[0]
+        self.silence = ("DJ Ango", "TeamPlayer", "Station Break", 15, 0)
         self.current_song = self.previous_song = self.silence
         self.current_player = None
         self.station = teamplayer.models.Station.main_station()
@@ -43,16 +45,13 @@ class SpinDoctor:
         self.current_song = self.previous_song
         players = teamplayer.models.Player.active_players()
 
-        if self.previous_song[1] != 'TeamPlayer':
+        if self.previous_song[1] != "TeamPlayer":
             artist = self.previous_song[1]
         else:
             artist = None
 
         entry = teamplayer.lib.songs.find_a_song(
-            players,
-            self.station,
-            self.previous_player,
-            artist
+            players, self.station, self.previous_player, artist
         )
 
         if entry is None:
@@ -65,11 +64,11 @@ class SpinDoctor:
         entry.delete()
 
         # log "mood"
-        with patch('teamplayer.models.lib.songs.get_similar_artists') as gsa:
+        with patch("teamplayer.models.lib.songs.get_similar_artists") as gsa:
             gsa.return_value = similar_artists
             threading.Thread(
                 target=teamplayer.models.Mood.log_mood,
-                args=(entry.artist, self.station)
+                args=(entry.artist, self.station),
             ).run()
 
         player = self.previous_player
@@ -85,10 +84,9 @@ class SpinDoctor:
         entry.queue = queue
         entry.artist = artist
         entry.title = title
-        entry.filetype = 'MP3'
+        entry.filetype = "MP3"
         entry.song.save(
-            teamplayer.lib.get_random_filename(),
-            UploadedFile(StringIO(''))
+            teamplayer.lib.get_random_filename(), UploadedFile(StringIO(""))
         )
         entry.save()
         return entry

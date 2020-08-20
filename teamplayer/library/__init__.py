@@ -4,6 +4,7 @@ from haystack.utils import Highlighter as BaseHighlighter
 
 class Highlighter(BaseHighlighter):
     """A haystack highlighter that does not truncate"""
+
     def highlight(self, text_block):
         self.text_block = strip_tags(text_block)
         text_len = len(self.text_block)

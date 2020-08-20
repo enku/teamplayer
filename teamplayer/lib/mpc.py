@@ -23,6 +23,7 @@ MPD_UPDATE_WAIT = 0.5  # seconds
 
 class MPC(object):
     """Interface to a mpc client."""
+
     def __init__(self, station):
         join = os.path.join
         self.mpd_dir = join(settings.MPD_HOME, str(station.pk))
@@ -32,11 +33,11 @@ class MPC(object):
         self.address = settings.MPD_ADDRESS
         self.port = self.station_id + settings.MPD_PORT
         self.http_port = self.station_id + settings.HTTP_PORT
-        self.conf_file = join(self.mpd_dir, 'mpd.conf')
-        self.pid_file = join(self.mpd_dir, 'mpd.pid')
-        self.db_file = join(self.mpd_dir, 'mpd.db')
-        self.sticker_file = join(self.mpd_dir, 'mpd.stickers')
-        self.queue_dir = join(self.mpd_dir, 'queue')
+        self.conf_file = join(self.mpd_dir, "mpd.conf")
+        self.pid_file = join(self.mpd_dir, "mpd.pid")
+        self.db_file = join(self.mpd_dir, "mpd.db")
+        self.sticker_file = join(self.mpd_dir, "mpd.stickers")
+        self.queue_dir = join(self.mpd_dir, "queue")
 
         if not os.path.exists(self.mpd_dir):
             os.makedirs(self.mpd_dir)
@@ -49,19 +50,19 @@ class MPC(object):
         Start the mpd deamon.  Insert a file and play
         """
         assert self.mpd is None
-        self.mpd = subprocess.Popen(('mpd', '--no-daemon', self.conf_file))
+        self.mpd = subprocess.Popen(("mpd", "--no-daemon", self.conf_file))
 
         # this is terrible. basically we want to block until mpd is listening
         while True:
             try:
-                self.call('status')
+                self.call("status")
             except ConnectionRefusedError:  # NOQA
                 continue
             break
 
-        self.call('update')
-        self.call('consume', 1)
-        self.call('play')
+        self.call("update")
+        self.call("consume", 1)
+        self.call("play")
 
     def stop(self):
         """
@@ -80,8 +81,9 @@ class MPC(object):
     def create_config(self):
         """Create the mpd config file and write the config to it"""
 
-        with open(self.conf_file, 'w') as mpd_file:
-            mpd_file.write(f"""# Automatically generated.  Do not edit.
+        with open(self.conf_file, "w") as mpd_file:
+            mpd_file.write(
+                f"""# Automatically generated.  Do not edit.
 
         port                    "{self.port}"
         bind_to_address         "{self.address}"
@@ -103,7 +105,8 @@ class MPC(object):
             bitrate             "{settings.STREAM_BITRATE}"
             format              "{settings.STREAM_FORMAT}"
         }}
-        """)
+        """
+            )
 
         # make sure the config queue dir exists
         if not os.path.isdir(settings.QUEUE_DIR):
@@ -134,55 +137,52 @@ class MPC(object):
         `stickers`.
         """
         not_playing = {
-            'artist': None,
-            'title': None,
-            'album': None,
-            'dj': 'DJ Ango',
-            'total_time': 0,
-            'remaining_time': 0,
-            'station_id': self.station_id,
-            'artist_image': songs.CLEAR_IMAGE_URL
+            "artist": None,
+            "title": None,
+            "album": None,
+            "dj": "DJ Ango",
+            "total_time": 0,
+            "remaining_time": 0,
+            "station_id": self.station_id,
+            "artist_image": songs.CLEAR_IMAGE_URL,
         }
-        current_song = self.call('currentsong')
+        current_song = self.call("currentsong")
 
         if stickers is None:
-            stickers = ['dj']
+            stickers = ["dj"]
 
         if not current_song:
             return not_playing
 
-        status = self.call('status')
+        status = self.call("status")
 
         try:
-            time_str = status['time']
+            time_str = status["time"]
         except KeyError:
             return not_playing
 
-        elapsed_time, total_time = (int(i) for i in time_str.split(':'))
-        filename = current_song['file']
-        artist = current_song.get('artist', None)
-        title = current_song.get('title', None)
-        album = current_song.get('album', None)
+        elapsed_time, total_time = (int(i) for i in time_str.split(":"))
+        filename = current_song["file"]
+        artist = current_song.get("artist", None)
+        title = current_song.get("title", None)
+        album = current_song.get("album", None)
 
         if artist:
-            artist_image = reverse(
-                'artist_image',
-                kwargs={'artist': artist}
-            )
+            artist_image = reverse("artist_image", kwargs={"artist": artist})
         else:
             artist_image = songs.CLEAR_IMAGE_URL
 
         data = {
-            'artist': artist,
-            'title': title,
-            'album': album,
-            'total_time': total_time,
-            'remaining_time': total_time - elapsed_time,
-            'station_id': self.station_id,
-            'artist_image': artist_image
+            "artist": artist,
+            "title": title,
+            "album": album,
+            "total_time": total_time,
+            "remaining_time": total_time - elapsed_time,
+            "station_id": self.station_id,
+            "artist_image": artist_image,
         }
 
-        song_stickers = self.call('sticker_list', 'song', filename)
+        song_stickers = self.call("sticker_list", "song", filename)
         for sticker in stickers:
             data[sticker] = song_stickers.get(sticker, None)
 
@@ -195,7 +195,7 @@ class MPC(object):
         try:
             filename = self.copy_entry_to_queue(entry)
         except (IOError, shutil.Error):
-            logger.exception('IOError copying %s.', entry.song.name)
+            logger.exception("IOError copying %s.", entry.song.name)
             return None
 
         if not self.wait_for_song(filename):
@@ -203,21 +203,21 @@ class MPC(object):
                 os.unlink(filename)
             return None
 
-        self.call('add', filename)
+        self.call("add", filename)
 
         # add some stickers
         player = entry.queue.player
         try:
-            self.call('sticker_set', 'song', filename, 'player_id', player.pk)
-            self.call('sticker_set', 'song', filename, 'dj', player.dj_name)
+            self.call("sticker_set", "song", filename, "player_id", player.pk)
+            self.call("sticker_set", "song", filename, "dj", player.dj_name)
         except mpd.CommandError:
             # It appears sometimes we can get an error writing the sticker.
             # This is not critical but, of course, we lose metadata on read
             pass
 
         if settings.CROSSFADE:
-            self.call('crossfade', settings.CROSSFADE)
-        self.call('play')
+            self.call("crossfade", settings.CROSSFADE)
+        self.call("play")
         return filename
 
     def copy_entry_to_queue(self, entry):
@@ -230,8 +230,8 @@ class MPC(object):
         filename = os.path.join(django_settings.MEDIA_ROOT, song.name)
         basename = os.path.basename(filename)
 
-        new_filename = f'{player.pk}-{basename}'
-        logger.debug('copying to %s', new_filename)
+        new_filename = f"{player.pk}-{basename}"
+        logger.debug("copying to %s", new_filename)
 
         new_path = os.path.join(self.queue_dir, new_filename)
 
@@ -275,26 +275,24 @@ class MPC(object):
         # wait for it to show up
         try_until_time = int(time()) + MPD_UPDATE_MAX
         while True:
-            self.call('update')
-            files = [i['file'] for i in self.call('listall')
-                     if 'file' in i]
+            self.call("update")
+            files = [i["file"] for i in self.call("listall") if "file" in i]
             if filename in files:
                 return True
             elif time() > try_until_time:
                 # we maxed out our wait time
-                logger.error('%s never made it to the playlist', filename)
+                logger.error("%s never made it to the playlist", filename)
                 return False
             sleep(MPD_UPDATE_WAIT)
 
     def purge_queue_dir(self):
         """Remove "used" files form mpd's queue_dir"""
-        files = [i['file'] for i in self.call('listall') if 'file' in i]
-        playlist = [i[6:] for i in self.call('playlist')
-                    if i.startswith('file: ')]
+        files = [i["file"] for i in self.call("listall") if "file" in i]
+        playlist = [i[6:] for i in self.call("playlist") if i.startswith("file: ")]
         for mpd_file in files:
             if mpd_file not in playlist:
                 os.remove(os.path.join(self.queue_dir, mpd_file))
-        self.call('update')
+        self.call("update")
 
     def get_last_artist(self, playlist):
         """
@@ -303,11 +301,11 @@ class MPC(object):
         """
         if playlist:
             basename = playlist[-1]
-            if basename.startswith('file: '):
+            if basename.startswith("file: "):
                 basename = basename[6:]
             filename = os.path.join(self.queue_dir, basename)
             try:
-                return songs.get_song_metadata(filename)['artist']
+                return songs.get_song_metadata(filename)["artist"]
             except songs.SongMetadataError:
                 pass
         return None
@@ -320,7 +318,7 @@ class MPC(object):
         idle_done = Event()
 
         def set_idle_done_event():
-            self.call('idle', 'playlist')
+            self.call("idle", "playlist")
             idle_done.set()
 
         Thread(target=set_idle_done_event).start()
