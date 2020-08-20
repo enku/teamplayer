@@ -3,4 +3,5 @@
 .ropeproject/
 .tox/
 TeamPlayer.egg-info/
+docker-compose.override.yml
 settings_local.py
