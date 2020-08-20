@@ -139,7 +139,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
 
         message_type = message['type']
         data = message['data']
-        handler_name = 'handle_%s' % message_type
+        handler_name = f"handle_{message_type}"
         logger.debug('Message received: %s', message_type)
 
         if hasattr(self, handler_name):
@@ -148,7 +148,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
 
     @staticmethod
     def get_conn():
-        url = 'ws://localhost:%s/ipc' % settings.WEBSOCKET_PORT
+        url = f"ws://localhost:{settings.WEBSOCKET_PORT}/ipc"
         ioloop = tornado.ioloop.IOLoop.current()
         conn = ioloop.run_sync(functools.partial(
             tornado.websocket.websocket_connect, url))
@@ -283,10 +283,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
                 shutil.copy(entry_name, fullpath)
             except Exception:
                 # Ok, I give up
-                logger.exception(
-                    'Error copying {0} to library.'.format(filename),
-                    exc_info=True
-                )
+                logger.exception(f'Error copying {filename} to library.', exc_info=True)
                 return
 
         # try to add it to the library
@@ -300,7 +297,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
             songfile, created = models.LibraryItem.metadata_get_or_create(
                 fullpath, metadata, entry.queue.player, entry.station.pk)
         except ValidationError as error:
-            msg = 'Error adding file to library: %s' % str(error)
+            msg = f"Error adding file to library: {error}"
             logger.debug(msg)
             created = False
 

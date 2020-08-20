@@ -41,10 +41,10 @@ def version_string(version=VERSION, show_revision=True):
     string = '.'.join(str(i) for i in version[:3])
 
     if version[3] != 'final':
-        string = '{0}-{1}'.format(string, version[3])
+        string = f'{string}-{version[3]}'
 
     if REVISION:
-        string = '{0} ({1})'.format(string, REVISION)
+        string = f'{string} ({REVISION})'
 
     return string
 

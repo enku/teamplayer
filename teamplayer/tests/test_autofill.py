@@ -39,7 +39,7 @@ class AutoFillTest:
         )
         # let's fill the library with some songage
         for artist in artists:
-            filename = '{0}.mp3'.format(artist.lower().replace(' ', '_'))
+            filename = f'{artist.lower().replace(" ", "_")}.mp3'
             songfile = LibraryItem(
                 filename=filename,
                 artist=artist,

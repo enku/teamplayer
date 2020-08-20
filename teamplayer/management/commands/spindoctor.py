@@ -62,7 +62,7 @@ class Command(BaseCommand):
 def shutdown():
     """Shut down mpd servers and exit"""
     csi = '\x1b['
-    sys.stderr.write('{csi}1G'.format(csi=csi))  # move to start of line
+    sys.stderr.write(f'{csi}1G')  # move to start of line
     logger.critical('Shutting down')
     for station_thread in StationThread.get_all().values():
         station_thread.mpc.stop()

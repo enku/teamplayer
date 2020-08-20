@@ -28,7 +28,7 @@ class Queue(models.Model):
     active = models.BooleanField(default=True)
 
     def __str__(self):
-        return "%s's Queue" % self.player.username
+        return f"{self.player.username}'s Queue"
 
     def add_song(self, song_file, station):
         """Add <<song_file>> to queue"""
@@ -187,7 +187,7 @@ class Entry(models.Model):
     filetype = models.CharField(max_length=4, blank=False)
 
     def __str__(self):
-        return '“%s” by %s' % (self.title, self.artist)
+        return f"“[self.title]” by {self.artist}"
 
     def delete(self, *args, **kwargs):
         if self.song:
@@ -223,7 +223,7 @@ class Mood(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return '%s: %s' % (self.artist, self.timestamp)
+        return f"{self.artist}: {self.timestamp}"
 
     class Meta:
         ordering = ('-timestamp', 'artist')
@@ -321,10 +321,7 @@ class Station(models.Model):
             http_host = http_host.split(':', 1)[0]
 
         mpc = lib.mpc.MPC(station=self)
-        return 'http://{0}:{1}/mpd.mp3'.format(
-            http_host,
-            mpc.http_port,
-        )
+        return f"http://{http_host}:{mpc.http_port}/mpd.mp3"
 
     @classmethod
     def from_player(cls, player):
@@ -508,12 +505,12 @@ class LibraryItem(models.Model):
 
     def __str__(self):
         if self.title:
-            return '"{0}" by {1}'.format(self.title, self.artist)
+            return f'"{self.title}" by {self.artist}'
         return self.filename
 
     def clean(self):
         if self.artist.lower() in ('', 'unknown'):
-            raise ValidationError('Invalid artist: %s' % self.artist)
+            raise ValidationError(f"Invalid artist: {self.artist}")
 
         self.genre = self.genre or None
         self.length = self.length or None
@@ -535,7 +532,6 @@ class PlayLog(models.Model):
         unique_together = [['station', 'time']]
 
     def __str__(self):
-        _str = '|{0.time}|Station {0.station.pk}: “{0.title}” by {0.artist}'
-        _str = _str.format(self)
-
-        return _str
+        return (
+            f"|{self.time}|Station {self.station.pk}: “{self.title}” by {self.artist}"
+        )

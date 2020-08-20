@@ -42,8 +42,9 @@ class StationThread(threading.Thread):
             if station.pk in cls.__station_threads:
                 return cls.__station_threads[station.pk]
 
-            station_thread = StationThread(name='Station %s' % station.pk,
-                                           station=station)
+            station_thread = StationThread(
+                name=f"Station {station.pk}", station=station
+            )
             cls.__station_threads[station.pk] = station_thread
             station_thread.start()
             return station_thread
@@ -95,14 +96,8 @@ class StationThread(threading.Thread):
         try:
             self.run_forever()
         except Exception:
-            logger.exception(
-                'Station {}: Error inside main loop'
-                .format(self.station.id)
-            )
-            logger.error(
-                'Current song: {}'
-                .format(self.mpc.currently_playing())
-            )
+            logger.exception(f'Station {self.station.id}: Error inside main loop')
+            logger.error(f'Current song: {self.mpc.currently_playing()}')
 
             raise
 

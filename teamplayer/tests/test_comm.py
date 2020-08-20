@@ -74,7 +74,7 @@ class LogMoodTest(TestCase):
         song_info = {
             'artist': 'Madonna',
             'title': 'True Blue',
-            'file': '{0}-123456789.mp3'.format(player.pk),
+            'file': f'{player.pk}-123456789.mp3',
             'dj': '',
             'player_id': player.pk
         }
@@ -99,7 +99,7 @@ class LogMoodTest(TestCase):
         song_info = {
             'artist': 'Unknown',
             'title': 'Hidden Track',
-            'file': '{0}-123456789.mp3'.format(player.pk),
+            'file': '{player.pk}-123456789.mp3',
             'player_id': '1',
             'dj': ''
         }
@@ -122,7 +122,7 @@ class LogMoodTest(TestCase):
         song_info = {
             'artist': 'Limp Bizkit',
             'title': 'Break Stuff',
-            'file': '{0}-123456789.mp3'.format(dj_ango.pk),
+            'file': '{dj_ango.pk}-123456789.mp3',
             'player_id': str(dj_ango.pk),  # the sticker is a string object
             'dj': 'DJ Ango'
         }
@@ -266,7 +266,7 @@ class StationThread(TestCase):
 
             # then it stops the mpd
             logger.exception.assert_called_with(
-                'Station {}: Error inside main loop'.format(station.id))
+                f'Station {station.id}: Error inside main loop')
             self.assertTrue(logger.error.called)
         finally:
             thread.stop()

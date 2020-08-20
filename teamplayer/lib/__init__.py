@@ -35,7 +35,7 @@ def get_random_filename(ext=None):
     """
     uuid_str = str(uuid.uuid4()).replace('-', '')[::2]
     if ext is not None and isinstance(ext, str):
-        uuid_str = '{0}.{1}'.format(uuid_str, ext)
+        uuid_str = f'{uuid_str}.{ext}'
     return uuid_str
 
 

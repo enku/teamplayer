@@ -19,7 +19,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         settings = teamplayer.conf.settings
         message = sys.stdin.read()
-        url = 'ws://localhost:%s/ipc' % settings.WEBSOCKET_PORT
+        url = f"ws://localhost:{settings.WEBSOCKET_PORT}/ipc"
         ioloop = tornado.ioloop.IOLoop()
         conn = ioloop.run_sync(functools.partial(
             tornado.websocket.websocket_connect, url))

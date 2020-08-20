@@ -100,7 +100,7 @@ class QueueViewsTestCase(TestCase):
         """Assert that the user can login"""
 
         redirect_url = reverse('home')
-        url = '/accounts/login/?next=%s' % redirect_url
+        url = f"/accounts/login/?next={redirect_url}"
         response = self.client.post(url, self.user_data)
         self.assertEqual(response.status_code, 302)
 
@@ -242,7 +242,7 @@ class QueueTestCase(TestCase):
             Entry.objects.create(
                 queue=queue,
                 station=station,
-                song=UploadedFile(BytesIO(), '%s.mp3' % title),
+                song=UploadedFile(BytesIO(), f"{title}.mp3"),
                 title=title,
                 artist=artist,
                 filetype='mp3'
@@ -337,15 +337,15 @@ class QueueAutoFill(TestCase):
                 silence = fp.read()
             filesize = len(silence)
             for i in range(10):
-                filename = '{0}.mp3'.format(i)
+                filename = f"{i}.mp3"
                 fullpath = os.path.join(tempdir, filename)
                 with open(fullpath, 'wb') as fp:
                     fp.write(silence)
                 LibraryItem.objects.create(
                     filename=fullpath,
-                    artist='DJ Ango',
-                    title='Song {0}'.format(i),
-                    album='Redundant',
+                    artist="DJ Ango",
+                    title=f"Song {i}",
+                    album="Redundant",
                     filesize=filesize,
                     station_id=self.station.pk,
                     added_by=self.dj_ango,
@@ -398,8 +398,8 @@ class StationManagerTest(TestCase):
                 silence = fp.read()
 
             for data in song_data:
-                filename = os.path.join(tempdir, '{0}-{1}.mp3'.format(*data))
-                with open(filename, 'wb') as fp:
+                filename = os.path.join(tempdir, f"{data[0]}-{data[1]}.mp3")
+                with open(filename, "wb") as fp:
                     fp.write(silence)
                 song = LibraryItem.objects.create(
                     artist=data[0],
@@ -748,6 +748,8 @@ class PlayLogTest(TestCase):
         result = str(playlog)
 
         # then we get the expected string
-        expected = '|{0}|Station {1}: “Fantasy” by Earth, Wind & Fire'
-        expected = expected.format(playlog.time, playlog.station.pk)
+        expected = (
+            f"|{playlog.time}|Station {playlog.station.pk}: "
+            "“Fantasy” by Earth, Wind & Fire"
+        )
         self.assertEqual(result, expected)

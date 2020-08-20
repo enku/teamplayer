@@ -55,7 +55,7 @@ def get_mpd_url(request, station):
 def get_websocket_url(request):
     http_host = request.META.get('HTTP_HOST', 'localhost')
     http_host = http_host.partition(':')[0]
-    return 'ws://{0}:{1}/'.format(http_host, settings.WEBSOCKET_PORT)
+    return f'ws://{http_host}:{settings.WEBSOCKET_PORT}/'
 
 
 @login_required
@@ -156,9 +156,12 @@ def add_to_queue(request):
             extra = '%s: ' % client_filename
         else:
             extra = ''
-        status = {'fail': ('%sThe song was not added because I did '
-                           'not recognize the type of file you sent' % extra)
-                  }
+        status = {
+            "fail": (
+                f"{extra}The song was not added because I did "
+                "not recognize the type of file you sent"
+            )
+        }
         return HttpResponse(json.dumps(status),
                             content_type='application/json')
 
@@ -228,8 +231,7 @@ def currently_playing(request):
     response = HttpResponse(json.dumps(output),
                             content_type='application/json')
     if output['remaining_time'] is not None:
-        response['Cache-Control'] = 'no-cache, max-age={0}'.format(
-            output['remaining_time'])
+        response['Cache-Control'] = f'no-cache, max-age={output["remaining_time"]}'
     else:
         response['Cache-Control'] = 'no-cache, max-age=60'
     return response
@@ -297,17 +299,15 @@ def registration(request):
             password = form.cleaned_data['password1']
             try:
                 Player.objects.get(user__username=username)
-                context['error'] = 'User "%s" already exists.' % username
+                context["error"] = f'User "{username}" already exists.'
             except Player.DoesNotExist:
                 player = Player.objects.create_player(username=username,
                                                       password=password)
                 IPCHandler.send_message(
                     'user_created', PlayerSerializer(player).data)
-                messages.info(request, '%s registered. Please login.' %
-                              username)
+                messages.info(request, f"{username} registered. Please login.")
                 return HttpResponse(
-                    '<script>window.location="%s"</script>' %
-                    reverse('home')
+                    f'<script>window.location="{reverse("home")}"</script>'
                 )
 
     context['users'] = Player.objects.all()

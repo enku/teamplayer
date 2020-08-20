@@ -407,7 +407,7 @@ class MPCTest(TestCase):
         mpc = self.mpc
 
         # given the playlist list
-        playlist = ['file: %s' % self.filename]
+        playlist = [f"file: {self.filename}"]
 
         # when we call get_last_artist()
         artist = mpc.get_last_artist(playlist)

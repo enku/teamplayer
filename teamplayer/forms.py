@@ -13,11 +13,10 @@ class EditStationForm(forms.Form):
 
     def clean_name(self):
         name = self.cleaned_data['name']
-        invalid_name = '“{0}” is an invalid name.'
 
         name = name.strip()
         if name.lower() == 'teamplayer':
-            raise forms.ValidationError(invalid_name.format(name))
+            raise forms.ValidationError(f'“{name}” is an invalid name.')
 
         if len(name) > 128:
             raise forms.ValidationError('The name is too long.')
@@ -59,14 +58,13 @@ class ChangeDJNameForm(forms.Form):
 
     def clean_dj_name(self):
         name = self.cleaned_data['dj_name'].strip()
-        invalid_name = '“{0}” is an invalid name.'
         already_taken = 'That name is already taken.'
 
         if not name:
             return ''
 
         if not self.legal_name(name):
-            raise forms.ValidationError(invalid_name.format(name))
+            raise forms.ValidationError(f'“{name}” is an invalid name.')
 
         try:
             player = models.Player.objects.get(dj_name__iexact=name)
