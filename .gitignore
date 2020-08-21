@@ -1,7 +1,14 @@
 *.pyc
 .coverage
 .ropeproject/
-.tox/
+.venv
 TeamPlayer.egg-info/
+bin/
+dist/
 docker-compose.override.yml
-settings_local.py
+htmlcov/
+lib/
+lib64
+project/
+pyvenv.cfg
+share/
