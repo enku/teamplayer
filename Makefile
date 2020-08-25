@@ -34,7 +34,7 @@ test: venv
 	cp tools/settings.py project/project/settings.py
 	cp tools/urls.py project/project/urls.py
 	coverage erase
-	coverage run --source=teamplayer project/manage.py test --failfast teamplayer
+	coverage run --source=teamplayer project/manage.py test -v2 --failfast teamplayer
 	coverage report
 	coverage html
 
