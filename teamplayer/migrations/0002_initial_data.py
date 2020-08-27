@@ -24,12 +24,20 @@ def create_initial_data(apps, schema_editor):
 
     Player = apps.get_model("teamplayer", "Player")
     player = Player.objects.create(
-        **{"auto_mode": True, "dj_name": "", "queue": queue, "user": dj_ango,}
+        **{
+            "auto_mode": True,
+            "dj_name": "",
+            "queue": queue,
+            "user": dj_ango,
+        }
     )
 
     Station = apps.get_model("teamplayer", "Station")
     Station.objects.create(
-        **{"name": "Main Station", "creator": player,}
+        **{
+            "name": "Main Station",
+            "creator": player,
+        }
     )
 
 

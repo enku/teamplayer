@@ -144,12 +144,15 @@ class Queue(models.Model):
         else:
             strategy_name = settings.AUTOFILL_STRATEGY
             iter_ = pkg_resources.iter_entry_points(
-                "teamplayer.autofill_strategy", strategy_name,
+                "teamplayer.autofill_strategy",
+                strategy_name,
             )
             strategy = next(iter_).load()
 
         song_files = strategy(
-            entries_needed=entries_needed, queryset=song_files, station=station,
+            entries_needed=entries_needed,
+            queryset=song_files,
+            station=station,
         )
 
         for songfile in song_files:
@@ -174,7 +177,9 @@ class Entry(models.Model):
     objects = models.Manager()
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
     station = models.ForeignKey(
-        "Station", on_delete=models.CASCADE, related_name="entries",
+        "Station",
+        on_delete=models.CASCADE,
+        related_name="entries",
     )
     place = models.IntegerField(default=0)
     song = models.FileField(upload_to="songs")
@@ -235,7 +240,8 @@ class Mood(models.Model):
         similar_artists = lib.songs.get_similar_artists(artist)
         for artist in similar_artists:
             cls.objects.create(
-                artist=artist, station=station,
+                artist=artist,
+                station=station,
             )
 
 
@@ -283,12 +289,17 @@ class Station(models.Model):
 
     def get_songs(self):
         """Return queryset of all (active) songs in the station"""
-        return Entry.objects.filter(station=self, queue__active=True,)
+        return Entry.objects.filter(
+            station=self,
+            queue__active=True,
+        )
 
     def participants(self):
         """Return the set of Users with songs ready for this station."""
         entries_qs = Entry.objects.filter(station=self, queue__active=True)
-        return Player.objects.filter(queue__entry__in=entries_qs,).distinct()
+        return Player.objects.filter(
+            queue__entry__in=entries_qs,
+        ).distinct()
 
     @classmethod
     def get_stations(cls):
@@ -350,7 +361,10 @@ class Player(models.Model):
 
     objects = PlayerManager()
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, unique=True, related_name="player",
+        User,
+        on_delete=models.CASCADE,
+        unique=True,
+        related_name="player",
     )
     queue = models.OneToOneField(Queue, on_delete=models.CASCADE)
     dj_name = models.CharField(blank=True, max_length=25)
@@ -379,7 +393,9 @@ class Player(models.Model):
     def player_stats(cls):
         """Return a dictionary of player stats (all players)"""
         active_queues = Queue.objects.filter(active=True).values_list("pk", flat=True)
-        songs_in_queue = Entry.objects.filter(queue__pk__in=active_queues,)
+        songs_in_queue = Entry.objects.filter(
+            queue__pk__in=active_queues,
+        )
 
         return {
             "active_queues": len(active_queues),
@@ -415,7 +431,9 @@ class LibraryItem(models.Model):
     date_added = models.DateTimeField(auto_now_add=True)
     station_id = models.IntegerField()
     added_by = models.ForeignKey(
-        Player, on_delete=models.CASCADE, related_name="library_songs",
+        Player,
+        on_delete=models.CASCADE,
+        related_name="library_songs",
     )
 
     class Meta:
@@ -493,7 +511,11 @@ class LibraryItem(models.Model):
 class PlayLog(models.Model):
     """A log of songs played"""
 
-    station = models.ForeignKey(Station, on_delete=models.CASCADE, db_index=True,)
+    station = models.ForeignKey(
+        Station,
+        on_delete=models.CASCADE,
+        db_index=True,
+    )
     title = models.CharField(max_length=254)
     artist = models.CharField(max_length=254)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)

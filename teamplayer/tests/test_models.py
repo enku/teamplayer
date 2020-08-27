@@ -144,7 +144,9 @@ class QueueTestCase(TestCase):
         # add some songs
         for _ in range(5):
             Entry.objects.create(
-                song=SILENCE, queue=self.player.queue, station=self.station,
+                song=SILENCE,
+                queue=self.player.queue,
+                station=self.station,
             )
 
     def test_reorder(self):
@@ -454,10 +456,14 @@ class StationTest(TestCase):
 
         # with a song in each station
         song1 = Entry.objects.create(
-            song=SILENCE, queue=self.player.queue, station=station1,
+            song=SILENCE,
+            queue=self.player.queue,
+            station=station1,
         )
         Entry.objects.create(
-            song=SILENCE, queue=self.player.queue, station=station2,
+            song=SILENCE,
+            queue=self.player.queue,
+            station=station2,
         )
 
         # when we call .get_songs() on a station
@@ -698,7 +704,11 @@ class PlayLogTest(TestCase):
         time = timezone.now()
 
         self.playlog = PlayLog(
-            artist=artist, player=player, station=station, time=time, title=title,
+            artist=artist,
+            player=player,
+            station=station,
+            time=time,
+            title=title,
         )
 
     def test_str(self):

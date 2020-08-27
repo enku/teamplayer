@@ -33,7 +33,8 @@ class AutoFindSong(TestCase):
 
         # Current mood...
         Mood.objects.create(
-            station=self.main_station, artist="Prince",
+            station=self.main_station,
+            artist="Prince",
         )
 
         # And the entries
@@ -65,7 +66,8 @@ class AutoFindSong(TestCase):
 
         # And Current mood
         Mood.objects.create(
-            station=self.main_station, artist="Prince",
+            station=self.main_station,
+            artist="Prince",
         )
 
         # When we call auto_find_song
@@ -83,7 +85,8 @@ class AutoFindSong(TestCase):
 
         # Current mood...
         Mood.objects.create(
-            station=self.main_station, artist="Prince",
+            station=self.main_station,
+            artist="Prince",
         )
 
         # And the entries that don't fit the mood
@@ -119,7 +122,8 @@ class AutoFindSong(TestCase):
 
         # Current mood...
         Mood.objects.create(
-            station=self.main_station, artist="Prince",
+            station=self.main_station,
+            artist="Prince",
         )
 
         # And the entries with a song that fits the mood
@@ -157,7 +161,10 @@ class ScrobbleSongTest(TestCase):
 
         # then it makes the appropriate call to the scrobbler
         Network.return_value.update_now_playing.assert_called_with(
-            "Prince", "Purple Rain", album="Purple Rain", duration=190,
+            "Prince",
+            "Purple Rain",
+            album="Purple Rain",
+            duration=190,
         )
 
     def test_not_now_playing(self):
@@ -177,7 +184,11 @@ class ScrobbleSongTest(TestCase):
         # then it makes the appropriate call to the scrobbler
         timestamp = int(now().timestamp()) - 190
         Network.return_value.scrobble.assert_called_with(
-            "Prince", "Purple Rain", timestamp, album="Purple Rain", duration=190,
+            "Prince",
+            "Purple Rain",
+            timestamp,
+            album="Purple Rain",
+            duration=190,
         )
 
     def test_returns_True_on_success(self):

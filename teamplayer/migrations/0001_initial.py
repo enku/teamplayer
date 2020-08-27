@@ -30,7 +30,9 @@ class Migration(migrations.Migration):
                 ("artist", models.CharField(verbose_name="Unknown", max_length=254)),
                 ("filetype", models.CharField(max_length=4)),
             ],
-            options={"ordering": ("-place", "id"),},
+            options={
+                "ordering": ("-place", "id"),
+            },
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -48,7 +50,9 @@ class Migration(migrations.Migration):
                 ("artist", models.TextField()),
                 ("timestamp", models.DateTimeField(auto_now=True, auto_now_add=True)),
             ],
-            options={"ordering": ("-timestamp", "artist"),},
+            options={
+                "ordering": ("-timestamp", "artist"),
+            },
             bases=(models.Model,),
         ),
         migrations.CreateModel(

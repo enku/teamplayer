@@ -45,6 +45,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AlterUniqueTogether(
-            name="playlog", unique_together=set([("station", "time")]),
+            name="playlog",
+            unique_together=set([("station", "time")]),
         ),
     ]

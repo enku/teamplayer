@@ -46,6 +46,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AlterUniqueTogether(
-            name="libraryitem", unique_together=set([("artist", "title", "album")]),
+            name="libraryitem",
+            unique_together=set([("artist", "title", "album")]),
         ),
     ]

@@ -103,7 +103,9 @@ class Command(BaseCommand):
 
             if created:
                 logger.info(
-                    'added "%s" by %s', songfile.title, songfile.artist,
+                    'added "%s" by %s',
+                    songfile.title,
+                    songfile.artist,
                 )
                 self.created += 1
             else:
