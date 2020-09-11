@@ -429,7 +429,7 @@ class MPCTest(TestCase):
         elapsed = time.time() - start
 
         # then it only waits for 2 seconds
-        self.assertAlmostEqual(elapsed, 1, 2)
+        self.assertAlmostEqual(elapsed, 1, delta=0.09)
 
     def test_idle_or_wait_timeout(self, mpd_client):
         # given the mpc instance
