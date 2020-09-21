@@ -13,6 +13,7 @@ services:
       - DATABASE_PASSWORD=teamplayer
       - DATABASE_USER=teamplayer
       - DJANGO_DEBUG
+      - DJANGO_SECRET_KEY
 
     volumes:
       - static:/opt/teamplayer/static

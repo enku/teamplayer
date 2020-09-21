@@ -12,6 +12,19 @@ if [ "${DJANGO_DEBUG}" -ne 0 ] ; then
     export PYTHONPATH
 fi
 
+
+if [ -z "$DJANGO_SECRET_KEY" ]; then
+    key=/opt/teamplayer/.key
+    if [ ! -e $key ]; then
+        touch $key
+        chmod 0400 $key
+        python3 -c 'from django.core.management import utils; print(utils.get_random_secret_key())' >> $key
+    fi
+    DJANGO_SECRET_KEY=`cat $key`
+fi
+
+export DJANGO_SECRET_KEY
+
 # migrate the data
 if ! python3 $MANAGE_PY migrate; then
     echo "Migration failed. Will try again later" > /dev/stderr

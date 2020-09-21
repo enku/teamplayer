@@ -1,9 +1,10 @@
 import os
 
 import django
+from django.core.management import utils
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRET_KEY = "ej83nbqy(+nvr9&mwf8)zvz*4f)h0b@6s@%%f9tnk2ks9cfvx&"
+SECRET_KEY = utils.get_random_secret_key()
 DEBUG = True
 ALLOWED_HOSTS = []
 INSTALLED_APPS = [

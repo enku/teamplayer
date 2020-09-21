@@ -11,7 +11,7 @@ RUN mkdir -p /opt/teamplayer/songs /opt/teamplayer/media /opt/teamplayer/library
 RUN django-admin startproject project /opt/teamplayer
 COPY tools/docker/settings.py tools/docker/urls.py /opt/teamplayer/project/
 COPY tools/docker/entrypoint.sh /opt/teamplayer
-RUN python3 /opt/teamplayer/manage.py collectstatic --noinput
+RUN DJANGO_SECRET_KEY="bogus" python3 /opt/teamplayer/manage.py collectstatic --noinput
 
 WORKDIR /opt/teamplayer
 VOLUME /opt/teamplayer/static
