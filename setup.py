@@ -17,6 +17,7 @@ setup(
         "mutagen>=1.29,<1.30",
         "pylast>=1.6,<1.7",
         "python-mpd2",
+        "requests==2.24.*",
         "tornado",
     ],
     entry_points={

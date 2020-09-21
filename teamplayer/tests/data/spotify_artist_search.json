@@ -1,0 +1,435 @@
+{
+  "artists" : {
+    "href" : "https://api.spotify.com/v1/search?query=Alejandro+Fern%C3%A1ndez&type=artist&offset=0&limit=20",
+    "items" : [ {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/6sq1yF0OZEWA4xoXVKW1L9"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 3381121
+      },
+      "genres" : [ "latin", "latin arena pop", "latin pop", "mexican pop", "ranchera" ],
+      "href" : "https://api.spotify.com/v1/artists/6sq1yF0OZEWA4xoXVKW1L9",
+      "id" : "6sq1yF0OZEWA4xoXVKW1L9",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/6da0cacb2394f332e3e5f8fc10b166623a6c35c6",
+        "width" : 640
+      }, {
+        "height" : 320,
+        "url" : "https://i.scdn.co/image/ef08d5d322c5245ee38dea28f221275de5bac02d",
+        "width" : 320
+      }, {
+        "height" : 160,
+        "url" : "https://i.scdn.co/image/76ce54f42657bc40b8b3557c7db6d3303161cab0",
+        "width" : 160
+      } ],
+      "name" : "Alejandro Fernández",
+      "popularity" : 81,
+      "type" : "artist",
+      "uri" : "spotify:artist:6sq1yF0OZEWA4xoXVKW1L9"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/4HD0fRs7wqI7rQVkyPAqOA"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 28995
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/4HD0fRs7wqI7rQVkyPAqOA",
+      "id" : "4HD0fRs7wqI7rQVkyPAqOA",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/ab67616d0000b27348912ec96832dec95cfdfc36",
+        "width" : 640
+      }, {
+        "height" : 300,
+        "url" : "https://i.scdn.co/image/ab67616d00001e0248912ec96832dec95cfdfc36",
+        "width" : 300
+      }, {
+        "height" : 64,
+        "url" : "https://i.scdn.co/image/ab67616d0000485148912ec96832dec95cfdfc36",
+        "width" : 64
+      } ],
+      "name" : "Alejandro Fernandez",
+      "popularity" : 21,
+      "type" : "artist",
+      "uri" : "spotify:artist:4HD0fRs7wqI7rQVkyPAqOA"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/21TCzQTHCAZIVM2WZy3n9E"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 186
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/21TCzQTHCAZIVM2WZy3n9E",
+      "id" : "21TCzQTHCAZIVM2WZy3n9E",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/ab67616d0000b2733ef1c5a72c09e040b390c692",
+        "width" : 640
+      }, {
+        "height" : 300,
+        "url" : "https://i.scdn.co/image/ab67616d00001e023ef1c5a72c09e040b390c692",
+        "width" : 300
+      }, {
+        "height" : 64,
+        "url" : "https://i.scdn.co/image/ab67616d000048513ef1c5a72c09e040b390c692",
+        "width" : 64
+      } ],
+      "name" : "Alejandro Fernandez Lecce & La Tipica Seisluces",
+      "popularity" : 10,
+      "type" : "artist",
+      "uri" : "spotify:artist:21TCzQTHCAZIVM2WZy3n9E"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/7L71LTe0jyH3HIYXee7OFX"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 1266
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/7L71LTe0jyH3HIYXee7OFX",
+      "id" : "7L71LTe0jyH3HIYXee7OFX",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/1d3414f6fc873817d79c3cfe0752515156e17a40",
+        "width" : 640
+      }, {
+        "height" : 320,
+        "url" : "https://i.scdn.co/image/7363eda61757f46ca50a58f0b246699d40294420",
+        "width" : 320
+      }, {
+        "height" : 160,
+        "url" : "https://i.scdn.co/image/b0684e73a96e9f69741a7838038c4fa4b7158f6e",
+        "width" : 160
+      } ],
+      "name" : "Alejandro Fernández",
+      "popularity" : 12,
+      "type" : "artist",
+      "uri" : "spotify:artist:7L71LTe0jyH3HIYXee7OFX"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/46ntNZcWkltkoyMPyaTqqZ"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 196
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/46ntNZcWkltkoyMPyaTqqZ",
+      "id" : "46ntNZcWkltkoyMPyaTqqZ",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/c37889fe31fce775d0ec25f378ef6aad3c1b488f",
+        "width" : 640
+      }, {
+        "height" : 320,
+        "url" : "https://i.scdn.co/image/f1a0deb8fe02f03744ce26d9aacb1dbfb5a22ab9",
+        "width" : 320
+      }, {
+        "height" : 160,
+        "url" : "https://i.scdn.co/image/b4acafe808a5b8488e126f592ccd1fca1cdfb64a",
+        "width" : 160
+      } ],
+      "name" : "Alejandro Fernandez",
+      "popularity" : 3,
+      "type" : "artist",
+      "uri" : "spotify:artist:46ntNZcWkltkoyMPyaTqqZ"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/0qgt1tw91otemzrZzQQDYg"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 3046
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/0qgt1tw91otemzrZzQQDYg",
+      "id" : "0qgt1tw91otemzrZzQQDYg",
+      "images" : [ ],
+      "name" : "José Luis Perales y Alejandro Fernández",
+      "popularity" : 18,
+      "type" : "artist",
+      "uri" : "spotify:artist:0qgt1tw91otemzrZzQQDYg"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/4hmJjGv0UGK49OagCgx52M"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 19
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/4hmJjGv0UGK49OagCgx52M",
+      "id" : "4hmJjGv0UGK49OagCgx52M",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/ab67616d0000b2730cade2e273633f6b63d5b567",
+        "width" : 640
+      }, {
+        "height" : 300,
+        "url" : "https://i.scdn.co/image/ab67616d00001e020cade2e273633f6b63d5b567",
+        "width" : 300
+      }, {
+        "height" : 64,
+        "url" : "https://i.scdn.co/image/ab67616d000048510cade2e273633f6b63d5b567",
+        "width" : 64
+      } ],
+      "name" : "Alejandro Fernandez",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:4hmJjGv0UGK49OagCgx52M"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/5gaUw9fLlbZiMuLE00w8re"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 263
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/5gaUw9fLlbZiMuLE00w8re",
+      "id" : "5gaUw9fLlbZiMuLE00w8re",
+      "images" : [ ],
+      "name" : "Alejandro Fernandez Lecce",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:5gaUw9fLlbZiMuLE00w8re"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/0CK3ObeoaQPu0nveFsjMHG"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 103
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/0CK3ObeoaQPu0nveFsjMHG",
+      "id" : "0CK3ObeoaQPu0nveFsjMHG",
+      "images" : [ ],
+      "name" : "Alejandro Fernández Campos",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:0CK3ObeoaQPu0nveFsjMHG"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/2aAygijaHbqHSsBwrNQIBs"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 21
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/2aAygijaHbqHSsBwrNQIBs",
+      "id" : "2aAygijaHbqHSsBwrNQIBs",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/ab67616d0000b2739e946fc1601ef53b5154f5bd",
+        "width" : 640
+      }, {
+        "height" : 300,
+        "url" : "https://i.scdn.co/image/ab67616d00001e029e946fc1601ef53b5154f5bd",
+        "width" : 300
+      }, {
+        "height" : 64,
+        "url" : "https://i.scdn.co/image/ab67616d000048519e946fc1601ef53b5154f5bd",
+        "width" : 64
+      } ],
+      "name" : "Alejandro Fernandez",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:2aAygijaHbqHSsBwrNQIBs"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/1xeEgYZR6Im3fEYp0q1vpI"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 3
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/1xeEgYZR6Im3fEYp0q1vpI",
+      "id" : "1xeEgYZR6Im3fEYp0q1vpI",
+      "images" : [ ],
+      "name" : "Alejandro Ansón Fernández",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:1xeEgYZR6Im3fEYp0q1vpI"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/3W8k5MnrAVUPEv1SPM1jZT"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 15
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/3W8k5MnrAVUPEv1SPM1jZT",
+      "id" : "3W8k5MnrAVUPEv1SPM1jZT",
+      "images" : [ ],
+      "name" : "Alejándro Fernández García",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:3W8k5MnrAVUPEv1SPM1jZT"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/2kTTGv4sQ8uqGKCqMLO2Xd"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 0
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/2kTTGv4sQ8uqGKCqMLO2Xd",
+      "id" : "2kTTGv4sQ8uqGKCqMLO2Xd",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/ab67616d0000b273641adff2ac0b788aa4ae3d1e",
+        "width" : 640
+      }, {
+        "height" : 300,
+        "url" : "https://i.scdn.co/image/ab67616d00001e02641adff2ac0b788aa4ae3d1e",
+        "width" : 300
+      }, {
+        "height" : 64,
+        "url" : "https://i.scdn.co/image/ab67616d00004851641adff2ac0b788aa4ae3d1e",
+        "width" : 64
+      } ],
+      "name" : "Daniel Alejandro Fernandez Danmak",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:2kTTGv4sQ8uqGKCqMLO2Xd"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/2xlpfa5LVjOqfxKMKZEAi7"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 5
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/2xlpfa5LVjOqfxKMKZEAi7",
+      "id" : "2xlpfa5LVjOqfxKMKZEAi7",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/ab67616d0000b273d6b9e393544db2bc6c49c4e0",
+        "width" : 640
+      }, {
+        "height" : 300,
+        "url" : "https://i.scdn.co/image/ab67616d00001e02d6b9e393544db2bc6c49c4e0",
+        "width" : 300
+      }, {
+        "height" : 64,
+        "url" : "https://i.scdn.co/image/ab67616d00004851d6b9e393544db2bc6c49c4e0",
+        "width" : 64
+      } ],
+      "name" : "Israel Alejandro Fernandez Flores",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:2xlpfa5LVjOqfxKMKZEAi7"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/2z9XfVBRPUyJLKYT8G3otB"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 0
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/2z9XfVBRPUyJLKYT8G3otB",
+      "id" : "2z9XfVBRPUyJLKYT8G3otB",
+      "images" : [ ],
+      "name" : "Eduardo Alejandro Siqueiros Fernández",
+      "popularity" : 3,
+      "type" : "artist",
+      "uri" : "spotify:artist:2z9XfVBRPUyJLKYT8G3otB"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/3SZtbOdZWWi41McUaFWRSW"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 2
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/3SZtbOdZWWi41McUaFWRSW",
+      "id" : "3SZtbOdZWWi41McUaFWRSW",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/ab67616d0000b273879197fe45e2a2ff6fea4f37",
+        "width" : 640
+      }, {
+        "height" : 300,
+        "url" : "https://i.scdn.co/image/ab67616d00001e02879197fe45e2a2ff6fea4f37",
+        "width" : 300
+      }, {
+        "height" : 64,
+        "url" : "https://i.scdn.co/image/ab67616d00004851879197fe45e2a2ff6fea4f37",
+        "width" : 64
+      } ],
+      "name" : "Jaime Alejandro Fernandez Hervas",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:3SZtbOdZWWi41McUaFWRSW"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/2VGuiH0RBLYlZWEbrjahm2"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 12
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/2VGuiH0RBLYlZWEbrjahm2",
+      "id" : "2VGuiH0RBLYlZWEbrjahm2",
+      "images" : [ ],
+      "name" : "Alberto Cicuendez & Alejandro Fernandez",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:2VGuiH0RBLYlZWEbrjahm2"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/2fgzYYAwjt4IhrQf1hHRmo"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 12
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/2fgzYYAwjt4IhrQf1hHRmo",
+      "id" : "2fgzYYAwjt4IhrQf1hHRmo",
+      "images" : [ ],
+      "name" : "Alejandro Rivera con Aroa Fernández",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:2fgzYYAwjt4IhrQf1hHRmo"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/0CDeK72beIOWHzdQQTn0t8"
+      },
+      "followers" : {
+        "href" : null,
+        "total" : 31
+      },
+      "genres" : [ ],
+      "href" : "https://api.spotify.com/v1/artists/0CDeK72beIOWHzdQQTn0t8",
+      "id" : "0CDeK72beIOWHzdQQTn0t8",
+      "images" : [ ],
+      "name" : "Made famous by Alejandro Fernandez",
+      "popularity" : 0,
+      "type" : "artist",
+      "uri" : "spotify:artist:0CDeK72beIOWHzdQQTn0t8"
+    } ],
+    "limit" : 20,
+    "next" : null,
+    "offset" : 0,
+    "previous" : null,
+    "total" : 19
+  }
+}
