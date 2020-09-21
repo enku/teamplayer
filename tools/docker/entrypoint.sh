@@ -13,8 +13,11 @@ if [ "${DJANGO_DEBUG}" -ne 0 ] ; then
 fi
 
 # migrate the data
-sleep 3
-python3 $MANAGE_PY migrate
+if ! python3 $MANAGE_PY migrate; then
+    echo "Migration failed. Will try again later" > /dev/stderr
+    sleep 10
+    python3 $MANAGE_PY migrate
+fi
 python3 $MANAGE_PY spindoctor &
 
 if [ -n "${TEAMPLAYER_WALK}" ] ; then
