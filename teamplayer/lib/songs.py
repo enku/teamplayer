@@ -12,6 +12,7 @@ from mutagen import File
 from teamplayer import logger, models
 from teamplayer.conf import settings
 from teamplayer.lib import first_or_none, list_iter, now
+from teamplayer.lib import spotify
 
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + "images/clear.png"
 MIME_MAP = {
@@ -85,19 +86,24 @@ def time_to_secs(time_str):
 
 
 @lru_cache(maxsize=256)
-def get_image_url_for(artist):
+def get_image_url_for(artist: str) -> str:
     """Return a URL for image of artist"""
     if not artist:
         return CLEAR_IMAGE_URL
 
     cover_image = None
-    network = pylast.LastFMNetwork(api_key=LASTFM_APIKEY)
-    lfm_artist = network.get_artist(artist)
 
+    # data = {['artists']['items'][]['images'][]['url']}
     try:
-        cover_image = lfm_artist.get_cover_image()
-    except pylast.WSError:
-        pass
+        data = spotify.search("artist", artist)
+    except:
+        logger.exception("Error searching artist in Spotify: %s", artist)
+    else:
+        items = data["artists"]["items"]
+        if items:
+            images = items[0]["images"]
+            if images:
+                cover_image = images[0]["url"]
 
     return cover_image or CLEAR_IMAGE_URL
 

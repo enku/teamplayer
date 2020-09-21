@@ -79,21 +79,16 @@ class LibSongs(TestCase):
         self.assertEqual(func("9:01"), 541)
         self.assertEqual(func("9:00:01"), 32401)
 
-    @patch("teamplayer.lib.songs.pylast.LastFMNetwork")
-    def test_artist_image_url(self, LastFMNetwork):
-        img_url = "http://userserve-ak.last.fm/serve/252/609358.jpg"
-        network = LastFMNetwork()
-        prince = network.get_artist("Prince")
-        prince.get_cover_image.return_value = img_url
-        LastFMNetwork.reset_mock()
+    @patch("teamplayer.lib.songs.spotify.search")
+    def test_artist_image_url(self, spotify_search):
+        img_url = "https://i.scdn.co/image/6da0cacb2394f332e3e5f8fc10b166623a6c35c6"
+        search_response = json.load(utils.getdata("spotify_artist_search.json", "rb"))
+        spotify_search.return_value = search_response
 
-        url = teamplayer.lib.songs.get_image_url_for("Prince")
+        url = teamplayer.lib.songs.get_image_url_for("Alejandro Fernández")
         self.assertEqual(url, img_url)
-        expected = (
-            call(api_key=settings.LASTFM_APIKEY).get_artist("Prince").get_cover_image()
-        )
-        expected = expected.call_list()
-        self.assertEqual(LastFMNetwork.mock_calls, expected)
+        self.assertEqual(url, img_url)
+        spotify_search.assert_called_with("artist", "Alejandro Fernández")
 
     def test_blank_artist(self):
         """Demonstrate we get the "clear" image for blank artists"""
@@ -106,12 +101,21 @@ class LibSongs(TestCase):
         # then we get a clear image url
         self.assertEqual(result, teamplayer.lib.songs.CLEAR_IMAGE_URL)
 
-    @patch("teamplayer.lib.songs.pylast.LastFMNetwork")
-    def test_lastfm_image_is_none(self, LastFMNetwork):
+    @patch("teamplayer.lib.songs.spotify.search")
+    def test_lastfm_image_is_none(self, spotify_search):
         # given the artist for which lastfm has no image
         artist = "Albert Hopkins"
-        LastFMNetwork().get_artist().get_cover_image.return_value = None
-        LastFMNetwork.reset_mock()
+        search_response = {
+            "artists": {
+                "items": [],
+                "limit": 20,
+                "next": None,
+                "offset": 0,
+                "previous": None,
+                "total": 0,
+            }
+        }
+        spotify_search.return_value = search_response
 
         # when we call the function
         result = teamplayer.lib.songs.get_image_url_for(artist)
