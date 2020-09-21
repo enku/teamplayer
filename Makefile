@@ -39,7 +39,7 @@ test: venv
 	coverage html
 
 docker:
-	docker-compose up
+	docker-compose -f docker-compose.yml -f docker-compose-dev.yml up
 
 clean:
 	rm -rf .coverage .venv bin build dist htmlcov lib lib64 project share
