@@ -1,0 +1,6 @@
+Whoosh
+black
+coverage
+mypy
+pylint
+pylint-django

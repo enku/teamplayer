@@ -1,14 +1,11 @@
 *.pyc
 .ropeproject/
 /.coverage
-/.venv
+/.venv/
 /TeamPlayer.egg-info/
-/bin/
+/build/
 /dist/
 /docker-compose.override.yml
 /htmlcov/
-/lib/
-/lib64
 /project/
 /pyvenv.cfg
-/share/

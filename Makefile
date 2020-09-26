@@ -5,29 +5,31 @@ VERSION = $(shell $(PYTHON) setup.py --version)
 SDIST = dist/$(NAME)-$(VERSION).tar.gz
 WHEEL = dist/$(NAME)-$(VERSION)-py3-none-any.whl
 SOURCE = setup.py MANIFEST.in $(shell find teamplayer -type f -print)
+VENV := .venv/dirstate
 
-export PATH := $(CURDIR)/bin:$(PATH)
-
+export PATH := $(CURDIR)/.venv/bin:$(PATH)
 export DJANGO_DEBUG
 
 all: $(SDIST) $(WHEEL)
 
-.venv: setup.py
-	$(PYTHON) -m venv .
-	$(PYTHON) -m pip install black coverage wheel Whoosh -e .
+$(VENV): setup.py teamplayer/tests/requirements.txt
+	$(PYTHON) -m venv .venv
+	$(PYTHON) -m pip install --upgrade pip wheel -r teamplayer/tests/requirements.txt -e .
 	touch $@
 
-venv: .venv
+.PHONY: venv
+venv: $(VENV)
 
-$(SDIST): $(SOURCE) .venv
+$(SDIST): $(SOURCE) $(VENV)
 	$(PYTHON) setup.py sdist
 
 sdist: $(SDIST)
 
-$(WHEEL): $(SOURCE) .venv
+$(WHEEL): $(SOURCE) $(VENV)
 	$(PYTHON) setup.py bdist_wheel
 
-test: venv
+.PHONY: test
+test: $(VENV)
 	black --check teamplayer
 	rm -rf project
 	django-admin.py startproject project
@@ -38,12 +40,14 @@ test: venv
 	coverage report
 	coverage html
 
+.PHONY: docker
 docker:
 	docker-compose -f docker-compose.yml -f docker-compose-dev.yml up
 
+.PHONY: shell
+shell: $(VENV)
+	source .venv/bin/activate && $(SHELL)
+
+.PHONY: clean
 clean:
-	rm -rf .coverage .venv bin build dist htmlcov lib lib64 project share
-	find . -type f -name '*.py[co]' -delete
-
-
-.PHONY: all clean docker sdist test venv wheel
+	rm -rf .coverage .venv build dist htmlcov project
