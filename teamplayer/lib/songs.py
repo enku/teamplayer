@@ -2,6 +2,7 @@
 Library to deal with song files and song metadata
 """
 import datetime
+import random
 from functools import lru_cache
 
 import pylast
@@ -11,8 +12,7 @@ from mutagen import File
 
 from teamplayer import logger, models
 from teamplayer.conf import settings
-from teamplayer.lib import first_or_none, list_iter, now
-from teamplayer.lib import spotify
+from teamplayer.lib import first_or_none, list_iter, now, spotify
 
 CLEAR_IMAGE_URL = django_settings.STATIC_URL + "images/clear.png"
 MIME_MAP = {
@@ -103,7 +103,7 @@ def get_image_url_for(artist: str) -> str:
         if items:
             images = items[0]["images"]
             if images:
-                cover_image = images[0]["url"]
+                cover_image = random.choice(images)["url"]
 
     return cover_image or CLEAR_IMAGE_URL
 

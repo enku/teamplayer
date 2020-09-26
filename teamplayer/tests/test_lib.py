@@ -1,5 +1,6 @@
 """Unit tests for TeamPlayer lib functions"""
 import json
+import random
 from unittest import mock
 
 import django.contrib.auth.models
@@ -81,12 +82,12 @@ class LibSongs(TestCase):
 
     @patch("teamplayer.lib.songs.spotify.search")
     def test_artist_image_url(self, spotify_search):
-        img_url = "https://i.scdn.co/image/6da0cacb2394f332e3e5f8fc10b166623a6c35c6"
+        img_url = "https://i.scdn.co/image/ef08d5d322c5245ee38dea28f221275de5bac02d"
         search_response = json.load(utils.getdata("spotify_artist_search.json", "rb"))
         spotify_search.return_value = search_response
 
+        random.seed(9122020)
         url = teamplayer.lib.songs.get_image_url_for("Alejandro Fernández")
-        self.assertEqual(url, img_url)
         self.assertEqual(url, img_url)
         spotify_search.assert_called_with("artist", "Alejandro Fernández")
 
