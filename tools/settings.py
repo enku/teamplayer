@@ -80,8 +80,3 @@ AUTH_PROFILE_MODULE = "teamplayer.UserProfile"
 LOGIN_REDIRECT_URL = "/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
-TEAMPLAYER = {
-    "MPD_HOME": os.path.join(BASE_DIR, "mpd"),
-    "UPLOADED_LIBRARY_DIR": os.path.join(BASE_DIR, "library"),
-}

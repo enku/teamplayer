@@ -14,6 +14,12 @@ services:
       - DATABASE_USER=teamplayer
       - DJANGO_DEBUG
       - DJANGO_SECRET_KEY
+      - TEAMPLAYER_CROSSFADE=5
+      - TEAMPLAYER_SHAKE_THINGS_UP=10
+      - TEAMPLAYER_ALWAYS_SHAKE_THINGS_UP=true
+      - TEAMPLAYER_AUTOFILL_STRATEGY=mood
+      - TEAMPLAYER_MPD_HOME=/opt/teamplayer/mpd
+      - TEAMPLAYER_UPLOADED_LIBRARY_DIR=/opt/teamplayer/library
 
     volumes:
       - static:/opt/teamplayer/static

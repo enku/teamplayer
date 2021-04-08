@@ -11,6 +11,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
+        "distutils-strtobool",
         "Django>=2.2.8,<2.3",
         "django-haystack>=2.8,<2.9",
         "djangorestframework>=3.7,<3.8",
