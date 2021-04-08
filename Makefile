@@ -29,7 +29,7 @@ $(WHEEL): $(SOURCE) $(VENV)
 	$(PYTHON) setup.py bdist_wheel
 
 .PHONY: test
-test: $(VENV)
+test .coverage: $(VENV)
 	black --check teamplayer
 	rm -rf project
 	django-admin.py startproject project
@@ -38,7 +38,11 @@ test: $(VENV)
 	coverage erase
 	coverage run --source=teamplayer project/manage.py test -v2 --failfast teamplayer
 	coverage report
+
+.PHONY: coverage-report
+coverage-report: .coverage
 	coverage html
+	$(PYTHON) -m webbrowser -t file://$(CURDIR)/htmlcov/index.html
 
 .PHONY: docker
 docker:
