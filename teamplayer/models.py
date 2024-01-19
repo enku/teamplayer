@@ -7,7 +7,6 @@ import os
 import random
 
 import pkg_resources
-
 from django.conf import settings as django_settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -61,7 +60,7 @@ class Queue(models.Model):
         return entry
 
     def randomize(self, station):
-        """Randomize entries in the queue """
+        """Randomize entries in the queue"""
         entries = self.entry_set.filter(station=station)
         entry_count = entries.count()
 
@@ -78,7 +77,7 @@ class Queue(models.Model):
 
     @transaction.atomic
     def reorder(self, id_list):
-        """Reorder entries in queue accoring to entry.ids in id_list"""
+        """Reorder entries in queue according to entry.ids in id_list"""
         for order, i in enumerate(reversed(id_list)):
             try:
                 entry = Entry.objects.get(pk=i)
@@ -114,10 +113,10 @@ class Queue(models.Model):
 
         If ``station`` is not provided it defaults to the "Main Station".
 
-        ``qs_fitler`` is a dict to apply to LibraryItem.objects.filter().
+        ``qs_filter`` is a dict to apply to LibraryItem.objects.filter().
         If not provided it defaults to {}
 
-        Note this is intented to only be used for the "DJ Ango" queue
+        Note this is intended to only be used for the "DJ Ango" queue
         though it's not enforced in the code.
         """
         # to avoid circular imports
@@ -357,7 +356,7 @@ class PlayerManager(models.Manager):
 
 class Player(models.Model):
 
-    """Player: misc. data assocated with a User"""
+    """Player: misc. data associated with a User"""
 
     objects = PlayerManager()
     user = models.OneToOneField(
@@ -446,7 +445,7 @@ class LibraryItem(models.Model):
         return os.path.exists(self.filename)
 
     @classmethod
-    def metadata_get_or_create(cls, filename, metadata, contributer, st_id):
+    def metadata_get_or_create(cls, filename, metadata, contributor, st_id):
         try:
             artist = lib.first_or_none(metadata, "artist") or ""
             title = lib.first_or_none(metadata, "title") or ""
@@ -484,7 +483,7 @@ class LibraryItem(models.Model):
             length=length,
             genre=genre,
             station_id=st_id,
-            added_by=contributer,
+            added_by=contributor,
         )
         songfile.full_clean()  # callers should trap me
         songfile.save()

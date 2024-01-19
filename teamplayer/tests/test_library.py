@@ -24,8 +24,8 @@ class LibraryItemTest(TestCase):
         self.station = Station.main_station()
 
     def test_not_exists(self):
-        """Demonstrate the exists() for nonexistant files method."""
-        # given the song pointing to a non-existant file
+        """Demonstrate the exists() for nonexistent files method."""
+        # given the song pointing to a non-existent file
         song = LibraryItem(
             filename="/this/path/does/not/exist",
             artist="DJ Ango",
@@ -40,8 +40,8 @@ class LibraryItemTest(TestCase):
         self.assertFalse(exists)
 
     def test_exists(self):
-        """Demonstrate the exists() for existant files method."""
-        # given the song pointing to a non-existant file
+        """Demonstrate the exists() for existent files method."""
+        # given the song pointing to a non-existent file
         song = LibraryItem(
             filename="/dev/null",  # yeah, i know this is bad
             artist="DJ Ango",

@@ -1,8 +1,7 @@
-from django.conf.urls import include, url
-
 from django.contrib.auth.views import LoginView
+from django.urls import include, re_path
 
 urlpatterns = [
-    url(r"^accounts/login/$", LoginView.as_view()),
-    url(r"", include("teamplayer.urls")),
+    re_path(r"^accounts/login/$", LoginView.as_view()),
+    re_path(r"", include("teamplayer.urls")),
 ]

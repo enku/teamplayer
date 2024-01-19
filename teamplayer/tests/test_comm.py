@@ -1,6 +1,6 @@
 """Unit tests for the comm module"""
-from unittest.mock import patch
 from unittest import skip
+from unittest.mock import patch
 
 from django.test import TestCase
 from django.utils import timezone

@@ -101,3 +101,4 @@ HAYSTACK_CUSTOM_HIGHLIGHTER = "teamplayer.library.Highlighter"
 AUTH_PROFILE_MODULE = "teamplayer.UserProfile"
 
 MEDIA_ROOT = "/opt/teamplayer/media"
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

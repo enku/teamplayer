@@ -9,8 +9,8 @@ import signal
 import sys
 
 import tornado.web
-from tornado.platform.asyncio import AnyThreadEventLoopPolicy
 from django.core.management.base import BaseCommand
+from tornado.platform.asyncio import AnyThreadEventLoopPolicy
 
 from teamplayer import logger, models
 from teamplayer.conf import settings

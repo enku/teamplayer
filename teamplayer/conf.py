@@ -17,7 +17,7 @@ DEFAULTS = {
     "MPD_PORT": 6600,
     "MPD_LOG": "/dev/null",
     "MPD_DB": "",
-    "HTTP_PORT": "8000",  # Channels will alway be 1 + this, so don't worry
+    "HTTP_PORT": "8000",  # Channels will always be 1 + this, so don't worry
     "WEBSOCKET_PORT": "8000",
     "STREAM_QUALITY": "8.0",
     "STREAM_BITRATE": "64",

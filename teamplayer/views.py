@@ -68,7 +68,7 @@ def home(request, station_id=None):
 
     request.session["station_id"] = station.pk
 
-    if request.is_ajax():
+    if request.accepts("application/json"):
         serializer = StationSerializer(station, context={"request": request})
         return HttpResponse(
             json.dumps(serializer.data), content_type="application/json"

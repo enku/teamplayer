@@ -1,0 +1,48 @@
+[project]
+name = "TeamPlayer"
+version = "2.6.1"
+description = "A Democratic Internet Radio Station"
+authors = [
+    {name = "Albert Hopkins", email = "marduk@letterboxes.org"},
+]
+dependencies = [
+    "distutils-strtobool",
+    "pylast>=1.6,<1.7",
+    "python-mpd2",
+    "requests==2.24.*",
+    "tornado",
+    "Django>=4.1.1,<5.0",  # current haystack does not work with Django 5
+    "django-haystack>=3.2.1",
+    "djangorestframework>=3.14.0",
+    "mutagen>=1.45.1",
+    "setuptools",
+]
+requires-python = ">=3.10"
+license = {text = "MIT"}
+readme = "README.rst"
+[project.entry-points]
+[project.entry-points."teamplayer.autofill_strategy"]
+contiguous = "teamplayer.lib.autofill:auto_fill_contiguous"
+mood = "teamplayer.lib.autofill:auto_fill_mood"
+random = "teamplayer.lib.autofill:auto_fill_random"
+
+
+[build-system]
+requires = ["pdm-pep517>=1.0.0"]
+build-backend = "pdm.pep517.api"
+
+
+[tool]
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "black>=22.8.0",
+    "coverage>=6.5.0",
+    "Whoosh>=2.7.4",
+    "isort>=5.10.1",
+    "typos>=1.17.2",
+]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3

@@ -17,7 +17,11 @@ class AutoFindSong(TestCase):
         self.player = Player.objects.create_player("test", password="test")
         self.client.login(username="test", password="test")
         self.url = reverse("home")
-        self.client.get(self.url)
+
+        with patch("teamplayer.lib.mpc.MPC") as mpc:
+            mpc.return_value.http_port = 8002
+            mpc.return_value.currently_playing.return_value = {}
+            self.client.get(self.url)
 
         self.main_station = Station.main_station()
 
@@ -257,7 +261,7 @@ class TopArtistsFromTag(TestCase):
         self.assertEqual(result, expected)
 
     def test_no_tag_with_that_name(self):
-        # given the non-existant tag name
+        # given the non-existent tag name
         tag_name = "#post-grunge"
 
         # when we call top_artists_from_tag()

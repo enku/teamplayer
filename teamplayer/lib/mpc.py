@@ -47,7 +47,7 @@ class MPC(object):
 
     def start(self):
         """
-        Start the mpd deamon.  Insert a file and play
+        Start the mpd daemon.  Insert a file and play
         """
         assert self.mpd is None
         self.mpd = subprocess.Popen(("mpd", "--no-daemon", self.conf_file))
@@ -247,7 +247,7 @@ class MPC(object):
 
     @contextlib.contextmanager
     def connect(self):
-        """Connect to the mpd deamon"""
+        """Connect to the mpd daemon"""
         client = mpd.MPDClient()
         try:
             client.connect(self.address, self.port)
@@ -326,7 +326,6 @@ class MPC(object):
 
     @classmethod
     def get_version(cls):
-
         main_station = Station.main_station()
         client = cls(main_station)
 

@@ -1,22 +1,17 @@
-import django
-
 from .models import Player, Queue, Station
 
-# For backwards compat with Django <1.10
-if django.VERSION >= (1, 10):
-    from django.utils.deprecation import MiddlewareMixin  # pragma: nocover
-else:
-    MiddlewareMixin = object  # pragma: nocover
 
-
-class TeamPlayerMiddleware(MiddlewareMixin):
+class TeamPlayerMiddleware:
     """Special middleware for TeamPlayer
 
     This middleware requires the auth and session middlewares, so be certain to
     place it after.
     """
 
-    def process_request(self, request):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
         """Add a "player" attribute to the request object."""
         if hasattr(request, "user") and request.user.is_authenticated:
             user = request.user
@@ -43,4 +38,4 @@ class TeamPlayerMiddleware(MiddlewareMixin):
             request.session["station_id"] = main_station.pk
             request.station = main_station
 
-        return None
+        return self.get_response(request)

@@ -40,7 +40,7 @@ class SpinDoctor:
         self.station = teamplayer.models.Station.main_station()
 
     def next(self, similar_artists=None):
-        """Emulate one interation of the spin management command loop"""
+        """Emulate one iteration of the spin management command loop"""
         similar_artists = similar_artists or []
         self.current_song = self.previous_song
         players = teamplayer.models.Player.active_players()

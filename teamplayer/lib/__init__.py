@@ -7,9 +7,9 @@ import uuid
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils.timezone import utc
 
 CHUNKSIZE = 64 * 1024
+utc = datetime.timezone.utc
 
 
 def list_iter(list_, previous=None):

@@ -1,4 +1,6 @@
 *.pyc
+.envrc
+.pdm-python
 .ropeproject/
 /.coverage
 /.venv/
@@ -9,3 +11,4 @@
 /htmlcov/
 /project/
 /pyvenv.cfg
+__pypackages__

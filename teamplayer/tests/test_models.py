@@ -11,14 +11,7 @@ import django.test
 import django.urls
 from django.utils import timezone
 
-from teamplayer.models import (
-    Entry,
-    LibraryItem,
-    Mood,
-    Player,
-    PlayLog,
-    Station,
-)
+from teamplayer.models import Entry, LibraryItem, Mood, Player, PlayLog, Station
 from teamplayer.tests import utils
 
 SILENCE = utils.SILENCE
@@ -173,7 +166,7 @@ class QueueTestCase(TestCase):
             # When we add the file to our queue
             result = queue.add_song(song_file, self.station)
 
-            # Then we get an entry whos filename has the same extension
+            # Then we get an entry whose filename has the same extension
             self.assertTrue(isinstance(result, Entry))
             self.assertTrue(result.song.name.endswith(".mp3"))
 
@@ -307,7 +300,7 @@ class QueueAutoFill(TestCase):
         self.assertEqual(kwargs["entries_needed"], 10)
         self.assertEqual(kwargs["station"], station)
 
-        # and addes entries to the queue
+        # and adds entries to the queue
         self.assertEqual(player.queue.entry_set.count(), 10)
 
     def test_auto_fill_user_station_without_hashtag(self):

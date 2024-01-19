@@ -5,7 +5,7 @@ from django.db import migrations
 
 
 def create_initial_data(apps, schema_editor):
-    """Create the intial DJ Ango User, Queue & Main Station"""
+    """Create the initial DJ Ango User, Queue & Main Station"""
     User = apps.get_model("auth", "User")
     dj_ango = User.objects.create(
         **{
@@ -42,7 +42,6 @@ def create_initial_data(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("teamplayer", "0001_initial"),
     ]

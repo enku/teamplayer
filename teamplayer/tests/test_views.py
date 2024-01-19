@@ -3,16 +3,13 @@ import json
 import re
 from unittest.mock import patch
 
-from teamplayer.conf import settings
-from teamplayer.models import Entry
-from teamplayer.models import Player
-from teamplayer.models import PlayLog
-from teamplayer.models import Station
-from teamplayer.tests import utils
-from teamplayer import views
-
 import django.test
 import django.urls
+
+from teamplayer import views
+from teamplayer.conf import settings
+from teamplayer.models import Entry, Player, PlayLog, Station
+from teamplayer.tests import utils
 
 RequestFactory = django.test.RequestFactory
 SpinDoctor = utils.SpinDoctor
@@ -24,13 +21,29 @@ SILENCE = utils.SILENCE
 
 class HomePageView(TestCase):
 
-    """Tests for the home page view (exluding song list)"""
+    """Tests for the home page view (excluding song list)"""
 
     def setUp(self):
         # create a player
         self.player = Player.objects.create_player(username="test", password="test")
         self.client.login(username="test", password="test")
         self.url = reverse("home")
+
+        patcher = patch("teamplayer.lib.mpc.MPC")
+        self.addCleanup(patcher.stop)
+        mpc = patcher.start()
+        mpc.return_value.http_port = 8002
+        mpc.return_value.currently_playing.return_value = {
+            "dj": "DJ Skipp Traxx",
+            "artist": "Prince",
+            "title": "Purple Rain",
+            "total_time": 99,
+            "remaining_time": 12,
+            "station_id": 1,
+            "artist_image": "/artist/Prince/image",
+        }
+        self.mpc = mpc
+
         self.client.get(self.url)
 
     def test_home(self):
@@ -58,21 +71,10 @@ class HomePageView(TestCase):
             data={"dj_name": "Liquid X", "previous_dj_name": "", "user_id": player.pk},
         )
 
-    @patch("teamplayer.views.MPC.currently_playing")
-    def test_song_display(self, mock):
+    @patch("teamplayer.views.MPC")
+    def test_song_display(self, mpc):
         """Test that the currently playing area is working"""
-        # Again, this is an AJAX view, also we need to monkey-patch
-        # mpc.currently_playing() with a mock
-        mock.return_value = {
-            "dj": "DJ Skipp Traxx",
-            "artist": "Prince",
-            "title": "Purple Rain",
-            "total_time": 99,
-            "remaining_time": 12,
-            "station_id": 1,
-            "artist_image": "/artist/Prince/image",
-        }
-
+        mpc.return_value = self.mpc.return_value
         url = reverse("currently_playing")
         response = self.client.get(url)
         data = json.loads(response.content.decode("utf-8"))
@@ -304,6 +306,12 @@ class EditStationView(TestCase):
         self.player = Player.objects.create_player(username="test", password="test")
         self.client.login(username="test", password="test")
 
+        patcher = patch("teamplayer.lib.mpc.MPC")
+        self.addCleanup(patcher.stop)
+        mpc = patcher.start()
+        mpc.return_value.http_port = 8002
+        mpc.return_value.currently_playing.return_value = {}
+
     def test_invalid_input(self):
         # given the edit_station view url
         url = self.url
@@ -502,7 +510,7 @@ class AboutView(TestCase):
 class RegistrationTest(TestCase):
     def test_no_player(self):
         """Show that we don't get the flash player in the registration view."""
-        # when we access the registation page
+        # when we access the registration page
         response = self.client.get(reverse("registration"))
 
         # Then it doesn't show up.
@@ -510,7 +518,7 @@ class RegistrationTest(TestCase):
 
     def test_no_stations(self):
         """Show that we don't get the station links in the view."""
-        # when we access the registation page
+        # when we access the registration page
         response = self.client.get(reverse("register"))
 
         # Then it doesn't show up.

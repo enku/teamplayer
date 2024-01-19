@@ -1,3 +1,5 @@
+from unittest.mock import Mock, patch
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.client import RequestFactory
@@ -21,14 +23,21 @@ class TeamPlayerMiddlewareTestCase(TestCase):
         # And the request instance
         request = self.request
 
-        # When passed to the middlware we get a player attribute
-        middleware = TeamPlayerMiddleware()
-        result = middleware.process_request(request)
+        # And the get_response callable
+        get_response = Mock()
 
-        self.assertEqual(result, None)
+        # When passed to the middleware we get a player attribute
+        middleware = TeamPlayerMiddleware(get_response)
+        response = middleware(request)
+
+        self.assertEqual(response, get_response.return_value)
         self.assertEqual(request.player, self.player)
 
-    def test_user_with_no_player(self):
+    @patch("teamplayer.lib.mpc.MPC")
+    def test_user_with_no_player(self, mpc):
+        mpc.return_value.http_port = 8002
+        mpc.return_value.currently_playing.return_value = {}
+
         # given the User with no Player
         user = User.objects.create_user(username="test2", password="***")
 
@@ -48,16 +57,21 @@ class TeamPlayerMiddlewareTestCase(TestCase):
         # And the request instance
         request = self.request
 
-        # When passed to the middlware we get a station attribute
-        middleware = TeamPlayerMiddleware()
-        result = middleware.process_request(request)
+        # And the get_response callable
+        get_response = Mock()
 
-        self.assertEqual(result, None)
+        # When passed to the middleware we get a station attribute
+        middleware = TeamPlayerMiddleware(get_response)
+        response = middleware(request)
+
+        self.assertEqual(response, get_response.return_value)
 
         # it will be the main station because we haven't been anywhere else
         self.assertEqual(request.station, Station.main_station())
 
-    def test_player_on_non_main_station(self):
+    @patch("teamplayer.lib.mpc.MPC")
+    def test_player_on_non_main_station(self, mpc):
+        mpc.return_value.currently_playing.return_value = {}
         # given the second station
         station = Station.objects.create(creator=self.player, name="test station")
 
@@ -77,7 +91,7 @@ class TeamPlayerMiddlewareTestCase(TestCase):
 
     def test_station_in_session_does_not_exist(self):
         # given the middleware
-        middleware = TeamPlayerMiddleware()
+        middleware = TeamPlayerMiddleware(Mock())
 
         # given the non-existing station_id
         station_id = -1
@@ -87,7 +101,7 @@ class TeamPlayerMiddlewareTestCase(TestCase):
         # process_request is called
         request = self.request
         request.session["station_id"] = station_id
-        middleware.process_request(request)
+        middleware(request)
 
         # then the request gets put on the main station
         self.assertEqual(request.station, Station.main_station())

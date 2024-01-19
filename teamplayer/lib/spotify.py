@@ -61,7 +61,6 @@ class Auth:
 
 
 def search(query_type: str, query: str) -> dict:
-
     response = requests.get(
         "https://api.spotify.com/v1/search",
         {"q": query, "type": query_type},
