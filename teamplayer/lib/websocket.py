@@ -125,7 +125,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
 
 class IPCHandler(tornado.websocket.WebSocketHandler):
-
     """
     WebSocketHandler for ipc messages.
     """

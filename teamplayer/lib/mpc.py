@@ -1,6 +1,7 @@
 """
 Functions for interacting with mpc/mpd
 """
+
 import contextlib
 import os
 import shutil

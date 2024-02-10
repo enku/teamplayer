@@ -1,4 +1,5 @@
 """Unit tests for teamplayer views."""
+
 import json
 import re
 from unittest.mock import patch
@@ -20,7 +21,6 @@ SILENCE = utils.SILENCE
 
 
 class HomePageView(TestCase):
-
     """Tests for the home page view (excluding song list)"""
 
     def setUp(self):
@@ -117,7 +117,6 @@ class HomePageView(TestCase):
 
 
 class ShowQueueView(TestCase):
-
     """Tests the teamplayer.views.show_queue view"""
 
     def setUp(self):
@@ -259,7 +258,6 @@ class ClearQueueView(TestCase):
 
 
 class AddUserView(TestCase):
-
     """Test the add_user view"""
 
     def setUp(self):

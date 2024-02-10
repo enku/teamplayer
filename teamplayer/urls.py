@@ -1,4 +1,5 @@
 """TeamPlayer URL dispatcher"""
+
 from django.urls import include, re_path
 
 from . import views

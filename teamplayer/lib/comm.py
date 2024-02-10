@@ -1,4 +1,5 @@
 """Asynchronous threads and handlers TeamPlayer."""
+
 import threading
 
 import mpd

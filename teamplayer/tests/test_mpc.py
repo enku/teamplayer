@@ -1,4 +1,5 @@
 """Tests for the MPC client"""
+
 import os
 import time
 from io import BytesIO

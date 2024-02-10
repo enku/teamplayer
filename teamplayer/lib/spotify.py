@@ -1,4 +1,5 @@
 """Library for Spotify integration"""
+
 import base64
 import time
 

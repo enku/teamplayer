@@ -1,4 +1,5 @@
 """Tests for the lib.spotify module"""
+
 import json
 import time
 from unittest import mock

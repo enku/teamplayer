@@ -1,4 +1,5 @@
 """Unit tests for the comm module"""
+
 from unittest import skip
 from unittest.mock import patch
 

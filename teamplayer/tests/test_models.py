@@ -1,4 +1,5 @@
 """Unit tests for the TeamPlayer Django app"""
+
 import json
 import os
 from io import BytesIO
@@ -125,7 +126,6 @@ class QueueViewsTestCase(TestCase):
 
 
 class QueueTestCase(TestCase):
-
     """
     Test various operations on the Queue model
     """
@@ -414,7 +414,6 @@ class StationManagerTest(TestCase):
 
 
 class StationTest(TestCase):
-
     """Demonstrate the Station model"""
 
     def setUp(self):
@@ -565,7 +564,6 @@ class StationTest(TestCase):
 
 
 class QueueMasterTestCase(TestCase):
-
     """Test case to test that queues spinning does as it should"""
 
     def setUp(self):

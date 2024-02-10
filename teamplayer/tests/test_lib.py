@@ -1,4 +1,5 @@
 """Unit tests for TeamPlayer lib functions"""
+
 import json
 import random
 from unittest import mock
@@ -21,7 +22,6 @@ reverse = django.urls.reverse
 
 
 class Lib(TestCase):
-
     """Test the main lib"""
 
     def test_random_filename(self):
@@ -33,7 +33,6 @@ class Lib(TestCase):
 
 
 class LibSongs(TestCase):
-
     """Test the songs lib"""
 
     @patch("teamplayer.lib.websocket.IPCHandler.send_message")

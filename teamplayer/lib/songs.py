@@ -1,6 +1,7 @@
 """
 Library to deal with song files and song metadata
 """
+
 import datetime
 import random
 from functools import lru_cache
@@ -31,7 +32,6 @@ LASTFM_APIKEY = settings.LASTFM_APIKEY
 
 
 class SongMetadataError(Exception):
-
     """When song metadata could not be parsed"""
 
     pass

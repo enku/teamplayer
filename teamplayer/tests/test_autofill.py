@@ -1,4 +1,5 @@
 """Tests for the autofill strategies"""
+
 import datetime
 import pickle
 from unittest.mock import MagicMock, Mock, patch

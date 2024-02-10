@@ -1,6 +1,7 @@
 """
 ORM models for the TeamPlayer app
 """
+
 import datetime
 import logging
 import os
@@ -21,7 +22,6 @@ DJ_ANGO = None
 
 
 class Queue(models.Model):
-
     """A player's queue containing song entries"""
 
     objects = models.Manager()
@@ -170,7 +170,6 @@ class Queue(models.Model):
 
 
 class Entry(models.Model):
-
     """A song entry pointing to a file on the filesystem"""
 
     objects = models.Manager()
@@ -217,7 +216,6 @@ class Entry(models.Model):
 
 
 class Mood(models.Model):
-
     """Artists that TeamPlayer "likes" (have been played)"""
 
     objects = models.Manager()
@@ -355,7 +353,6 @@ class PlayerManager(models.Manager):
 
 
 class Player(models.Model):
-
     """Player: misc. data associated with a User"""
 
     objects = PlayerManager()

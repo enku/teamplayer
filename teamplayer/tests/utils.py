@@ -1,4 +1,5 @@
 """Utilities for TeamPlayer unit tests"""
+
 import os
 import threading
 from io import StringIO
@@ -22,7 +23,6 @@ def getdata(filename, flags="r"):
 
 
 class SpinDoctor:
-
     """Emulate the spin management command
 
     This does not include:

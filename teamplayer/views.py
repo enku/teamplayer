@@ -1,6 +1,7 @@
 """
 Views for the teamplayer django app
 """
+
 import json
 from urllib.parse import quote_plus
 
@@ -32,7 +33,6 @@ from teamplayer.serializers import EntrySerializer, PlayerSerializer, StationSer
 
 
 class HttpResponseNoContent(HttpResponse):
-
     """HTTP 204 response"""
 
     status_code = 204

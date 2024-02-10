@@ -1,6 +1,7 @@
 """
 App-specific settings defaults for the TeamPlayer app
 """
+
 import json
 import os
 
