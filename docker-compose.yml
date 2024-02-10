@@ -25,7 +25,7 @@ services:
       - static:/opt/teamplayer/static
 
   database:
-    image: postgres:9.6
+    image: postgres:16
     environment:
       - POSTGRES_DB=teamplayer
       - POSTGRES_PASSWORD=teamplayer
