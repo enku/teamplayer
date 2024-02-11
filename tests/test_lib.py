@@ -9,7 +9,6 @@ import django.test
 import django.urls
 
 import teamplayer.models
-from teamplayer import version_string
 from teamplayer.conf import settings
 
 from . import utils
@@ -181,44 +180,6 @@ class FirstOrNoneTest(TestCase):
         self.assertEqual(
             teamplayer.lib.first_or_none(self.dict_with_nonlist, "here"), "there"
         )
-
-
-class VersionStringTest(TestCase):
-    """Tests for version_string()"""
-
-    # While not a part of lib., per-se, this is probably the best place to put
-    # it instead of creating a new module just for one function
-    def test_show_revision(self):
-        # Given the version tuple
-        version = (2, 0, 0, "final")
-
-        # When we call version_string() on it
-        result = version_string(version, show_revision=True)
-
-        # Then we get the expected string
-        self.assertRegex(result, r"^2\.0\.0 \([0-9a-f]+")
-
-    def test_final(self):
-        # Given the version tuple with "final" in it
-        version = (2, 0, 0, "final")
-
-        # When we call version_string() on it
-        result = version_string(version, show_revision=False)
-
-        # Then we get the expected string
-        expected = "2.0.0"
-        self.assertEqual(result, expected)
-
-    def test_not_final(self):
-        # Given the version tuple without "final" in it
-        version = (2, 0, 0, "beta1")
-
-        # When we call version_string() on it
-        result = version_string(version, show_revision=False)
-
-        # Then we get the expected string
-        expected = "2.0.0-beta1"
-        self.assertEqual(result, expected)
 
 
 class AttemptFileRenameTest(TestCase):

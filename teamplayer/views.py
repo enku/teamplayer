@@ -3,6 +3,7 @@ Views for the teamplayer django app
 """
 
 import json
+from importlib.metadata import version
 from urllib.parse import quote_plus
 
 import django
@@ -22,7 +23,6 @@ from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from teamplayer import version_string
 from teamplayer.conf import settings
 from teamplayer.forms import ChangeDJNameForm, CreateStationForm, EditStationForm
 from teamplayer.lib import mktemp_file_from_request, songs
@@ -444,7 +444,7 @@ def about(request):
         request,
         "teamplayer/about.html",
         {
-            "version": version_string(),
+            "version": version("teamplayer"),
             "repo_url": settings.REPO_URL,
             "django_version": django.get_version(),
             "user_agent": request.META["HTTP_USER_AGENT"],
