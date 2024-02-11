@@ -15,7 +15,6 @@ dependencies = [
     "django-haystack>=3.2.1",
     "djangorestframework>=3.14.0",
     "mutagen>=1.45.1",
-    "setuptools",
 ]
 requires-python = ">=3.10"
 license = {text = "MIT"}

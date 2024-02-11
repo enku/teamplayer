@@ -3,11 +3,11 @@ ORM models for the TeamPlayer app
 """
 
 import datetime
+import importlib.metadata
 import logging
 import os
 import random
 
-import pkg_resources
 from django.conf import settings as django_settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -142,11 +142,11 @@ class Queue(models.Model):
             strategy = auto_fill_from_tags
         else:
             strategy_name = settings.AUTOFILL_STRATEGY
-            iter_ = pkg_resources.iter_entry_points(
-                "teamplayer.autofill_strategy",
-                strategy_name,
+            [entry_point] = importlib.metadata.entry_points(
+                group="teamplayer.autofill_strategy",
+                name=strategy_name,
             )
-            strategy = next(iter_).load()
+            strategy = entry_point.load()
 
         song_files = strategy(
             entries_needed=entries_needed,
