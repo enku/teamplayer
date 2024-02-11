@@ -4,10 +4,14 @@ import datetime
 import os
 import tempfile
 import uuid
+from typing import BinaryIO, cast
 
+import django.http
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
+
+from teamplayer import models
 
 CHUNKSIZE = 64 * 1024
 utc = datetime.timezone.utc
@@ -40,7 +44,7 @@ def get_random_filename(ext: str | None = None) -> str:
     return uuid_str
 
 
-def mktemp_file_from_request(request):
+def mktemp_file_from_request(request: django.http.HttpRequest) -> BinaryIO:
     """Helper function to return a temporary file from a request (body)"""
     temp_file = tempfile.TemporaryFile()
 
@@ -55,7 +59,7 @@ def mktemp_file_from_request(request):
     return temp_file
 
 
-def get_player_from_session_id(session_id):
+def get_player_from_session_id(session_id: int) -> "models.Player":
     """Given the session_id, return the user associated with it.
 
     Raise ObjectDoesNotExist if session_id does not associate with a user.
@@ -66,14 +70,14 @@ def get_player_from_session_id(session_id):
         raise ObjectDoesNotExist
 
     try:
-        user_id = session.get_decoded().get("_auth_user_id")
+        user_id = cast(int, session.get_decoded().get("_auth_user_id"))
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
         raise ObjectDoesNotExist
     return user.player
 
 
-def get_station_id_from_session_id(session_id):
+def get_station_id_from_session_id(session_id: int) -> int | None:
     """Like above, but return the station_id or None."""
     try:
         session = Session.objects.get(session_key=session_id)
@@ -83,7 +87,7 @@ def get_station_id_from_session_id(session_id):
     return session.get_decoded().get("station_id", None)
 
 
-def now():
+def now() -> datetime.datetime:
     """Like datetime.datetime.utcnow(), but with tzinfo"""
     return datetime.datetime.utcnow().replace(tzinfo=utc)
 
@@ -107,7 +111,7 @@ def first_or_none(d, key):
     return value
 
 
-def attempt_file_rename(fullpath):
+def attempt_file_rename(fullpath: str) -> str | None:
     """Attempt to rename a non-UTF-8 filename
 
     This only attempts to rename the basename.  If the directory name is not
@@ -131,12 +135,12 @@ def attempt_file_rename(fullpath):
         return None
 
     original_filename = filename
-    filename = filename.encode(errors="surrogateescape")
+    filename_bytes = filename.encode(errors="surrogateescape")
 
     re_decoded = False
     for encoding in ["latin-1", "windows-1252"]:
         try:
-            filename = filename.decode(encoding)
+            filename = filename_bytes.decode(encoding)
             re_decoded = True
             break
         except UnicodeDecodeError:

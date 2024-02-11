@@ -16,22 +16,24 @@ argument is the ``Station`` for which the songs are being considered.
 import datetime
 import random
 
-from django.db.models import Count
+from django.db.models import Count, QuerySet
 from django.utils import timezone
 
 from teamplayer import logger
 from teamplayer.conf import settings
-from teamplayer.models import Mood
+from teamplayer.models import LibraryItem, Mood, Station
 
 from .songs import artists_from_tags, split_tag_into_words
 
 
-def auto_fill_random(*, queryset, entries_needed, station):
+def auto_fill_random(
+    *, queryset: QuerySet, entries_needed: int, station: Station
+) -> list[LibraryItem]:
     """Return at most *entries_needed* LibraryItems from the *queryset*.
 
     The songs are randomly scattered among the *queryset*
     """
-    song_files = set()
+    song_files: set[LibraryItem] = set()
     song_count = queryset.count()
 
     if not song_count:
@@ -46,7 +48,9 @@ def auto_fill_random(*, queryset, entries_needed, station):
     return list(song_files)
 
 
-def auto_fill_contiguous(*, queryset, entries_needed, station):
+def auto_fill_contiguous(
+    *, queryset: QuerySet, entries_needed: int, station: Station
+) -> list[LibraryItem]:
     """Return at most *entries_needed* LibraryItems from the *queryset*.
 
     The songs are selected randomly but are contiguous among the *queryset*
@@ -63,7 +67,13 @@ def auto_fill_contiguous(*, queryset, entries_needed, station):
     return list(song_files)
 
 
-def auto_fill_mood(*, queryset, entries_needed, station, seconds=None):
+def auto_fill_mood(
+    *,
+    queryset: QuerySet,
+    entries_needed: int,
+    station: Station,
+    seconds: int | None = None,
+) -> list[LibraryItem]:
     """Return at most *entries_needed* LibraryItems from the *queryset*.
 
     The songs are selected depending on the current "mood".
@@ -71,13 +81,15 @@ def auto_fill_mood(*, queryset, entries_needed, station, seconds=None):
     num_top_artists = settings.AUTOFILL_MOOD_TOP_ARTISTS
     seconds = seconds or settings.AUTOFILL_MOOD_HISTORY
     history = timezone.now() - datetime.timedelta(seconds=seconds)
-    top_artists = Mood.objects.filter(timestamp__gte=history, station=station)
-    top_artists = top_artists.exclude(artist="")
-    top_artists = top_artists.values("artist")
-    top_artists = top_artists.annotate(Count("id"))
-    top_artists = top_artists.order_by("-id__count")
-    top_artists = top_artists[:num_top_artists]
-    top_artists = [i["artist"] for i in top_artists]
+    query = (
+        Mood.objects.filter(timestamp__gte=history, station=station)
+        .exclude(artist="")
+        .values("artist")
+        .annotate(Count("id"))
+        .order_by("-id__count")[:num_top_artists]
+    )
+
+    top_artists = [i["artist"] for i in query]
     random.shuffle(top_artists)
 
     liked_songs = []
@@ -118,7 +130,9 @@ def auto_fill_mood(*, queryset, entries_needed, station, seconds=None):
     return songs
 
 
-def auto_fill_from_tags(*, queryset, entries_needed, station):
+def auto_fill_from_tags(
+    *, queryset: QuerySet, entries_needed: int, station: Station
+) -> list[LibraryItem]:
     """Return at most `entries_needed` LibraryItems with `station`'s tags
 
     Gets the tags from the `station.name`, gets artists with those tags and
