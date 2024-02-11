@@ -33,6 +33,10 @@ coverage-report: .coverage
 	coverage html
 	python -m webbrowser -t file://$(CURDIR)/htmlcov/index.html
 
+mypy:
+	pdm run mypy
+.PHONY: mypy
+
 .PHONY: docker
 docker:
 	docker-compose -f docker-compose.yml -f docker-compose-dev.yml up
