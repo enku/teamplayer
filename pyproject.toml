@@ -54,6 +54,7 @@ dev = [
     "typos>=1.17.2",
     "mypy>=1.8.0",
     "django-stubs>=4.2.7",
+    "types-requests>=2.31.0.6",
 ]
 
 [tool.isort]
