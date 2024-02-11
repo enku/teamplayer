@@ -10,7 +10,8 @@ import django.urls
 from teamplayer import views
 from teamplayer.conf import settings
 from teamplayer.models import Entry, Player, PlayLog, Station
-from teamplayer.tests import utils
+
+from . import utils
 
 RequestFactory = django.test.RequestFactory
 SpinDoctor = utils.SpinDoctor

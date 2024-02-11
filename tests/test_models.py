@@ -13,7 +13,8 @@ import django.urls
 from django.utils import timezone
 
 from teamplayer.models import Entry, LibraryItem, Mood, Player, PlayLog, Station
-from teamplayer.tests import utils
+
+from . import utils
 
 SILENCE = utils.SILENCE
 SpinDoctor = utils.SpinDoctor

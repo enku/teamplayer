@@ -8,7 +8,8 @@ from django.urls import reverse
 
 from teamplayer.lib import songs
 from teamplayer.models import Entry, Mood, Player, Station
-from teamplayer.tests import utils
+
+from . import utils
 
 
 class AutoFindSong(TestCase):

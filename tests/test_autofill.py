@@ -15,7 +15,8 @@ from teamplayer.lib.autofill import (
     auto_fill_random,
 )
 from teamplayer.models import LibraryItem, Mood, Player, Station
-from teamplayer.tests import utils
+
+from . import utils
 
 
 class AutoFillTest:

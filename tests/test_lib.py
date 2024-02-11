@@ -11,7 +11,8 @@ import django.urls
 import teamplayer.models
 from teamplayer import version_string
 from teamplayer.conf import settings
-from teamplayer.tests import utils
+
+from . import utils
 
 SILENCE = utils.SILENCE
 Mood = teamplayer.models.Mood

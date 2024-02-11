@@ -7,7 +7,8 @@ from unittest import mock
 from django.test import TestCase
 
 from teamplayer.lib import spotify
-from teamplayer.tests import utils
+
+from . import utils
 
 
 class SpotifyTestCase(TestCase):

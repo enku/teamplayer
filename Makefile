@@ -25,7 +25,7 @@ test .coverage:
 	cp tools/settings.py project/project/settings.py
 	cp tools/urls.py project/project/urls.py
 	coverage erase
-	coverage run --source=teamplayer project/manage.py test -v2 --failfast teamplayer
+	coverage run --source=teamplayer project/manage.py test -v2 --failfast tests
 	coverage report
 
 .PHONY: coverage-report
