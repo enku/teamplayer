@@ -1,6 +1,6 @@
 [project]
 name = "TeamPlayer"
-version = "2.6.1"
+dynamic = ["version"]
 description = "A Democratic Internet Radio Station"
 authors = [
     {name = "Albert Hopkins", email = "marduk@letterboxes.org"},
@@ -33,7 +33,10 @@ build-backend = "pdm.pep517.api"
 
 
 [tool]
+
 [tool.pdm]
+version = { source = "scm" }
+
 [tool.pdm.dev-dependencies]
 dev = [
     "black>=22.8.0",
