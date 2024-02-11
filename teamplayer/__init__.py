@@ -6,11 +6,7 @@ import logging
 import os
 import subprocess
 
-try:
-    from django.apps import AppConfig
-except ImportError:
-    AppConfig = object
-
+from django.apps import AppConfig
 
 VERSION = (2, 6, 1, "final")
 REVISION = None
