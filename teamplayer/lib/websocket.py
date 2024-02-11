@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import os
 import shutil
@@ -25,7 +27,7 @@ from teamplayer.serializers import StationSerializer
 
 
 class SocketHandler(tornado.websocket.WebSocketHandler):
-    clients = []
+    clients: list[SocketHandler] = []
 
     def open(self):
         logger.debug("WebSocket connection opened")

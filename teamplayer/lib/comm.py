@@ -18,7 +18,7 @@ class StationThread(threading.Thread):
     and the creation/removal process.
     """
 
-    __station_threads = {}
+    __station_threads: dict[int, threading.Thread] = {}
     __lock = threading.Lock()
 
     secs_to_inject_new_song = settings.CROSSFADE + 1.5

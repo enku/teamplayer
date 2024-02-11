@@ -17,7 +17,9 @@ class EntrySerializer(serializers.ModelSerializer):
 
 
 class StationSerializer(serializers.ModelSerializer):
-    creator = serializers.SlugRelatedField(read_only=True, slug_field="username")
+    creator: serializers.SlugRelatedField = serializers.SlugRelatedField(
+        read_only=True, slug_field="username"
+    )
 
     songs = serializers.SerializerMethodField("get_song_count")
     current_song = serializers.SerializerMethodField()

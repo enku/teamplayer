@@ -29,7 +29,7 @@ def list_iter(list_, previous=None):
         yield item
 
 
-def get_random_filename(ext=None):
+def get_random_filename(ext: str | None = None) -> str:
     """
     As the name implies, returns a random filename. if ext is supplied,
     the filename will have an .ext extension

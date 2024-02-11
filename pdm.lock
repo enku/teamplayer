@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4.1"
-content_hash = "sha256:e1490e5dd6c369de0bcb43be1de40021fafcc28f36b8aae50d0b434579343c6a"
+content_hash = "sha256:7c8fb3736b28a39db5735f17892cb7723dad51340df00f4e5cb38ca36db31c70"
 
 [[package]]
 name = "asgiref"
@@ -211,6 +211,23 @@ dependencies = [
 files = [
     {file = "djangorestframework-3.14.0-py3-none-any.whl", hash = "sha256:eb63f58c9f218e1a7d064d17a70751f528ed4e1d35547fdade9aaf4cd103fd08"},
     {file = "djangorestframework-3.14.0.tar.gz", hash = "sha256:579a333e6256b09489cbe0a067e66abe55c6595d8926be6b99423786334350c8"},
+]
+
+[[package]]
+name = "djangorestframework-stubs"
+version = "3.14.5"
+requires_python = ">=3.8"
+summary = "PEP-484 stubs for django-rest-framework"
+dependencies = [
+    "django-stubs>=4.2.7",
+    "requests>=2.0.0",
+    "types-PyYAML>=5.4.3",
+    "types-requests>=0.1.12",
+    "typing-extensions>=3.10.0",
+]
+files = [
+    {file = "djangorestframework-stubs-3.14.5.tar.gz", hash = "sha256:5dd6f638aa5291fb7863e6166128a6ed20bf4986e2fc5cf334e6afc841797a09"},
+    {file = "djangorestframework_stubs-3.14.5-py3-none-any.whl", hash = "sha256:43d788fd50cda49b922cd411e59c5b8cdc3f3de49c02febae12ce42139f0269b"},
 ]
 
 [[package]]

@@ -2,6 +2,7 @@
 
 import base64
 import time
+from typing import TypedDict
 
 import requests
 
@@ -12,8 +13,15 @@ class TokenRefreshError(Exception):
     pass
 
 
+class Token(TypedDict):
+    _granted: float
+    access_token: str | None
+    token_type: str
+    expires_in: float
+
+
 class Auth:
-    token = {
+    token: Token = {
         "_granted": time.mktime(time.gmtime()),
         "access_token": None,
         "token_type": "Bearer",
