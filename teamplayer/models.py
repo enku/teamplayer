@@ -2,11 +2,14 @@
 ORM models for the TeamPlayer app
 """
 
+from __future__ import annotations
+
 import datetime
 import importlib.metadata
 import logging
 import os
 import random
+from typing import Any
 
 from django.conf import settings as django_settings
 from django.contrib.auth.models import User
@@ -27,11 +30,12 @@ class Queue(models.Model):
     objects = models.Manager()
     active = models.BooleanField(default=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.player.username}'s Queue"
 
-    def add_song(self, song_file, station):
+    def add_song(self, song_file: File[bytes], station: Station) -> Entry:
         """Add <<song_file>> to queue"""
+        assert song_file.name
 
         # get the extension of the original filename
         dot = song_file.name.rfind(".")
@@ -59,7 +63,7 @@ class Queue(models.Model):
         entry.save()
         return entry
 
-    def randomize(self, station):
+    def randomize(self, station: Station) -> None:
         """Randomize entries in the queue"""
         entries = self.entry_set.filter(station=station)
         entry_count = entries.count()
@@ -76,7 +80,7 @@ class Queue(models.Model):
                 entry.save()
 
     @transaction.atomic
-    def reorder(self, id_list):
+    def reorder(self, id_list: list[int]):
         """Reorder entries in queue according to entry.ids in id_list"""
         for order, i in enumerate(reversed(id_list)):
             try:
@@ -92,22 +96,28 @@ class Queue(models.Model):
         return self.entry_set.values("id", "artist", "title")
 
     @transaction.atomic
-    def order_by_rank(self, station):
+    def order_by_rank(self, station: Station):
         """Set the each Entry's .place field by it's artist rank"""
         for entry in self.entry_set.filter(station=station):
             entry.place = entry.artist_mood(station)
             entry.save()
 
-    def toggle_status(self):
+    def toggle_status(self) -> bool:
         self.active = not self.active
         self.save()
         return self.active
 
     @property
-    def user(self):
+    def user(self) -> User:
         return self.player.user
 
-    def auto_fill(self, max_entries, station=None, qs_filter=None, minimum=0):
+    def auto_fill(
+        self,
+        max_entries: int,
+        station: Station | None = None,
+        qs_filter: dict[str, Any] | None = None,
+        minimum: int = 0,
+    ):
         """
         Fill the queue up to max_entries from the Library.
 
@@ -132,7 +142,7 @@ class Queue(models.Model):
             return
         entries_needed = max_entries - entries_count
 
-        song_files = LibraryItem.objects.filter(**qs_filter)
+        song_files_query = LibraryItem.objects.filter(**qs_filter)
 
         if station != Station.main_station():
             if "#" not in station.name:
@@ -150,7 +160,7 @@ class Queue(models.Model):
 
         song_files = strategy(
             entries_needed=entries_needed,
-            queryset=song_files,
+            queryset=song_files_query,
             station=station,
         )
 
@@ -186,7 +196,7 @@ class Entry(models.Model):
     album = models.CharField(max_length=254, null=True)
     filetype = models.CharField(max_length=4, blank=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"“[self.title]” by {self.artist}"
 
     def delete(self, *args, **kwargs):
@@ -198,7 +208,7 @@ class Entry(models.Model):
                 pass
         super(Entry, self).delete(*args, **kwargs)
 
-    def artist_mood(self, station):
+    def artist_mood(self, station: Station) -> int:
         """
         Return the artist's Mood.count for this artist
         """
@@ -223,14 +233,14 @@ class Mood(models.Model):
     artist = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.artist}: {self.timestamp}"
 
     class Meta:
         ordering = ("-timestamp", "artist")
 
     @classmethod
-    def log_mood(cls, artist, station):
+    def log_mood(cls, artist: str, station: Station):
         """Log the artist and similar artists in the Mood database"""
         cls.objects.create(artist=artist, station=station)
 
@@ -243,12 +253,12 @@ class Mood(models.Model):
 
 
 class StationManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet:
         """Override default queryset to only return enabled stations"""
         return super(StationManager, self).get_queryset().filter(enabled=True)
 
     @property
-    def disabled(self):
+    def disabled(self) -> models.QuerySet:
         """Return queryset for all disabled stations"""
         return super(StationManager, self).get_queryset().filter(enabled=False)
 

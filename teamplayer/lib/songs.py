@@ -5,6 +5,7 @@ Library to deal with song files and song metadata
 import datetime
 import random
 from functools import lru_cache
+from typing import Iterable
 
 import pylast
 from django.conf import settings as django_settings
@@ -37,7 +38,7 @@ class SongMetadataError(Exception):
     pass
 
 
-def get_song_metadata(filename):
+def get_song_metadata(filename: str):
     """Return a dict of song metadata for filename
 
     Given the filename, return a dict of metadata consisting of:
@@ -69,7 +70,7 @@ def get_song_metadata(filename):
         raise SongMetadataError(str(error))
 
 
-def time_to_secs(time_str):
+def time_to_secs(time_str: str) -> int:
     """
     Where time_str is a string of the format mm:ss or hh:mm:ss, return
     int number of seconds
@@ -109,7 +110,7 @@ def get_image_url_for(artist: str) -> str:
 
 
 @lru_cache(maxsize=512)
-def get_similar_artists(artist):
+def get_similar_artists(artist: str) -> list[str]:
     """
     Generator for finding similar artists to *artist*.  Uses the last.fm
     api to fetch the list
@@ -117,7 +118,7 @@ def get_similar_artists(artist):
     network = pylast.LastFMNetwork(api_key=LASTFM_APIKEY)
     lfm_artist = network.get_artist(artist)
     lfm_similar = lfm_artist.get_similar()
-    similar = []
+    similar: list[str] = []
 
     for item in lfm_similar:
         similar.append(item.item.name)
@@ -126,7 +127,7 @@ def get_similar_artists(artist):
 
 
 @lru_cache(maxsize=256)
-def top_artists_from_tag(tag, limit=100):
+def top_artists_from_tag(tag: str, limit=100) -> list[str]:
     """Return a list of artists from the given "tag"
 
     Args:
@@ -149,7 +150,7 @@ def top_artists_from_tag(tag, limit=100):
     return [x.item.name for x in top_artists]
 
 
-def artists_from_tags(tags):
+def artists_from_tags(tags: Iterable[str]) -> list[str]:
     tag_sets = []
 
     for tag in tags:
@@ -163,7 +164,7 @@ def artists_from_tags(tags):
     return list(artists)
 
 
-def split_tag_into_words(tag):
+def split_tag_into_words(tag: str) -> str:
     """Return `tag` split into words.
 
     The best way to to describe this is to show examples:
@@ -202,7 +203,9 @@ def split_tag_into_words(tag):
     return " ".join(words).lower().strip()
 
 
-def best_song_from_player(player, station, previous_artist=None):
+def best_song_from_player(
+    player: models.Player, station: models.Station, previous_artist: str | None = None
+) -> models.Entry | None:
     """
     Given the player and station, get the best song from the player's queue,
     taking into account the player's auto_mode and previous_artist.
@@ -226,7 +229,12 @@ def best_song_from_player(player, station, previous_artist=None):
     return None
 
 
-def find_a_song(players, station, previous_player=None, previous_artist=None):
+def find_a_song(
+    players: Iterable[models.Station],
+    station: models.Station,
+    previous_player: models.Station | None = None,
+    previous_artist: str | None = None,
+) -> models.Entry | None:
     """
     Rotate through the players list until you find a song.  If no one has a
     song in their station/queue after one loop then return None
@@ -257,7 +265,9 @@ def find_a_song(players, station, previous_player=None, previous_artist=None):
     return None
 
 
-def auto_find_song(previous_artist, queue, station):
+def auto_find_song(
+    previous_artist: str | None, queue: models.Queue, station: models.Station
+) -> models.Entry | None:
     """
     Return first song from an artist that is similar to the current mood,
     but not repeating *previous_artist*.  If no similar artist/song can
@@ -294,7 +304,7 @@ def auto_find_song(previous_artist, queue, station):
     return entries[0]
 
 
-def scrobble_song(song, now_playing=False):
+def scrobble_song(song: dict, now_playing: bool = False) -> bool:
     """
     scrobble this song.
 
