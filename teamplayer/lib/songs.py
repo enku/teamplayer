@@ -35,8 +35,6 @@ LASTFM_APIKEY = settings.LASTFM_APIKEY
 class SongMetadataError(Exception):
     """When song metadata could not be parsed"""
 
-    pass
-
 
 def get_song_metadata(filename: str):
     """Return a dict of song metadata for filename
