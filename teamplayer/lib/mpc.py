@@ -8,7 +8,7 @@ import shutil
 import subprocess
 from threading import Event, Thread
 from time import sleep, time
-from typing import Any, Iterator, Literal, Self, Sequence, TypeAlias, TypedDict, cast
+from typing import Any, Iterator, Literal, Sequence, TypeAlias, TypedDict, cast
 
 import mpd
 from django.conf import settings as django_settings
@@ -94,7 +94,7 @@ class MPC(object):
             except FileNotFoundError:  # NOQA
                 pass
 
-    def create_config(self) -> Self:
+    def create_config(self) -> None:
         """Create the mpd config file and write the config to it"""
 
         with open(self.conf_file, "w") as mpd_file:
@@ -127,7 +127,6 @@ class MPC(object):
         # make sure the config queue dir exists
         if not os.path.isdir(settings.QUEUE_DIR):
             os.makedirs(settings.QUEUE_DIR)
-        return self
 
     def currently_playing(
         self, stickers: Sequence[Stickers] | None = None
