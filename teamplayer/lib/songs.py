@@ -97,7 +97,7 @@ def get_image_url_for(artist: str) -> str:
     # data = {['artists']['items'][]['images'][]['url']}
     try:
         data = spotify.search("artist", artist)
-    except:
+    except Exception:
         logger.exception("Error searching artist in Spotify: %s", artist)
     else:
         items = data["artists"]["items"]
