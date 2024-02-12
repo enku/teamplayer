@@ -17,7 +17,7 @@ dependencies = [
     "mutagen>=1.45.1",
     "setuptools",  # haystack needs this though it's now in their deps
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.12"
 license = {text = "MIT"}
 readme = "README.rst"
 [project.entry-points]
