@@ -102,6 +102,7 @@ class MPCTest(TestCase):
             "remaining_time": 200,
             "station_id": self.station.pk,
             "dj": "",
+            "player_id": None,
         }
         self.assertEqual(result, expected)
 
@@ -136,6 +137,7 @@ class MPCTest(TestCase):
             "remaining_time": 200,
             "station_id": self.station.pk,
             "dj": "",
+            "player_id": None,
         }
         self.assertEqual(result, expected)
 
@@ -170,6 +172,7 @@ class MPCTest(TestCase):
             "remaining_time": 200,
             "station_id": self.station.pk,
             "dj": "",
+            "player_id": None,
         }
         self.assertEqual(result, expected)
 
@@ -202,6 +205,7 @@ class MPCTest(TestCase):
             "remaining_time": 0,
             "station_id": self.station.pk,
             "artist_image": CLEAR_IMAGE_URL,
+            "player_id": None,
         }
         self.assertEqual(result, expected)
 
