@@ -8,6 +8,7 @@ import shutil
 import subprocess
 from threading import Event, Thread
 from time import sleep, time
+from typing import Any, Iterator, Literal, Self, Sequence, TypeAlias, TypedDict, cast
 
 import mpd
 from django.conf import settings as django_settings
@@ -16,19 +17,33 @@ from django.urls import reverse
 from teamplayer import logger
 from teamplayer.conf import settings
 from teamplayer.lib import songs
-from teamplayer.models import Station
+from teamplayer.models import Entry, Station
 
 MPD_UPDATE_MAX = 20  # seconds
 MPD_UPDATE_WAIT = 0.5  # seconds
+
+Stickers: TypeAlias = Literal["dj"] | Literal["player_id"]
+
+
+class CurrentlyPlaying(TypedDict):
+    artist: str | None
+    title: str | None
+    album: str | None
+    dj: str
+    total_time: int
+    remaining_time: int
+    station_id: int
+    artist_image: str
+    player_id: int | None
 
 
 class MPC(object):
     """Interface to a mpc client."""
 
-    def __init__(self, station):
+    def __init__(self, station: Station) -> None:
         join = os.path.join
         self.mpd_dir = join(settings.MPD_HOME, str(station.pk))
-        self.mpd = None
+        self.mpd: subprocess.Popen[bytes] | None = None
         self.station = station
         self.station_id = station.id
         self.address = settings.MPD_ADDRESS
@@ -46,7 +61,7 @@ class MPC(object):
         if not os.path.exists(self.queue_dir):
             os.makedirs(self.queue_dir)
 
-    def start(self):
+    def start(self) -> None:
         """
         Start the mpd daemon.  Insert a file and play
         """
@@ -65,7 +80,7 @@ class MPC(object):
         self.call("consume", 1)
         self.call("play")
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop the mpd daemon.
         """
@@ -79,7 +94,7 @@ class MPC(object):
             except FileNotFoundError:  # NOQA
                 pass
 
-    def create_config(self):
+    def create_config(self) -> Self:
         """Create the mpd config file and write the config to it"""
 
         with open(self.conf_file, "w") as mpd_file:
@@ -114,7 +129,9 @@ class MPC(object):
             os.makedirs(settings.QUEUE_DIR)
         return self
 
-    def currently_playing(self, stickers=None):
+    def currently_playing(
+        self, stickers: Sequence[Stickers] | None = None
+    ) -> CurrentlyPlaying:
         """Return a dict representing the currently playing song
 
         The structure of the dict is as follows::
@@ -137,7 +154,7 @@ class MPC(object):
         If `stickers` is given, also provide the values for the keys listed in
         `stickers`.
         """
-        not_playing = {
+        not_playing: CurrentlyPlaying = {
             "artist": None,
             "title": None,
             "album": None,
@@ -146,6 +163,7 @@ class MPC(object):
             "remaining_time": 0,
             "station_id": self.station_id,
             "artist_image": songs.CLEAR_IMAGE_URL,
+            "player_id": None,
         }
         current_song = self.call("currentsong")
 
@@ -173,7 +191,7 @@ class MPC(object):
         else:
             artist_image = songs.CLEAR_IMAGE_URL
 
-        data = {
+        data: CurrentlyPlaying = {
             "artist": artist,
             "title": title,
             "album": album,
@@ -181,6 +199,8 @@ class MPC(object):
             "remaining_time": total_time - elapsed_time,
             "station_id": self.station_id,
             "artist_image": artist_image,
+            "dj": "",
+            "player_id": None,
         }
 
         song_stickers = self.call("sticker_list", "song", filename)
@@ -189,7 +209,7 @@ class MPC(object):
 
         return data
 
-    def add_entry_to_playlist(self, entry):
+    def add_entry_to_playlist(self, entry: Entry) -> str | None:
         """Add `entry` to the mpd playlist"""
         assert entry.station == self.station
 
@@ -221,7 +241,7 @@ class MPC(object):
         self.call("play")
         return filename
 
-    def copy_entry_to_queue(self, entry):
+    def copy_entry_to_queue(self, entry: Entry) -> str:
         """
         Given Entry entry, copy it to the mpc queue directory as efficiently as
         possible.
@@ -247,7 +267,7 @@ class MPC(object):
         return new_filename
 
     @contextlib.contextmanager
-    def connect(self):
+    def connect(self) -> Iterator[mpd.MPDClient]:
         """Connect to the mpd daemon"""
         client = mpd.MPDClient()
         try:
@@ -259,7 +279,7 @@ class MPC(object):
             except mpd.ConnectionError:
                 pass
 
-    def call(self, command, *args):
+    def call(self, command: str, *args: Any) -> Any:
         """
         Connect to mpd and call args
         """
@@ -267,7 +287,7 @@ class MPC(object):
             func = getattr(conn, command)
             return func(*args)
 
-    def wait_for_song(self, filename):
+    def wait_for_song(self, filename: str) -> bool:
         """
         Wait for the song to show up in the mpd listing
         within the time frame.  If the song shows up return True, else
@@ -286,7 +306,7 @@ class MPC(object):
                 return False
             sleep(MPD_UPDATE_WAIT)
 
-    def purge_queue_dir(self):
+    def purge_queue_dir(self) -> None:
         """Remove "used" files form mpd's queue_dir"""
         files = [i["file"] for i in self.call("listall") if "file" in i]
         playlist = [i[6:] for i in self.call("playlist") if i.startswith("file: ")]
@@ -295,7 +315,7 @@ class MPC(object):
                 os.remove(os.path.join(self.queue_dir, mpd_file))
         self.call("update")
 
-    def get_last_artist(self, playlist):
+    def get_last_artist(self, playlist: Sequence[str]) -> str | None:
         """
         Return the artist of the last item in the mpd playlist
         or None if the playlist is empty
@@ -311,14 +331,14 @@ class MPC(object):
                 pass
         return None
 
-    def idle_or_wait(self, secs):
+    def idle_or_wait(self, secs: float) -> bool:
         """
         Return after secs seconds or when playlist changes state, whichever
         comes first.
         """
         idle_done = Event()
 
-        def set_idle_done_event():
+        def set_idle_done_event() -> None:
             self.call("idle", "playlist")
             idle_done.set()
 
@@ -326,9 +346,9 @@ class MPC(object):
         return idle_done.wait(secs)
 
     @classmethod
-    def get_version(cls):
+    def get_version(cls) -> str:
         main_station = Station.main_station()
         client = cls(main_station)
 
         with client.connect() as conn:
-            return conn.mpd_version
+            return cast(str, conn.mpd_version)

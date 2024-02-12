@@ -5,7 +5,7 @@ Library to deal with song files and song metadata
 import datetime
 import random
 from functools import lru_cache
-from typing import Iterable
+from typing import Iterable, TypedDict
 
 import pylast
 from django.conf import settings as django_settings
@@ -32,11 +32,19 @@ MIME_MAP = {
 LASTFM_APIKEY = settings.LASTFM_APIKEY
 
 
+class SongMetaData(TypedDict):
+    artist: str
+    title: str
+    album: str
+    type: str
+    mimetype: str
+
+
 class SongMetadataError(Exception):
     """When song metadata could not be parsed"""
 
 
-def get_song_metadata(filename: str):
+def get_song_metadata(filename: str) -> SongMetaData:
     """Return a dict of song metadata for filename
 
     Given the filename, return a dict of metadata consisting of:
