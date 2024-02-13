@@ -484,6 +484,8 @@ class LibraryItem(models.Model):
             title = lib.first_or_none(metadata, "title") or ""
             album = lib.first_or_none(metadata, "album") or ""
             genre = lib.first_or_none(metadata, "genre") or None
+
+            assert metadata.info
             length = metadata.info.length
 
         except Exception as error:

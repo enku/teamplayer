@@ -140,16 +140,19 @@ def add_to_queue(request: HttpRequest) -> HttpResponse:
     """
     station: Station = request.station  # type: ignore[attr-defined]
     player: Player = request.player  # type: ignore[attr-defined]
+    uploaded_file: File[bytes] | UploadedFile
 
-    if request.FILES:
-        uploaded_file: UploadedFile[bytes] = next(request.FILES.values())
+    if request.FILES.values():
+        first = next(request.FILES.values())
+        assert isinstance(first, UploadedFile)
+        uploaded_file = first
     else:
         uploaded_file = File(mktemp_file_from_request(request))
 
     try:
         entry = player.queue.add_song(uploaded_file, station)
     except songs.SongMetadataError:
-        client_filename = request.FILES["files[]"].name
+        client_filename = uploaded_file.name
         if client_filename:
             extra = "%s: " % client_filename
         else:

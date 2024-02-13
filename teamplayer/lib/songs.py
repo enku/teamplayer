@@ -67,7 +67,7 @@ def get_song_metadata(filename: str) -> SongMetaData:
         return {
             "artist": artist,
             "title": title,
-            "album": album,
+            "album": album if album else "Unknown",
             "type": filetype,
             "mimetype": mimetype,
         }
