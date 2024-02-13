@@ -1,4 +1,5 @@
 import string
+from typing import Any
 
 from django import forms
 
@@ -10,8 +11,8 @@ class EditStationForm(forms.Form):
     action = forms.ChoiceField(choices=(("rename", "Rename"), ("remove", "Remove")))
     station_id = forms.IntegerField()
 
-    def clean_name(self):
-        name = self.cleaned_data["name"]
+    def clean_name(self) -> str:
+        name: str = self.cleaned_data["name"]
 
         name = name.strip()
         if name.lower() == "teamplayer":
@@ -22,8 +23,9 @@ class EditStationForm(forms.Form):
 
         return name
 
-    def clean(self):
+    def clean(self) -> dict[str, Any]:
         cleaned_data = super(EditStationForm, self).clean()
+        assert cleaned_data is not None
 
         if "name" in cleaned_data:
             name = cleaned_data["name"]
@@ -50,12 +52,12 @@ class ChangeDJNameForm(forms.Form):
         string.ascii_letters + string.digits + string.punctuation + " _-"
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.player = kwargs.pop("player")
         super(ChangeDJNameForm, self).__init__(*args, **kwargs)
 
-    def clean_dj_name(self):
-        name = self.cleaned_data["dj_name"].strip()
+    def clean_dj_name(self) -> str:
+        name: str = self.cleaned_data["dj_name"].strip()
         already_taken = "That name is already taken."
 
         if not name:
@@ -73,7 +75,7 @@ class ChangeDJNameForm(forms.Form):
 
         return name
 
-    def legal_name(self, name):
+    def legal_name(self, name: str) -> bool:
         if name.lower() in ("dj ango", "dj_ango", "django"):
             return False
 

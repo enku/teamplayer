@@ -1,3 +1,8 @@
+# mypy: disable-error-code="attr-defined"
+from typing import Callable
+
+import django.http
+
 from .models import Player, Queue, Station
 
 
@@ -8,10 +13,13 @@ class TeamPlayerMiddleware:
     place it after.
     """
 
-    def __init__(self, get_response):
+    def __init__(
+        self,
+        get_response: Callable[[django.http.HttpRequest], django.http.HttpResponse],
+    ) -> None:
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: django.http.HttpRequest) -> django.http.HttpResponse:
         """Add a "player" attribute to the request object."""
         if hasattr(request, "user") and request.user.is_authenticated:
             user = request.user

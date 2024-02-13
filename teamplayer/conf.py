@@ -4,6 +4,7 @@ App-specific settings defaults for the TeamPlayer app
 
 import json
 import os
+from typing import Any
 
 from strtobool import strtobool
 
@@ -44,11 +45,13 @@ DEFAULTS = {
 
 
 class TeamPlayerSettings(object):
-    def __init__(self, prefix=None, defaults=None):
+    def __init__(
+        self, prefix: str | None = None, defaults: dict[str, Any] | None = None
+    ) -> None:
         self.prefix = prefix
         self.defaults = defaults or {}
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> Any:
         if attr not in self.defaults.keys():
             raise AttributeError()
 
@@ -62,7 +65,7 @@ class TeamPlayerSettings(object):
 
         return value
 
-    def validate_setting(self, attr, value):
+    def validate_setting(self, attr: str, value: Any) -> Any:
         if attr in [
             "AUTOFILL_MOOD_HISTORY",
             "AUTOFILL_MOOD_TOP_ARTISTS",

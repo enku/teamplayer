@@ -8,6 +8,7 @@ import asyncio
 import os
 import signal
 import sys
+from typing import Any
 
 import tornado.web
 from django.core.management.base import BaseCommand
@@ -29,13 +30,13 @@ class Command(BaseCommand):
 
     help = "Hey DJ play that song!"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(Command, self).__init__(*args, **kwargs)
 
         if setproctitle:
             setproctitle("spindoctor")
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         # If we don't do this then we have to manually creat an asyncio loop in
         # each thread where we want do work with tornado. Since threads
         # spindoctor threads in teamplayer are dynamic and all use tornado, the
@@ -61,7 +62,7 @@ class Command(BaseCommand):
             shutdown()
 
 
-def shutdown():
+def shutdown() -> None:
     """Shut down mpd servers and exit"""
     csi = "\x1b["
     sys.stderr.write(f"{csi}1G")  # move to start of line
@@ -73,7 +74,7 @@ def shutdown():
     os.kill(os.getpid(), signal.SIGTERM)
 
 
-def start_socket_server():
+def start_socket_server() -> None:
     """Start the tornado event loop"""
     logger.debug("Tornado has started")
     application = tornado.web.Application(

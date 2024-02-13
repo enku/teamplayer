@@ -3,6 +3,7 @@
 import functools
 import json
 import sys
+from typing import Any
 
 import tornado.ioloop
 import tornado.websocket
@@ -15,7 +16,7 @@ import teamplayer.conf
 class Command(BaseCommand):
     help = "Send a wall command over TeamPlayer"
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         settings = teamplayer.conf.settings
         message = sys.stdin.read()
         url = f"ws://localhost:{settings.WEBSOCKET_PORT}/ipc"

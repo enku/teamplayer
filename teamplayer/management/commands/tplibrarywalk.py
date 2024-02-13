@@ -1,21 +1,21 @@
 import os
+from typing import Any, Iterable
 
 from django.core.exceptions import ValidationError
-from django.core.management.base import BaseCommand
-from mutagen import File
+from django.core.management.base import BaseCommand, CommandParser
+from mutagen import File  # type: ignore[attr-defined]
 
 from teamplayer import logger
 from teamplayer.lib import attempt_file_rename
 from teamplayer.models import LibraryItem, Player, Station
 
-# Because Python 3 sucks:
 os.environ.setdefault("LANG", "en_US.UTF-8")
 
 
 class Command(BaseCommand):
     help = "Walk specified directory and update the database"
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
             "--rename",
             action="store_true",
@@ -25,7 +25,7 @@ class Command(BaseCommand):
         )
         parser.add_argument("dir", nargs="+", help="Directory to walk")
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         self.options = options
         self.created = 0
         self.skipped = 0
@@ -45,7 +45,7 @@ class Command(BaseCommand):
         logger.info("errors:  %s", self.errors)
         logger.info("skipped: %s", self.skipped)
 
-    def _rename_file(self, fullpath):
+    def _rename_file(self, fullpath: str) -> str | None:
         newname = attempt_file_rename(fullpath)
         if newname:
             try:
@@ -59,7 +59,9 @@ class Command(BaseCommand):
         else:
             return None
 
-    def _handle_files(self, dirpath, dirnames, filenames):
+    def _handle_files(
+        self, dirpath: str, _dirnames: Any, filenames: Iterable[str]
+    ) -> None:
         player = self.dj_ango
         station_id = self.station.pk
 

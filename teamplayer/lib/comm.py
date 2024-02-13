@@ -1,13 +1,16 @@
 """Asynchronous threads and handlers TeamPlayer."""
 
+from __future__ import annotations
+
 import threading
+from typing import Any
 
 import mpd
 
 from teamplayer import logger
 from teamplayer.conf import settings
 from teamplayer.lib import now, signals, songs
-from teamplayer.lib.mpc import MPC
+from teamplayer.lib.mpc import MPC, CurrentlyPlaying
 from teamplayer.lib.websocket import SocketHandler
 from teamplayer.models import Mood, Player, PlayLog, Station
 from teamplayer.serializers import EntrySerializer
@@ -18,12 +21,12 @@ class StationThread(threading.Thread):
     and the creation/removal process.
     """
 
-    __station_threads: dict[int, threading.Thread] = {}
+    __station_threads: dict[int, "StationThread"] = {}
     __lock = threading.Lock()
 
     secs_to_inject_new_song = settings.CROSSFADE + 1.5
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.station = kwargs.pop("station")
         super(StationThread, self).__init__(*args, **kwargs)
 
@@ -34,7 +37,7 @@ class StationThread(threading.Thread):
         self.event_thread = EventThread(mpc=self.mpc)
 
     @classmethod
-    def create(cls, station):
+    def create(cls: type["StationThread"], station: Station) -> "StationThread":
         """Create and return a StationThread.
 
         If the StationThread associated with station already exists, simply
@@ -52,7 +55,7 @@ class StationThread(threading.Thread):
             return station_thread
 
     @classmethod
-    def remove(cls, station_id):
+    def remove(cls, station_id: int) -> None:
         """Remove StationThread associated with *station*
 
         This also shuts down the thread
@@ -62,7 +65,7 @@ class StationThread(threading.Thread):
             station_thread.stop()
 
     @classmethod
-    def get(cls, station):
+    def get(cls, station: Station) -> "StationThread" | None:
         """Return the StationThread associated with station
 
         Return None if no thread is associated with that station
@@ -70,11 +73,11 @@ class StationThread(threading.Thread):
         return cls.__station_threads.get(station.pk)
 
     @classmethod
-    def get_all(cls):
+    def get_all(cls) -> dict[int, "StationThread"]:
         """Return a dict of all station threads."""
         return cls.__station_threads.copy()
 
-    def wait_for(self, song):
+    def wait_for(self, song: CurrentlyPlaying) -> None:
         """Wait for **song** to end."""
         secs = song["remaining_time"] - self.secs_to_inject_new_song
         secs = max(0, secs)
@@ -82,7 +85,7 @@ class StationThread(threading.Thread):
         self.mpc.idle_or_wait(secs)
 
     @classmethod
-    def purge_queue_dir(cls, **kwargs):
+    def purge_queue_dir(cls, **kwargs: Any) -> None:
         station = kwargs.get("sender")
 
         if not station:
@@ -94,7 +97,7 @@ class StationThread(threading.Thread):
 
         station_thread.mpc.purge_queue_dir()
 
-    def run(self):
+    def run(self) -> None:
         try:
             self.run_forever()
         except Exception:
@@ -103,7 +106,7 @@ class StationThread(threading.Thread):
 
             raise
 
-    def run_forever(self):
+    def run_forever(self) -> None:
         logger.debug("Starting %s", self.name)
         self.running = True
         self.dj_ango = Player.dj_ango()
@@ -144,7 +147,7 @@ class StationThread(threading.Thread):
             entry.delete()
             SocketHandler.message(player, "song_removed", entry_dict)
 
-    def stop(self):
+    def stop(self) -> None:
         self.running = False
 
         logger.critical("%s Shutting down" % self.name)
@@ -153,13 +156,13 @@ class StationThread(threading.Thread):
 
 
 class EventThread(threading.Thread):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.mpc = kwargs.pop("mpc")
         self.running = False
 
         super().__init__(*args, **kwargs)
 
-    def run(self):
+    def run(self) -> None:
         previous_song = None
         self.running = True
 
@@ -180,20 +183,19 @@ class EventThread(threading.Thread):
             )
             for receiver, response in results:
                 if isinstance(response, Exception):
-                    exc_info = response.__traceback__
                     msg = "Exception raise in signal handler"
-                    logger.debug(msg, exc_info=exc_info)
+                    logger.debug(msg, exc_info=response)
 
             previous_song = current_song
 
-    def stop(self):
+    def stop(self) -> None:
         self.running = False
 
 
 ###################
 # Signal Handlers #
 ###################
-def scrobble_song(sender, **kwargs):
+def scrobble_song(sender: Station, **kwargs: Any) -> None:
     """Signal handler to scrobble when a song changes."""
     station = sender
     previous_song = kwargs["previous_song"]
@@ -210,7 +212,7 @@ def scrobble_song(sender, **kwargs):
         songs.scrobble_song(current_song, now_playing=True)
 
 
-def log_mood(sender, **kwargs):
+def log_mood(sender: Station, **kwargs: Any) -> None:
     """Record the mood for the current artist on the given station"""
     station = sender
     song_info = kwargs["current_song"]
@@ -229,17 +231,17 @@ def log_mood(sender, **kwargs):
     Mood.log_mood(song_info["artist"], station)
 
 
-def play_log(sender, **kwargs):
+def play_log(sender: Station, **kwargs: Any) -> PlayLog | None:
     """Log the current song being played"""
     station = sender
     song_info = kwargs["current_song"]
 
     if not song_info:
-        return
+        return None
 
     artist = song_info["artist"]
     if artist in ("Unknown", "", None):
-        return
+        return None
 
     player = Player.objects.get(pk=song_info["player_id"])
     title = song_info["title"]

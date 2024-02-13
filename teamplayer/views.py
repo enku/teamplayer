@@ -4,6 +4,7 @@ Views for the teamplayer django app
 
 import json
 from importlib.metadata import version
+from typing import Any
 from urllib.parse import quote_plus
 
 import django
@@ -13,6 +14,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.core.files import File
+from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -132,19 +134,20 @@ def show_players(request: HttpRequest) -> Response:
 
 @login_required
 @require_POST
-def add_to_queue(request):
+def add_to_queue(request: HttpRequest) -> HttpResponse:
     """
     Add song to the queue
     """
-    station = request.station
+    station: Station = request.station  # type: ignore[attr-defined]
+    player: Player = request.player  # type: ignore[attr-defined]
 
     if request.FILES:
-        uploaded_file = next(request.FILES.values())
+        uploaded_file: UploadedFile[bytes] = next(request.FILES.values())
     else:
         uploaded_file = File(mktemp_file_from_request(request))
 
     try:
-        entry = request.player.queue.add_song(uploaded_file, station)
+        entry = player.queue.add_song(uploaded_file, station)
     except songs.SongMetadataError:
         client_filename = request.FILES["files[]"].name
         if client_filename:
@@ -171,28 +174,35 @@ def add_to_queue(request):
 
 
 @login_required
-def randomize_queue(request):
+def randomize_queue(request: HttpRequest) -> HttpResponseRedirect:
     """Randomize the player's queue"""
-    station = request.station
-    request.player.queue.randomize(station)
+    station: Station = request.station  # type: ignore[attr-defined]
+    player: Player = request.player  # type: ignore[attr-defined]
+
+    player.queue.randomize(station)
+
     return redirect(reverse("show_queue"))
 
 
 @login_required
-def order_by_rank(request):
+def order_by_rank(request: HttpRequest) -> HttpResponseRedirect:
     """Order your queue according to artist rank"""
-    station = request.station
-    request.player.queue.order_by_rank(station)
+    station: Station = request.station  # type: ignore[attr-defined]
+    player: Player = request.player  # type: ignore[attr-defined]
+
+    player.queue.order_by_rank(station)
+
     return redirect(reverse("show_queue"))
 
 
 @login_required
 @require_POST
-def toggle_queue_status(request):
+def toggle_queue_status(request: HttpRequest) -> HttpResponse:
     """Toggle player's queue's active status"""
-    new_status = bool(request.player.queue.toggle_status())
+    player: Player = request.player  # type: ignore[attr-defined]
+    new_status = bool(player.queue.toggle_status())
     IPCHandler.send_message(
-        "queue_status", {"user": request.player.username, "status": new_status}
+        "queue_status", {"user": player.username, "status": new_status}
     )
     return HttpResponse(
         json.dumps(new_status),
@@ -202,13 +212,13 @@ def toggle_queue_status(request):
 
 @login_required
 @require_POST
-def toggle_auto_mode(request):
+def toggle_auto_mode(request: HttpRequest) -> HttpResponseNoContent:
     """Toggle player's auto_mode flag"""
-    request.player.toggle_auto_mode()
+    request.player.toggle_auto_mode()  # type: ignore[attr-defined]
     return HttpResponseNoContent()
 
 
-def currently_playing(request):
+def currently_playing(request: HttpRequest) -> HttpResponse:
     """
     Return the following as a json dict
 
@@ -219,7 +229,7 @@ def currently_playing(request):
     remaining_time
     artist_image
     """
-    station = request.station
+    station = request.station  # type: ignore[attr-defined]
 
     output = MPC(station=station).currently_playing()
     response = HttpResponse(json.dumps(output), content_type="application/json")
@@ -233,36 +243,37 @@ def currently_playing(request):
 @login_required
 @require_POST
 @transaction.atomic
-def reorder_queue(request):
+def reorder_queue(request: HttpRequest) -> HttpResponse:
     """
     Given comma-delimited string (of integers), re-order queue
     return the re-ordered list of ids in json format
     """
-    queue = request.player.queue
+    queue = request.player.queue  # type: ignore[attr-defined]
     new_order = request.body.decode("utf-8").split(",")
-    new_order = [int(i) for i in new_order]
-    ids = [i["id"] for i in queue.reorder(new_order)]
+    new_order_ids = [int(i) for i in new_order]
+    ids = [i["id"] for i in queue.reorder(new_order_ids)]
 
     return HttpResponse(json.dumps(ids), content_type="application/json")
 
 
 @login_required()
 @require_POST
-def change_dj_name(request):
+def change_dj_name(request: HttpRequest) -> HttpResponse:
     """Change player's "dj name" according to dj_name field"""
-    form = ChangeDJNameForm(request.POST, player=request.player)
+    player = request.player  # type: ignore[attr-defined]
+    form = ChangeDJNameForm(request.POST, player=player)
 
     if not form.is_valid():
-        return HttpResponse(form.errors.values()[0])
+        return HttpResponse(list(form.errors.values())[0])
 
-    previous_dj_name = request.player.dj_name
-    request.player.set_dj_name(form.cleaned_data["dj_name"])
+    previous_dj_name = player.dj_name
+    player.set_dj_name(form.cleaned_data["dj_name"])
 
     # send a notification the the spin doctor
     IPCHandler.send_message(
         message_type="dj_name_change",
         data={
-            "user_id": request.player.pk,
+            "user_id": player.pk,
             "previous_dj_name": previous_dj_name,
             "dj_name": form.cleaned_data["dj_name"],
         },
@@ -270,20 +281,21 @@ def change_dj_name(request):
     return HttpResponseNoContent("")
 
 
-def logout(request):
+def logout(request: HttpRequest) -> HttpResponseRedirect:
     """Log out the player from TP"""
     auth_logout(request)
     messages.info(request, "Thanks for playing.")
     return HttpResponseRedirect(reverse(auth_views.LoginView))
 
 
-def registration(request):
+def registration(request: HttpRequest) -> HttpResponse:
     """The view that handles the actual registration form"""
-    context = dict()
+    context: dict[str, Any] = {}
     context["form"] = UserCreationForm()
 
     if request.method == "POST":
-        context["form"] = form = UserCreationForm(request.POST)
+        context["form"] = UserCreationForm(request.POST)
+        form = context["form"]
         if form.is_valid():
             username = form.cleaned_data["username"]
             password = form.cleaned_data["password1"]
@@ -304,40 +316,39 @@ def registration(request):
     return render(request, "teamplayer/register.html", context)
 
 
-def artist_page(_request, artist):
+def artist_page(_request: HttpRequest, artist: str) -> HttpResponseRedirect:
     """Simply redirect to last.fm link for <<artist>>"""
     return HttpResponseRedirect(
         "http://last.fm/music/" + quote_plus(artist.encode("utf-8"))
     )
 
 
-def artist_image(_request, artist):
+def artist_image(_request: HttpRequest, artist: str) -> HttpResponseRedirect:
     """Return a permanent redirect for last.fm image for artist"""
     return HttpResponseRedirect(songs.get_image_url_for(artist))
 
 
 @api_view(["GET"])
-def show_stations(request):
+def show_stations(request: HttpRequest) -> Response:
     stations = Station.get_stations()
     serializer = StationSerializer(stations, many=True, context={"request": request})
     return Response(serializer.data)
 
 
 @api_view(["GET"])
-def station_detail(request, station_id):
+def station_detail(request: HttpRequest, station_id: int | str) -> Response:
     if station_id == "mine":
-        station = get_object_or_404(Station, creator=request.player)
+        station = get_object_or_404(Station, creator=request.player)  # type: ignore[attr-defined]
     else:
         station = get_object_or_404(Station, pk=station_id)
     serializer = StationSerializer(station, context={"request": request})
     return Response(serializer.data)
 
 
-def previous_station(request):
+def previous_station(request: HttpRequest) -> HttpResponse:
     """Redirect to the previous station"""
-    station = request.station
-    stations = Station.get_stations().order_by("pk").values_list("pk", flat=True)
-    stations = list(stations)
+    station = request.station  # type: ignore[attr-defined]
+    stations = list(Station.get_stations().order_by("pk").values_list("pk", flat=True))
 
     station_id = station.pk if station else 0
     try:
@@ -350,11 +361,10 @@ def previous_station(request):
     return redirect(reverse("station", args=(previous_id,)))
 
 
-def next_station(request):
+def next_station(request: HttpRequest) -> HttpResponse:
     """Redirect to the next station"""
-    station = request.station
-    stations = Station.get_stations().order_by("pk").values_list("pk", flat=True)
-    stations = list(stations)
+    station = request.station  # type: ignore[attr-defined]
+    stations = list(Station.get_stations().order_by("pk").values_list("pk", flat=True))
 
     station_id = station.pk if station else 0
     try:
@@ -370,7 +380,7 @@ def next_station(request):
 
 @login_required
 @require_POST
-def edit_station(request):
+def edit_station(request: HttpRequest) -> HttpResponse:
     main_station = Station.main_station()
     message = ""
     form = EditStationForm(request.POST)
@@ -379,7 +389,7 @@ def edit_station(request):
         station_id = form.cleaned_data["station_id"]
         action = form.cleaned_data["action"]
 
-        station = get_object_or_404(Station, pk=station_id, creator=request.player)
+        station = get_object_or_404(Station, pk=station_id, creator=request.player)  # type: ignore[attr-defined]
         if action == "rename":
             station.name = name
             station.save()
@@ -403,12 +413,12 @@ def edit_station(request):
 
 @login_required
 @require_POST
-def create_station(request):
+def create_station(request: HttpRequest) -> HttpResponse:
     form = CreateStationForm(request.POST)
     if form.is_valid():
         name = form.cleaned_data["name"]
 
-        station = Station.create_station(name, request.player)
+        station = Station.create_station(name, request.player)  # type: ignore[attr-defined]
         IPCHandler.send_message("station_create", station.pk)
         return HttpResponseNoContent()
     return HttpResponse("Error creating station", content_type="text/plain")
@@ -416,9 +426,9 @@ def create_station(request):
 
 @login_required
 @require_POST
-def clear_queue(request):
-    station = request.station
-    queue = request.player.queue
+def clear_queue(request: HttpRequest) -> HttpResponse:
+    station = request.station  # type: ignore[attr-defined]
+    queue = request.player.queue  # type: ignore[attr-defined]
     entries = Entry.objects.filter(queue=queue, station=station)
     entry_ids = [i.pk for i in entries]
     entries.delete()
@@ -430,7 +440,7 @@ def clear_queue(request):
     return HttpResponseNoContent()
 
 
-def about(request):
+def about(request: HttpRequest) -> HttpResponse:
     """about/copyright page"""
     query = LibraryItem.objects.aggregate(Count("title"), Sum("filesize"))
     tracks_played = PlayLog.objects.count()
@@ -459,13 +469,15 @@ def about(request):
     )
 
 
-def crash(_request):
+def crash(_request: HttpRequest) -> HttpResponseNoContent:
     """Force an internal server error (for testing)"""
     raise Exception("crash forced")
 
+    return HttpResponseNoContent()
+
 
 @login_required
-def js_object(request):
+def js_object(request: HttpRequest) -> HttpResponse:
     """Exposes the TeamPlayer JavaScript namespace"""
 
     http_host = request.META.get("HTTP_HOST", "localhost")
@@ -478,7 +490,7 @@ def js_object(request):
             "mpd_hostname": http_host,
             "mpd_http_port": settings.HTTP_PORT,
             "home": Station.main_station().pk,
-            "username": request.player.username,
+            "username": request.player.username,  # type: ignore[attr-defined]
         },
         content_type="application/javascript",
     )

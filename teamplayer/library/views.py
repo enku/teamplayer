@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Any
 
 from django.contrib.auth.decorators import login_required
 from django.core.files import File
@@ -50,12 +51,14 @@ def add_to_queue(request: HttpRequest) -> HttpResponse:
     )
 
 
-class SongSearchView(SearchView):
+class SongSearchView(SearchView):  # type: ignore
     queryset = SearchQuerySet()
     template_name = "search/search.html"
 
-    def get_context_data(self, *args, **kwargs):
-        context = super(SongSearchView, self).get_context_data(*args, **kwargs)
+    def get_context_data(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        context: dict[str, Any] = super(SongSearchView, self).get_context_data(
+            *args, **kwargs
+        )
         request = self.request
         station_id = request.session.get("station_id")
         context["station_id"] = station_id

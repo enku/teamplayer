@@ -253,7 +253,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         # give 'em a while
         time.sleep(3)
 
-        StationThread.remove(station_id)
+        StationThread.remove(int(station_id))
         signals.station_delete.send(models.Station, station_id=station_id)
 
     def handle_station_create(self, station_id: int | str) -> None:
