@@ -9,7 +9,6 @@ import django.test
 import django.urls
 
 import teamplayer.models
-from teamplayer.conf import settings
 
 from . import utils
 
