@@ -157,7 +157,7 @@ class FirstOrNoneTest(TestCase):
 
     def setUp(self):
         self.empty_dict = {}
-        self.dict_with_list = {"denoms": [1, 5, 10, 20]}
+        self.dict_with_list = {"denoms": ["1", "5", "10", "20"]}
         self.dict_with_empty_list = {"empty": []}
         self.dict_with_nonlist = {"here": "there"}
 
@@ -165,7 +165,9 @@ class FirstOrNoneTest(TestCase):
         self.assertEqual(teamplayer.lib.first_or_none(self.empty_dict, "bogus"), None)
 
     def test_dict_with_list(self):
-        self.assertEqual(teamplayer.lib.first_or_none(self.dict_with_list, "denoms"), 1)
+        self.assertEqual(
+            teamplayer.lib.first_or_none(self.dict_with_list, "denoms"), "1"
+        )
 
         self.assertEqual(
             teamplayer.lib.first_or_none(self.dict_with_list, "bogus"), None

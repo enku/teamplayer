@@ -7,6 +7,7 @@ import uuid
 from typing import BinaryIO, cast
 
 import django.http
+import mutagen.mp3
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
@@ -92,12 +93,12 @@ def now() -> datetime.datetime:
     return datetime.datetime.utcnow().replace(tzinfo=utc)
 
 
-def first_or_none(d, key):
+def first_or_none(d: mutagen.mp3.EasyMP3, key: str) -> str | None:
     """
-    Given the dict d, get the item with the given key. If key is not in
-    the dict, return None. If it does exist and the value is a list,
-    return the first item in the list. If the list is empty return none.
-    If the value is not a list, simply return the value.
+    Given the EasyMP3 object d, get the item with the given key. If key is not in the
+    dict, return None. If it does exist and the value is a list, return the first item
+    in the list. If the list is empty return none.  If the value is not a list, simply
+    return the value.
     """
     if key not in d:
         return None
@@ -105,10 +106,10 @@ def first_or_none(d, key):
     value = d[key]
     if isinstance(value, list):
         if len(value) >= 1:
-            return value[0]
+            return str(value[0])
         else:
             return None
-    return value
+    return str(value)
 
 
 def attempt_file_rename(fullpath: str) -> str | None:

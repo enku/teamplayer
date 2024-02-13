@@ -9,19 +9,33 @@ import importlib.metadata
 import logging
 import os
 import random
-from typing import Any
+from typing import Any, TypedDict
 
+import django.http
+import mutagen.mp3
 from django.conf import settings as django_settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import models, transaction
 
-from . import lib, logger
-from .conf import settings
-from .lib import signals
+from teamplayer import lib, logger
+from teamplayer.conf import settings
+from teamplayer.lib import signals
 
-DJ_ANGO = None
+DJ_ANGO: "Player" | None = None
+
+
+class EntryDict(TypedDict):
+    id: int
+    artist: str
+    title: str
+
+
+class PlayerStats(TypedDict):
+    active_queues: int
+    songs: int
+    stations: int
 
 
 class Queue(models.Model):
@@ -80,7 +94,7 @@ class Queue(models.Model):
                 entry.save()
 
     @transaction.atomic
-    def reorder(self, id_list: list[int]):
+    def reorder(self, id_list: list[int]) -> list[EntryDict]:
         """Reorder entries in queue according to entry.ids in id_list"""
         for order, i in enumerate(reversed(id_list)):
             try:
@@ -93,10 +107,10 @@ class Queue(models.Model):
             entry.place = order
             entry.save()
 
-        return self.entry_set.values("id", "artist", "title")
+        return list(self.entry_set.values("id", "artist", "title"))
 
     @transaction.atomic
-    def order_by_rank(self, station: Station):
+    def order_by_rank(self, station: Station) -> None:
         """Set the each Entry's .place field by it's artist rank"""
         for entry in self.entry_set.filter(station=station):
             entry.place = entry.artist_mood(station)
@@ -117,7 +131,7 @@ class Queue(models.Model):
         station: Station | None = None,
         qs_filter: dict[str, Any] | None = None,
         minimum: int = 0,
-    ):
+    ) -> None:
         """
         Fill the queue up to max_entries from the Library.
 
@@ -145,6 +159,7 @@ class Queue(models.Model):
         song_files_query = LibraryItem.objects.filter(**qs_filter)
 
         if station != Station.main_station():
+            assert station
             if "#" not in station.name:
                 return
 
@@ -199,14 +214,16 @@ class Entry(models.Model):
     def __str__(self) -> str:
         return f"“[self.title]” by {self.artist}"
 
-    def delete(self, *args, **kwargs):
+    def delete(
+        self, using: Any = None, keep_parents: bool = False
+    ) -> tuple[int, dict[str, int]]:
         if self.song:
             filename = os.path.join(django_settings.MEDIA_ROOT, self.song.name)
             try:
                 os.unlink(filename)
             except OSError:
                 pass
-        super(Entry, self).delete(*args, **kwargs)
+        return super(Entry, self).delete(using=using, keep_parents=keep_parents)
 
     def artist_mood(self, station: Station) -> int:
         """
@@ -240,7 +257,7 @@ class Mood(models.Model):
         ordering = ("-timestamp", "artist")
 
     @classmethod
-    def log_mood(cls, artist: str, station: Station):
+    def log_mood(cls, artist: str, station: Station) -> None:
         """Log the artist and similar artists in the Mood database"""
         cls.objects.create(artist=artist, station=station)
 
@@ -252,17 +269,17 @@ class Mood(models.Model):
             )
 
 
-class StationManager(models.Manager):
-    def get_queryset(self) -> models.QuerySet:
+class StationManager(models.Manager["Station"]):
+    def get_queryset(self) -> models.QuerySet[Station]:
         """Override default queryset to only return enabled stations"""
         return super(StationManager, self).get_queryset().filter(enabled=True)
 
     @property
-    def disabled(self) -> models.QuerySet:
+    def disabled(self) -> models.QuerySet[Station]:
         """Return queryset for all disabled stations"""
         return super(StationManager, self).get_queryset().filter(enabled=False)
 
-    def create_station(self, **kwargs):
+    def create_station(self, **kwargs: Any) -> Station:
         songs = kwargs.pop("songs", [])
         creator = kwargs.pop("creator")
 
@@ -284,24 +301,24 @@ class StationManager(models.Manager):
 
 
 class Station(models.Model):
-    __main_station = None
+    __main_station: Station | None = None
 
     objects = StationManager()
     name = models.CharField(max_length=128, unique=True)
     creator = models.OneToOneField("Player", on_delete=models.CASCADE)
     enabled = models.BooleanField(default=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def get_songs(self):
+    def get_songs(self) -> models.QuerySet[Entry]:
         """Return queryset of all (active) songs in the station"""
         return Entry.objects.filter(
             station=self,
             queue__active=True,
         )
 
-    def participants(self):
+    def participants(self) -> models.QuerySet[Player]:
         """Return the set of Users with songs ready for this station."""
         entries_qs = Entry.objects.filter(station=self, queue__active=True)
         return Player.objects.filter(
@@ -309,26 +326,27 @@ class Station(models.Model):
         ).distinct()
 
     @classmethod
-    def get_stations(cls):
+    def get_stations(cls) -> models.QuerySet[Station]:
         return cls.objects.all().order_by("pk")
 
-    def current_song(self):
-        return lib.mpc.MPC(station=self).currently_playing()
+    def current_song(self) -> lib.mpc.CurrentlyPlaying:
+        from teamplayer.lib import mpc as libmpc
 
-    def url(self, request):
-        try:
-            http_host = request.META.get("HTTP_HOST", "localhost")
-        except AttributeError:
-            http_host = request.host
+        return libmpc.MPC(station=self).currently_playing()
+
+    def url(self, request: django.http.HttpRequest) -> str:
+        from teamplayer.lib import mpc as libmpc
+
+        http_host = request.META.get("HTTP_HOST", "localhost")
 
         if ":" in http_host:
             http_host = http_host.split(":", 1)[0]
 
-        mpc = lib.mpc.MPC(station=self)
+        mpc = libmpc.MPC(station=self)
         return f"http://{http_host}:{mpc.http_port}/mpd.mp3"
 
     @classmethod
-    def from_player(cls, player):
+    def from_player(cls, player: Player) -> Station | None:
         """Return the player's station or None if player has no station"""
         try:
             return cls.objects.get(creator=player)
@@ -336,18 +354,18 @@ class Station(models.Model):
             return None
 
     @classmethod
-    def create_station(cls, station_name, creator):
+    def create_station(cls, station_name: str, creator: Player) -> Station:
         return cls.objects.create_station(name=station_name, creator=creator)
 
     @classmethod
-    def main_station(cls):
+    def main_station(cls) -> Station:
         if not cls.__main_station:
             cls.__main_station = cls.objects.get(name="Main Station")
         return cls.__main_station
 
 
-class PlayerManager(models.Manager):
-    def create_player(self, username, **kwargs):
+class PlayerManager(models.Manager["Player"]):
+    def create_player(self, username: str, **kwargs: Any) -> Player:
         """Create a player with username"""
         user_kwargs = {"username": username}
         password = kwargs.pop("password", None)
@@ -376,27 +394,27 @@ class Player(models.Model):
     dj_name = models.CharField(blank=True, max_length=25)
     auto_mode = models.BooleanField(default=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.user.username
 
-    def toggle_auto_mode(self):
+    def toggle_auto_mode(self) -> bool:
         """Toggle the user's auto_mode. Return new mode."""
         self.auto_mode = not self.auto_mode
         self.save()
         return self.auto_mode
 
-    def set_dj_name(self, name):
+    def set_dj_name(self, name: str) -> str:
         self.dj_name = name
         self.full_clean()
         self.save()
         return self.dj_name
 
     @property
-    def username(self):
+    def username(self) -> str:
         return self.user.username
 
     @classmethod
-    def player_stats(cls):
+    def player_stats(cls) -> PlayerStats:
         """Return a dictionary of player stats (all players)"""
         active_queues = Queue.objects.filter(active=True).values_list("pk", flat=True)
         songs_in_queue = Entry.objects.filter(
@@ -410,7 +428,7 @@ class Player(models.Model):
         }
 
     @classmethod
-    def dj_ango(cls):
+    def dj_ango(cls) -> Player:
         global DJ_ANGO
         if DJ_ANGO:
             return DJ_ANGO
@@ -419,7 +437,7 @@ class Player(models.Model):
         return DJ_ANGO
 
     @classmethod
-    def active_players(cls):
+    def active_players(cls) -> models.QuerySet[Player]:
         return cls.objects.filter(user__is_active=True)
 
 
@@ -445,25 +463,26 @@ class LibraryItem(models.Model):
     class Meta:
         unique_together = (("artist", "title", "album"),)
 
-    def similar_artists(self):
+    def similar_artists(self) -> list[str] | None:
         return lib.songs.get_similar_artists(self.artist) if self.artist else None
 
-    def exists(self):
+    def exists(self) -> bool:
         return os.path.exists(self.filename)
 
     @classmethod
-    def metadata_get_or_create(cls, filename, metadata, contributor, st_id):
+    def metadata_get_or_create(
+        cls,
+        filename: str,
+        metadata: mutagen.mp3.EasyMP3,
+        contributor: Player,
+        st_id: int,
+    ) -> tuple[LibraryItem, bool]:
         try:
             artist = lib.first_or_none(metadata, "artist") or ""
             title = lib.first_or_none(metadata, "title") or ""
             album = lib.first_or_none(metadata, "album") or ""
             genre = lib.first_or_none(metadata, "genre") or None
             length = metadata.info.length
-
-            if length:
-                length = int(length)
-            else:
-                length = None
 
         except Exception as error:
             logger.error("Error getting metadata for %s: %s", filename, error)
@@ -497,16 +516,16 @@ class LibraryItem(models.Model):
 
         return (songfile, True)
 
-    def image(self):
+    def image(self) -> str:
         """Return artist image url"""
         return lib.songs.get_image_url_for(self.artist)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.title:
             return f'"{self.title}" by {self.artist}'
         return self.filename
 
-    def clean(self):
+    def clean(self) -> None:
         if self.artist.lower() in ("", "unknown"):
             raise ValidationError(f"Invalid artist: {self.artist}")
 
@@ -530,7 +549,7 @@ class PlayLog(models.Model):
     class Meta:
         unique_together = [["station", "time"]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"|{self.time}|Station {self.station.pk}: “{self.title}” by {self.artist}"
         )
