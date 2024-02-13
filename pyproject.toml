@@ -36,7 +36,7 @@ build-backend = "pdm.pep517.api"
 [tool]
 
 [tool.mypy]
-plugins =["mypy_django_plugin.main"]
+plugins =["mypy_django_plugin.main", "mypy_drf_plugin.main"]
 exclude = ["/migrations/"]
 files = ["teamplayer"]
 ignore_missing_imports = true
