@@ -9,7 +9,7 @@ import importlib.metadata
 import logging
 import os
 import random
-from typing import Any, TypedDict
+from typing import Any
 
 import django.http
 import mutagen.mp3
@@ -18,6 +18,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import models, transaction
+from typing_extensions import NotRequired, TypedDict
 
 from teamplayer import lib, logger
 from teamplayer.conf import settings
@@ -36,6 +37,7 @@ class PlayerStats(TypedDict):
     active_queues: int
     songs: int
     stations: int
+    users: NotRequired[int]
 
 
 class Queue(models.Model):

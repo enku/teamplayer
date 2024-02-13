@@ -16,6 +16,7 @@ dependencies = [
     "djangorestframework>=3.14.0",
     "mutagen>=1.45.1",
     "setuptools",  # haystack needs this though it's now in their deps
+    "typing-extensions>=4.9.0",
 ]
 requires-python = ">=3.10,<3.12"
 license = {text = "MIT"}

@@ -60,7 +60,7 @@ def mktemp_file_from_request(request: django.http.HttpRequest) -> BinaryIO:
     return temp_file
 
 
-def get_player_from_session_id(session_id: int) -> "models.Player":
+def get_player_from_session_id(session_id: str | int) -> "models.Player":
     """Given the session_id, return the user associated with it.
 
     Raise ObjectDoesNotExist if session_id does not associate with a user.
@@ -78,14 +78,16 @@ def get_player_from_session_id(session_id: int) -> "models.Player":
     return user.player
 
 
-def get_station_id_from_session_id(session_id: int) -> int | None:
+def get_station_id_from_session_id(session_id: int | str) -> int | None:
     """Like above, but return the station_id or None."""
     try:
         session = Session.objects.get(session_key=session_id)
     except Session.DoesNotExist:
         return None
 
-    return session.get_decoded().get("station_id", None)
+    station_id = session.get_decoded().get("station_id", "")
+
+    return int(station_id) if station_id else None
 
 
 def now() -> datetime.datetime:

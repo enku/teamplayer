@@ -15,7 +15,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.files import File
 from django.db import transaction
 from django.db.models import Count, Sum
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
 from django.urls import reverse
@@ -38,22 +38,22 @@ class HttpResponseNoContent(HttpResponse):
     status_code = 204
 
 
-def get_mpd_url(request, station):
-    station = request.station
+def get_mpd_url(request: HttpRequest, station: Station) -> str:
+    station = request.station  # type: ignore[attr-defined]
     template = get_template("teamplayer/mpd_channel_url.txt")
     context = {"request": request, "station": station, "settings": settings}
 
     return template.render(context).strip()
 
 
-def get_websocket_url(request):
+def get_websocket_url(request: HttpRequest) -> str:
     http_host = request.META.get("HTTP_HOST", "localhost")
     http_host = http_host.partition(":")[0]
     return f"ws://{http_host}:{settings.WEBSOCKET_PORT}/"
 
 
 @login_required
-def home(request, station_id=None):
+def home(request: HttpRequest, station_id: str | int | None = None) -> HttpResponse:
     """This is the main page view for the teamplayer app"""
 
     station_id = station_id or request.session.get("station_id", None)
@@ -79,39 +79,39 @@ def home(request, station_id=None):
         "teamplayer/home.html",
         {
             "mpd_url": get_mpd_url(request, station),
-            "name": request.player.dj_name or "Anonymous",
+            "name": request.player.dj_name or "Anonymous",  # type: ignore[attr-defined]
             "station": station,
             "home": Station.main_station().pk,
             "stations": Station.get_stations(),
-            "username": request.player.username,
+            "username": request.player.username,  # type: ignore[attr-defined]
         },
     )
 
 
-def register(request):
+def register(request: HttpRequest) -> HttpResponse:
     return render(request, "teamplayer/home.html", {"register": True})
 
 
 @api_view(["GET"])
 @login_required
-def show_queue(request):
+def show_queue(request: HttpRequest) -> Response:
     """
     View to display the titles in the player's queue.
     """
-    station = request.station
+    station = request.station  # type: ignore[attr-defined]
 
-    entries = request.player.queue.entry_set.filter(station=station)
+    entries = request.player.queue.entry_set.filter(station=station)  # type: ignore[attr-defined]
     seralizer = EntrySerializer(entries, many=True)
     return Response(seralizer.data)
 
 
 @api_view(["GET", "DELETE"])
 @login_required
-def show_entry(request, entry_id):
+def show_entry(request: HttpRequest, entry_id: int | str) -> Response:
     """
     View to show an entry
     """
-    entry = get_object_or_404(Entry, pk=entry_id, queue__player=request.player)
+    entry = get_object_or_404(Entry, pk=entry_id, queue__player=request.player)  # type: ignore[attr-defined]
     data = EntrySerializer(entry).data
     entry_id = entry.pk
     if request.method == "DELETE":
@@ -123,7 +123,7 @@ def show_entry(request, entry_id):
 
 @api_view(["GET"])
 @login_required
-def show_players(request):
+def show_players(request: HttpRequest) -> Response:
     """view to show player stats/settings"""
     players = Player.objects.all()
     serializer = PlayerSerializer(players, many=True)
@@ -484,14 +484,14 @@ def js_object(request):
     )
 
 
-def player(request):
+def player(request: HttpRequest) -> HttpResponse:
     """The audio player html"""
-    station = request.station
+    station = request.station  # type: ignore[attr-defined]
     mpd_url = get_mpd_url(request, station)
     return render(request, "teamplayer/player.html", {"mpd_url": mpd_url})
 
 
-def redirect_to_home(request):
+def redirect_to_home(request: HttpRequest) -> HttpResponse:
     main_station = Station.main_station()
     request.session["station_id"] = main_station.pk
     return redirect(reverse("home", args=(main_station.pk,)))
