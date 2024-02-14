@@ -41,7 +41,7 @@ var TeamPlayer = (function () {
             users: 0
         },
 
-        muted: false,
+        muted: true,
         username: '{{ username|escapejs }}',
 
         {% include "teamplayer/functions.js" %}
