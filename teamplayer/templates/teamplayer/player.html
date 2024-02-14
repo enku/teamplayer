@@ -1,6 +1,6 @@
 <script type="text/javascript">
 /* Start muted on load */
-$(button).removeClass('icon-volume-up').addClass('icon-volume-off').attr('title', 'Unmute');
+$('#mute_button').removeClass('icon-volume-up').addClass('icon-volume-off').attr('title', 'Unmute');
 
 var player = new Audio();
 player.src = '{{ mpd_url }}';
