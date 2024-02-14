@@ -20,6 +20,7 @@ services:
       - TEAMPLAYER_AUTOFILL_STRATEGY=mood
       - TEAMPLAYER_MPD_HOME=/opt/teamplayer/mpd
       - TEAMPLAYER_UPLOADED_LIBRARY_DIR=/opt/teamplayer/library
+      - DJANGO_ALLOW_ASYNC_UNSAFE=true
 
     volumes:
       - static:/opt/teamplayer/static
