@@ -13,7 +13,7 @@ from typing import Any
 
 import django.http
 import mutagen.mp3
-import tornado.httpserver
+import tornado.httputil
 from django.conf import settings as django_settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -338,12 +338,15 @@ class Station(models.Model):
         return libmpc.MPC(station=self).currently_playing()
 
     def url(
-        self, request: django.http.HttpRequest | tornado.httpserver.HTTPRequest
+        self, request: django.http.HttpRequest | tornado.httputil.HTTPServerRequest
     ) -> str:
         from teamplayer.lib import mpc as libmpc
 
-        if isinstance(request, django.http.HttpRequest):
-            http_host = request.META.get("HTTP_HOST", "localhost")
+        http_host = (
+            request.host
+            if isinstance(request, tornado.httputil.HTTPServerRequest)
+            else request.META.get("HTTP_HOST", "localhost")
+        )
 
         if ":" in http_host:
             http_host = http_host.split(":", 1)[0]
