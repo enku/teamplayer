@@ -1,59 +1,29 @@
 <script type="text/javascript">
-  {% include "teamplayer/mrp.js" %}
-</script>
+/* Start muted on load */
+$(button).removeClass('icon-volume-up').addClass('icon-volume-off').attr('title', 'Unmute');
+};
 
-<script type="text/javascript">
-if (navigator.plugins['Shockwave Flash']) {
-    MRP.insert({
-        url: '{{ mpd_url }}',
-        codec: 'mp3',
-        volume: 100,
-        autoplay: true,
-        title: 'TeamPlayer',
-        width: 1,
-        height: 1,
-        wmode: 'transparent',
-        skin: 'original',
-        tracking: false
-    });
-} else {
-    var player = new Audio();
-    player.src = '{{ mpd_url }}';
-    player.preload = 'none';
-    player.play();
-}
+var player = new Audio();
+player.src = '{{ mpd_url }}';
+player.preload = 'none';
+player.volume = 0;
+player.play();
 
 TeamPlayer.play = function (url) {
-    if (navigator.plugins['Shockwave Flash']) {
-        MRP.setUrl(url);
-        MRP.stop();
-        MRP.play();
-    } else {
-        player.src = url;
-        player.pause();
-        player.play();
-    }
+    player.src = url;
+    player.pause();
+    player.play();
 };
 
 TeamPlayer.mute = function (button) {
-    if (navigator.plugins['Shockwave Flash']) {
-        MRP.setVolume(0)
-    }
-    else {
-        player.volume = 0;
-    }
+    player.volume = 0;
 
     TeamPlayer.muted = true;
     $(button).removeClass('icon-volume-up').addClass('icon-volume-off').attr('title', 'Unmute');
 };
 
 TeamPlayer.unmute = function (button) {
-    if (navigator.plugins['Shockwave Flash']) {
-        MRP.setVolume(100)
-    }
-    else {
-        player.volume = 1;
-    }
+    player.volume = 1;
 
     TeamPlayer.muted = false;
     $(button).removeClass('icon-volume-off').addClass('icon-volume-up').attr('title', 'Mute');

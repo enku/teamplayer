@@ -508,12 +508,12 @@ class AboutView(TestCase):
 
 class RegistrationTest(TestCase):
     def test_no_player(self):
-        """Show that we don't get the flash player in the registration view."""
+        """Show that we don't get the audio player in the registration view."""
         # when we access the registration page
         response = self.client.get(reverse("registration"))
 
         # Then it doesn't show up.
-        self.assertNotContains(response, "flashPlayer")
+        self.assertNotContains(response, "audioplayer")
 
     def test_no_stations(self):
         """Show that we don't get the station links in the view."""
