@@ -4,100 +4,85 @@ App-specific settings defaults for the TeamPlayer app
 
 import json
 import os
-from typing import Any
+from dataclasses import dataclass, fields
+from typing import Any, Mapping
 
 from strtobool import strtobool
 
-from teamplayer import __path__
-
-PATH = __path__[0]
-
-DEFAULTS = {
-    "MPD_HOME": PATH,
-    "QUEUE_DIR": "",
-    "MPD_ADDRESS": "localhost",
-    "MPD_PORT": 6600,
-    "MPD_LOG": "/dev/null",
-    "MPD_DB": "",
-    "HTTP_PORT": "8000",  # Channels will always be 1 + this, so don't worry
-    "WEBSOCKET_PORT": "8000",
-    "STREAM_QUALITY": "8.0",
-    "STREAM_BITRATE": "64",
-    "STREAM_FORMAT": "44100:16:2",
-    "MPD_MAX_CONNECTIONS": "30",
-    "MAX_OUTPUT_BUFFER_SIZE": "16384",
-    "REPO_URL": "",
-    "SCROBBLER_USER": "",
-    "SCROBBLER_PASSWORD": "",
-    "LASTFM_APIKEY": "2d5952c801e074e3251bafb77f54e680",
-    "LASTFM_APISECRET": "23dd84f772d374d7f8230d74afc8d269",
-    "CROSSFADE": "0",
-    "SHAKE_THINGS_UP": "0",
-    "SHAKE_THINGS_UP_FILTER": '{"length__lt": 300, "length__gt": 0}',
-    "ALWAYS_SHAKE_THINGS_UP": False,
-    "AUTOFILL_STRATEGY": "random",
-    "AUTOFILL_MOOD_HISTORY": "3600",
-    "AUTOFILL_MOOD_TOP_ARTISTS": "50",
-    "UPLOADED_LIBRARY_DIR": "",
-    "SPOTIFY_CLIENT_ID": "80c76cbf28ef4a24afda36a8b3ede7be",
-    "SPOTIFY_CLIENT_SECRET": "67a7221fdf884aabb23f5d61969da609",
-}
+from teamplayer import __path__ as my_path
 
 
-class TeamPlayerSettings(object):
-    def __init__(
-        self, prefix: str | None = None, defaults: dict[str, Any] | None = None
-    ) -> None:
-        self.prefix = prefix
-        self.defaults = defaults or {}
+@dataclass
+class TeamPlayerSettings:
 
-    def __getattr__(self, attr: str) -> Any:
-        if attr not in self.defaults.keys():
-            raise AttributeError()
+    MPD_HOME: str = my_path[0]
+    QUEUE_DIR: str = ""
+    MPD_ADDRESS: str = "localhost"
+    MPD_PORT: int = 6600
+    MPD_LOG: str = "/dev/null"
+    MPD_DB: str = ""
+    HTTP_PORT: int = 8000  # Channels will always be 1 + this, so don't worry
+    WEBSOCKET_PORT: int = 8000
+    STREAM_QUALITY: float = 8.0
+    STREAM_BITRATE: int = 64
+    STREAM_FORMAT: str = "44100:16:2"
+    MPD_MAX_CONNECTIONS: int = 30
+    MAX_OUTPUT_BUFFER_SIZE: int = 16384
+    REPO_URL: str = ""
+    SCROBBLER_USER: str = ""
+    SCROBBLER_PASSWORD: str = ""
+    LASTFM_APIKEY: str = "2d5952c801e074e3251bafb77f54e680"
+    LASTFM_APISECRET: str = "23dd84f772d374d7f8230d74afc8d269"
+    CROSSFADE: int = 0
+    SHAKE_THINGS_UP: int = 0
+    SHAKE_THINGS_UP_FILTER: str = '{"length__lt": 300, "length__gt": 0}'
+    ALWAYS_SHAKE_THINGS_UP: bool = False
+    AUTOFILL_STRATEGY: str = "random"
+    AUTOFILL_MOOD_HISTORY: int = 3600
+    AUTOFILL_MOOD_TOP_ARTISTS: int = 50
+    UPLOADED_LIBRARY_DIR: str = ""
+    SPOTIFY_CLIENT_ID: str = "80c76cbf28ef4a24afda36a8b3ede7be"
+    SPOTIFY_CLIENT_SECRET: str = "67a7221fdf884aabb23f5d61969da609"
 
-        try:
-            value = os.environ[f"{self.prefix}{attr}"]
-        except KeyError:
-            value = self.defaults[attr]
+    @classmethod
+    def from_dict(cls, prefix: str, mapping: Mapping[str, str]):
+        params: dict[str, Any] = {}
 
-        value = self.validate_setting(attr, value)
-        setattr(self, attr, value)
+        for field in fields(cls):
+            if (key := f"{prefix}{field.name}") not in mapping:
+                continue
 
-        return value
+            match field.type:
+                case "bool":
+                    value = strtobool(mapping[key])
+                case "int":
+                    value = int(mapping[key])
+                case "float":
+                    value = float(mapping[key])
+                case _:
+                    value = mapping[key]
 
-    def validate_setting(self, attr: str, value: Any) -> Any:
-        if attr in [
-            "AUTOFILL_MOOD_HISTORY",
-            "AUTOFILL_MOOD_TOP_ARTISTS",
-            "CROSSFADE",
-            "HTTP_PORT",
-            "MAX_OUTPUT_BUFFER",
-            "MPD_MAX_CONNECTIONS",
-            "MPD_PORT",
-            "SHAKE_THINGS_UP",
-            "STREAM_BITRATE",
-            "WEBSOCKET_PORT",
-        ]:
-            return int(value)
+            params[field.name] = value
 
-        if attr in ["STREAM_QUALITY"]:
-            return float(value)
+        return cls(**params)
 
-        if attr in ["SHAKE_THINGS_UP_FILTER"]:
-            return json.loads(value)
+    @classmethod
+    def from_environ(
+        cls, *, prefix: str | None = None, env: Mapping[str, str] = os.environ
+    ):
+        if prefix is None:
+            prefix = "TEAMPLAYER_"
 
-        if attr in ["ALWAYS_SHAKE_THINGS_UP"]:
-            return strtobool(value)
+        return cls.from_dict(prefix, env)
 
-        if attr == "QUEUE_DIR" and not value:
-            return os.path.join(self.MPD_HOME, "queue")
+    def __post_init__(self) -> None:
+        if not self.QUEUE_DIR:
+            self.QUEUE_DIR = os.path.join(self.MPD_HOME, "queue")
 
-        if attr == "MPD_DB" and not value:
-            return os.path.join(self.MPD_HOME, "mpd.db")
+        if not self.MPD_HOME:
+            self.MPD_HOME = os.path.join(self.MPD_HOME, "mpd.db")
 
-        return value
+        self.SHAKE_THINGS_UP_FILTER = json.loads(self.SHAKE_THINGS_UP_FILTER)
 
 
-settings = TeamPlayerSettings("TEAMPLAYER_", DEFAULTS)
-
-del PATH
+settings = TeamPlayerSettings.from_environ(prefix="TEAMPLAYER_")
