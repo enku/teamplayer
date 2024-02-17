@@ -13,7 +13,7 @@ from strtobool import strtobool
 from teamplayer import __path__ as my_path
 
 
-@dataclass
+@dataclass(frozen=True)
 class TeamPlayerSettings:
 
     MPD_HOME: str = my_path[0]
@@ -78,12 +78,14 @@ class TeamPlayerSettings:
 
     def __post_init__(self) -> None:
         if not self.QUEUE_DIR:
-            self.QUEUE_DIR = os.path.join(self.MPD_HOME, "queue")
+            object.__setattr__(self, "QUEUE_DIR", os.path.join(self.MPD_HOME, "queue"))
 
         if not self.MPD_HOME:
-            self.MPD_HOME = os.path.join(self.MPD_HOME, "mpd.db")
+            object.__setattr__(self, "MPD_HOME", os.path.join(self.MPD_HOME, "mpd.db"))
 
-        self.SHAKE_THINGS_UP_FILTER = json.loads(self.SHAKE_THINGS_UP_FILTER)
+        object.__setattr__(
+            self, "SHAKE_THINGS_UP_FILTER", json.loads(self.SHAKE_THINGS_UP_FILTER)
+        )
 
 
 settings = TeamPlayerSettings.from_environ(prefix="TEAMPLAYER_")
