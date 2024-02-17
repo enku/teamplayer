@@ -20,12 +20,8 @@ $(WHEEL): $(SOURCE)
 .PHONY: test
 test .coverage:
 	black --check teamplayer
-	rm -rf project
-	django-admin startproject project
-	cp tools/settings.py project/project/settings.py
-	cp tools/urls.py project/project/urls.py
 	coverage erase
-	coverage run --source=teamplayer project/manage.py test -v2 --failfast tests
+	coverage run --source=teamplayer tests/project/manage.py test -v2 --failfast tests
 	coverage report
 
 .PHONY: coverage-report
@@ -47,4 +43,4 @@ shell:
 
 .PHONY: clean
 clean:
-	rm -rf .coverage .venv build dist htmlcov project __pypackages__	
+	rm -rf .coverage .venv build dist htmlcov project __pypackages__ tests/project/library_index tests/project/media

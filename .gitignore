@@ -9,6 +9,7 @@
 /dist/
 /docker-compose.override.yml
 /htmlcov/
-/project/
 /pyvenv.cfg
 __pypackages__
+tests/project/library_index/
+tests/project/media/
