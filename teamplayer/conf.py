@@ -2,6 +2,7 @@
 App-specific settings defaults for the TeamPlayer app
 """
 
+import builtins
 import json
 import os
 from dataclasses import dataclass, fields
@@ -33,7 +34,7 @@ class TeamPlayerSettings:
     SCROBBLER_PASSWORD: str = ""
     LASTFM_APIKEY: str = "2d5952c801e074e3251bafb77f54e680"
     LASTFM_APISECRET: str = "23dd84f772d374d7f8230d74afc8d269"
-    CROSSFADE: int = 0
+    CROSSFADE: float = 0.0
     SHAKE_THINGS_UP: int = 0
     SHAKE_THINGS_UP_FILTER: str = '{"length__lt": 300, "length__gt": 0}'
     ALWAYS_SHAKE_THINGS_UP: bool = False
@@ -53,11 +54,11 @@ class TeamPlayerSettings:
                 continue
 
             match field.type:
-                case "bool":
+                case builtins.bool:
                     value = strtobool(mapping[key])
-                case "int":
+                case builtins.int:
                     value = int(mapping[key])
-                case "float":
+                case builtins.float:
                     value = float(mapping[key])
                 case _:
                     value = mapping[key]
