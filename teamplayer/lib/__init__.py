@@ -4,7 +4,7 @@ import datetime
 import os
 import tempfile
 import uuid
-from typing import BinaryIO, cast
+from typing import BinaryIO, Iterable, Optional, TypeVar, cast
 
 import django.http
 import mutagen.mp3
@@ -14,18 +14,23 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from teamplayer import models
 
+_T = TypeVar("_T")
 CHUNKSIZE = 64 * 1024
 utc = datetime.timezone.utc
 
 
-def list_iter(list_, previous=None):
-    if not list_:
-        return
+def list_iter(items: Iterable[_T], start: Optional[_T] = None) -> Iterable[_T]:
+    """Yield each item if items
 
-    my_list = list_[:]
-    if previous is not None:
+    If start is given and is a member of items, then the item fillowing that one is
+    yielded first, and subsequent items are yielded in round-robin fashion back up to
+    start. Otherwise items are yielded in the original order they are provided.
+    """
+    my_list = list(items)
+
+    if start is not None:
         try:
-            index = my_list.index(previous)
+            index = my_list.index(start)
             my_list = my_list[index + 1 :] + my_list[: index + 1]
         except ValueError:
             pass

@@ -216,3 +216,23 @@ class AttemptFileRenameTest(TestCase):
         # then it returns None because the directory is still bad and we don't
         # rename directories
         self.assertEqual(new_name, None)
+
+
+class ListIter(TestCase):
+    def test_no_previous(self) -> None:
+        items = [1, 2, 3, 4]
+
+        self.assertEqual(list(teamplayer.lib.list_iter(items)), items)
+
+    def test_with_previous_found(self) -> None:
+        items = [1, 2, 3, 4]
+
+        self.assertEqual(list(teamplayer.lib.list_iter(items, 2)), [3, 4, 1, 2])
+
+    def test_with_previous_not_found(self) -> None:
+        items = [1, 2, 3, 4]
+
+        self.assertEqual(list(teamplayer.lib.list_iter(items, 5)), items)
+
+    def test_empty(self) -> None:
+        self.assertEqual(list(teamplayer.lib.list_iter([])), [])
