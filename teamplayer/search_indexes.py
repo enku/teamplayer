@@ -10,5 +10,5 @@ class LibraryItemIndex(indexes.SearchIndex, indexes.Indexable):
     album = indexes.CharField(model_attr="album")
     genre = indexes.CharField(model_attr="genre", null=True)
 
-    def get_model(self):
+    def get_model(self) -> type[LibraryItem]:
         return LibraryItem
