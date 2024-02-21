@@ -5,6 +5,7 @@ ORM models for the TeamPlayer app
 from __future__ import annotations
 
 import datetime
+import functools
 import importlib.metadata
 import logging
 import os
@@ -24,8 +25,6 @@ from typing_extensions import NotRequired, TypedDict
 from teamplayer import lib, logger
 from teamplayer.conf import settings
 from teamplayer.lib import signals
-
-DJ_ANGO: "Player" | None = None
 
 
 class EntryDict(TypedDict):
@@ -437,13 +436,9 @@ class Player(models.Model):
         }
 
     @classmethod
+    @functools.cache
     def dj_ango(cls) -> Player:
-        global DJ_ANGO
-        if DJ_ANGO:
-            return DJ_ANGO
-
-        DJ_ANGO = cls.objects.get(user__username="DJ Ango")
-        return DJ_ANGO
+        return cls.objects.get(user__username="DJ Ango")
 
     @classmethod
     def active_players(cls) -> models.QuerySet[Player]:
