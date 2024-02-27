@@ -44,3 +44,7 @@ shell:
 .PHONY: clean
 clean:
 	rm -rf .coverage .venv build dist htmlcov project __pypackages__ tests/project/library_index tests/project/media
+
+.PHONY: update
+update:
+	pdm update --update-eager
