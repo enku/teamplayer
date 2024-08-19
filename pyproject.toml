@@ -11,8 +11,8 @@ dependencies = [
     "python-mpd2",
     "requests",
     "tornado",
-    "Django>=4.1.1,<5.0",  # current haystack does not work with Django 5
-    "django-haystack>=3.2.1",
+    "Django>=5.0",
+    "django-haystack>=3.3.0",
     "djangorestframework>=3.14.0",
     "mutagen>=1.45.1",
     "setuptools",  # haystack needs this though it's now in their deps
