@@ -3,7 +3,7 @@ VERSION = $(shell pdm show --version)
 
 SDIST = dist/$(NAME)-$(VERSION).tar.gz
 WHEEL = dist/$(NAME)-$(VERSION)-py3-none-any.whl
-SOURCE = setup.py MANIFEST.in $(shell find teamplayer -type f -print)
+SOURCE = $(shell find teamplayer -type f -print)
 
 export DJANGO_DEBUG
 
