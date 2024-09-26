@@ -49,17 +49,28 @@ version = { source = "scm" }
 
 [tool.pdm.dev-dependencies]
 dev = [
-    "black>=22.8.0",
-    "coverage>=6.5.0",
+    "black>=24.8.0",
+    "coverage>=7.6.1",
     "Whoosh>=2.7.4",
     "isort>=5.10.1",
     "typos>=1.17.2",
-    "mypy>=1.8.0",
+    "mypy>=1.11.2",
     "django-stubs>=4.2.7",
     "types-requests>=2.31.0.6",
     "djangorestframework-stubs>=3.14.5",
+    "pylint>=3.3.1",
+    "pylint-django>=2.5.5",
 ]
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
+
+[tool.pylint.master]
+load-plugins = "pylint_django,pylint.extensions.bad_builtin"
+django-settings-module = "tests.project.project.settings"
+bad-functions = "print"
+ignore = ["/migrations/"]
+
+[tool.pylint.'MESSAGES CONTROL']
+disable = ["missing-docstring"]

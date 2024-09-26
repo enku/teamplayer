@@ -48,3 +48,7 @@ clean:
 .PHONY: update
 update:
 	pdm update --update-eager
+
+.PHONY: pylint
+pylint:
+	pdm run pylint teamplayer tests
