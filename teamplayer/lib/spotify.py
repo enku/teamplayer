@@ -2,7 +2,7 @@
 
 import base64
 import time
-from typing import TypedDict
+from typing import Any, TypedDict
 
 import requests
 
@@ -39,7 +39,7 @@ class Auth:
         return elapsed >= cls.token["expires_in"]
 
     @classmethod
-    def refresh_token(cls) -> dict:
+    def refresh_token(cls) -> Token:
         creds = f"{cls.client_id}:{cls.client_secret}"
         encoded_creds = base64.b64encode(creds.encode("ascii")).decode("ascii")
         headers = {"Authorization": f"Basic {encoded_creds}"}
@@ -50,7 +50,7 @@ class Auth:
         if response.status_code != 200:
             raise TokenRefreshError(response.content)
 
-        token = response.json()
+        token: Token = response.json()
         timestamp = time.strptime(response.headers["date"], "%a, %d %b %Y %H:%M:%S GMT")
         token["_granted"] = time.mktime(timestamp)
 
@@ -59,21 +59,22 @@ class Auth:
         return token
 
     @classmethod
-    def check_expiration(cls):
+    def check_expiration(cls) -> None:
         if cls.token_expired():
             cls.refresh_token()
 
     @classmethod
-    def get_auth_header(cls) -> dict:
+    def get_auth_header(cls) -> dict[str, str]:
         cls.check_expiration()
         return {"Authorization": f"Bearer {cls.token['access_token']}"}
 
 
-def search(query_type: str, query: str) -> dict:
+def search(query_type: str, query: str) -> dict[str, Any]:
     response = requests.get(
         "https://api.spotify.com/v1/search",
         {"q": query, "type": query_type},
         headers=Auth.get_auth_header(),
     )
 
-    return response.json()
+    search_result: dict[str, Any] = response.json()
+    return search_result

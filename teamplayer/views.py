@@ -62,11 +62,11 @@ def home(request: HttpRequest, station_id: str | int | None = None) -> HttpRespo
 
     if station_id is None:
         return redirect_to_home(request)
-    else:
-        try:
-            station = Station.objects.get(pk=station_id)
-        except Station.DoesNotExist:
-            return redirect_to_home(request)
+
+    try:
+        station = Station.objects.get(pk=station_id)
+    except Station.DoesNotExist:
+        return redirect_to_home(request)
 
     request.session["station_id"] = station.pk
 
@@ -284,11 +284,11 @@ def change_dj_name(request: HttpRequest) -> HttpResponse:
     return HttpResponseNoContent("")
 
 
-def logout(request: HttpRequest) -> HttpResponseRedirect:
+def logout(request: HttpRequest) -> HttpResponse:
     """Log out the player from TP"""
     auth_logout(request)
     messages.info(request, "Thanks for playing.")
-    return HttpResponseRedirect(reverse(auth_views.LoginView))
+    return redirect_to_home(request)
 
 
 def registration(request: HttpRequest) -> HttpResponse:

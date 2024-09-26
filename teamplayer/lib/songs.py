@@ -5,7 +5,7 @@ Library to deal with song files and song metadata
 import datetime
 import random
 from functools import lru_cache
-from typing import Iterable, TypedDict
+from typing import Iterable, NotRequired, TypedDict
 
 import pylast
 from django.conf import settings as django_settings
@@ -38,6 +38,7 @@ class SongMetaData(TypedDict):
     album: str
     type: str
     mimetype: str
+    total_time: NotRequired[int]
 
 
 class SongMetadataError(Exception):
@@ -133,7 +134,7 @@ def get_similar_artists(artist: str) -> list[str]:
 
 
 @lru_cache(maxsize=256)
-def top_artists_from_tag(tag: str, limit=100) -> list[str]:
+def top_artists_from_tag(tag: str, limit: int = 100) -> list[str]:
     """Return a list of artists from the given "tag"
 
     Args:
@@ -236,9 +237,9 @@ def best_song_from_player(
 
 
 def find_a_song(
-    players: Iterable[models.Station],
+    players: Iterable[models.Player],
     station: models.Station,
-    previous_player: models.Station | None = None,
+    previous_player: models.Player | None = None,
     previous_artist: str | None = None,
 ) -> models.Entry | None:
     """
@@ -310,7 +311,7 @@ def auto_find_song(
     return entries[0]
 
 
-def scrobble_song(song: dict, now_playing: bool = False) -> bool:
+def scrobble_song(song: SongMetaData, now_playing: bool = False) -> bool:
     """
     scrobble this song.
 

@@ -27,7 +27,10 @@ from .songs import artists_from_tags, split_tag_into_words
 
 
 def auto_fill_random(
-    *, queryset: QuerySet, entries_needed: int, station: Station
+    *,
+    queryset: QuerySet[LibraryItem],
+    entries_needed: int,
+    station: Station,  # pylint: disable=unused-argument
 ) -> list[LibraryItem]:
     """Return at most *entries_needed* LibraryItems from the *queryset*.
 
@@ -49,7 +52,10 @@ def auto_fill_random(
 
 
 def auto_fill_contiguous(
-    *, queryset: QuerySet, entries_needed: int, station: Station
+    *,
+    queryset: QuerySet[LibraryItem],
+    entries_needed: int,
+    station: Station,  # pylint: disable=unused-argument
 ) -> list[LibraryItem]:
     """Return at most *entries_needed* LibraryItems from the *queryset*.
 
@@ -69,7 +75,7 @@ def auto_fill_contiguous(
 
 def auto_fill_mood(
     *,
-    queryset: QuerySet,
+    queryset: QuerySet[LibraryItem],
     entries_needed: int,
     station: Station,
     seconds: int | None = None,
@@ -131,7 +137,7 @@ def auto_fill_mood(
 
 
 def auto_fill_from_tags(
-    *, queryset: QuerySet, entries_needed: int, station: Station
+    *, queryset: QuerySet[LibraryItem], entries_needed: int, station: Station
 ) -> list[LibraryItem]:
     """Return at most `entries_needed` LibraryItems with `station`'s tags
 

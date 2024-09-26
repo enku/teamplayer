@@ -127,7 +127,7 @@ class Queue(models.Model):
         return self.active
 
     @property
-    def user(self) -> User:
+    def user(self) -> "django.contrib.auth.models.AbstractUser":
         return self.player.user
 
     def auto_fill(
