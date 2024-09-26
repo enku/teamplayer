@@ -24,7 +24,7 @@ class EditStationForm(forms.Form):
         return name
 
     def clean(self) -> dict[str, Any]:
-        cleaned_data = super(EditStationForm, self).clean()
+        cleaned_data = super().clean()
         assert cleaned_data is not None
 
         if "name" in cleaned_data:
@@ -54,7 +54,7 @@ class ChangeDJNameForm(forms.Form):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.player = kwargs.pop("player")
-        super(ChangeDJNameForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean_dj_name(self) -> str:
         name: str = self.cleaned_data["dj_name"].strip()

@@ -14,8 +14,9 @@ from teamplayer import __path__ as my_path
 
 
 @dataclass(frozen=True)
-class TeamPlayerSettings:
+class TeamPlayerSettings:  # pylint: disable=too-many-instance-attributes
 
+    # pylint: disable=invalid-name
     MPD_HOME: str = my_path[0]
     QUEUE_DIR: str = ""
     MPD_ADDRESS: str = "localhost"
@@ -69,8 +70,11 @@ class TeamPlayerSettings:
 
     @classmethod
     def from_environ(
-        cls, *, prefix: str | None = None, env: Mapping[str, str] = os.environ
+        cls, *, prefix: str | None = None, env: Mapping[str, str] | None = None
     ):
+        if env is None:
+            env = os.environ
+
         if prefix is None:
             prefix = "TEAMPLAYER_"
 

@@ -287,7 +287,7 @@ def auto_find_song(
     if entries.count() == 0:
         return None
 
-    artists = set([i.artist.lower() for i in entries])
+    artists = {i.artist.lower() for i in entries}
     if len(artists) == 1:
         # the similarity is inconsequential
         return entries[0]

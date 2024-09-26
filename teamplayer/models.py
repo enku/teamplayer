@@ -16,7 +16,7 @@ import django.http
 import mutagen.mp3
 import tornado.httputil
 from django.conf import settings as django_settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import models, transaction
@@ -25,6 +25,8 @@ from typing_extensions import NotRequired, TypedDict
 from teamplayer import lib, logger
 from teamplayer.conf import settings
 from teamplayer.lib import signals
+
+User = get_user_model()
 
 
 class EntryDict(TypedDict):
@@ -45,6 +47,7 @@ class Queue(models.Model):
 
     objects = models.Manager()
     active = models.BooleanField(default=True)
+    player: Player
 
     def __str__(self) -> str:
         return f"{self.player.username}'s Queue"
@@ -225,7 +228,7 @@ class Entry(models.Model):
                 os.unlink(filename)
             except OSError:
                 pass
-        return super(Entry, self).delete(using=using, keep_parents=keep_parents)
+        return super().delete(using=using, keep_parents=keep_parents)
 
     def artist_mood(self, station: Station) -> int:
         """
@@ -274,18 +277,18 @@ class Mood(models.Model):
 class StationManager(models.Manager["Station"]):
     def get_queryset(self) -> models.QuerySet[Station]:
         """Override default queryset to only return enabled stations"""
-        return super(StationManager, self).get_queryset().filter(enabled=True)
+        return super().get_queryset().filter(enabled=True)
 
     @property
     def disabled(self) -> models.QuerySet[Station]:
         """Return queryset for all disabled stations"""
-        return super(StationManager, self).get_queryset().filter(enabled=False)
+        return super().get_queryset().filter(enabled=False)
 
     def create_station(self, **kwargs: Any) -> Station:
         songs = kwargs.pop("songs", [])
         creator = kwargs.pop("creator")
 
-        qs = super(StationManager, self).get_queryset()
+        qs = super().get_queryset()
         station, _ = qs.get_or_create(creator=creator)
         for name, value in kwargs.items():
             setattr(station, name, value)

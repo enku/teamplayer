@@ -6,7 +6,7 @@ import django.http
 from .models import Player, Queue, Station
 
 
-class TeamPlayerMiddleware:
+class TeamPlayerMiddleware:  # pylint: disable=too-few-public-methods
     """Special middleware for TeamPlayer
 
     This middleware requires the auth and session middlewares, so be certain to

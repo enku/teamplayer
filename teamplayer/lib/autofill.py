@@ -142,7 +142,7 @@ def auto_fill_from_tags(
     stationname = station.name
     tags = stationname.split()
     tags = [split_tag_into_words(i[1:]) for i in tags if i.startswith("#")]
-    logger.debug("Tags: %s" % ", ".join(tags))
+    logger.debug("Tags: %s", ", ".join(tags))
     artists = artists_from_tags(tags)
     songfiles = queryset.filter(artist__in=artists)
 

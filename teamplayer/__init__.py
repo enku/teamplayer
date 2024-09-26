@@ -15,4 +15,4 @@ class TeamPlayerConfig(AppConfig):
     verbose_name = "TeamPlayer"
 
 
-default_app_config = "teamplayer.TeamPlayerConfig"
+default_app_config = "teamplayer.TeamPlayerConfig"  # pylint: disable=invalid-name
