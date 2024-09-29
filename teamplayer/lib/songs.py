@@ -5,7 +5,7 @@ Library to deal with song files and song metadata
 import datetime
 import random
 from functools import lru_cache
-from typing import Iterable, NotRequired, TypedDict
+from typing import Iterable, TypedDict
 
 import pylast
 from django.conf import settings as django_settings
@@ -38,7 +38,7 @@ class SongMetaData(TypedDict):
     album: str
     type: str
     mimetype: str
-    total_time: NotRequired[int]
+    total_time: int
 
 
 class SongMetadataError(Exception):
