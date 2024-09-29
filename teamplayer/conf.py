@@ -6,7 +6,7 @@ import builtins
 import json
 import os
 from dataclasses import dataclass, fields
-from typing import Any, Mapping, Self
+from typing import Any, Mapping
 
 from strtobool import strtobool
 
@@ -47,7 +47,7 @@ class TeamPlayerSettings:  # pylint: disable=too-many-instance-attributes
     SPOTIFY_CLIENT_SECRET: str = "67a7221fdf884aabb23f5d61969da609"
 
     @classmethod
-    def from_dict(cls, prefix: str, mapping: Mapping[str, str]) -> Self:
+    def from_dict(cls, prefix: str, mapping: Mapping[str, str]) -> "TeamPlayerSettings":
         params: dict[str, Any] = {}
 
         for field in fields(cls):
@@ -71,7 +71,7 @@ class TeamPlayerSettings:  # pylint: disable=too-many-instance-attributes
     @classmethod
     def from_environ(
         cls, *, prefix: str | None = None, env: Mapping[str, str] | None = None
-    ) -> Self:
+    ) -> "TeamPlayerSettings":
         if env is None:
             env = os.environ
 
