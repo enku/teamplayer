@@ -149,6 +149,7 @@ class Queue(models.Model):
         though it's not enforced in the code.
         """
         # to avoid circular imports
+        # pylint: disable=import-outside-toplevel
         from teamplayer.lib.autofill import auto_fill_from_tags
 
         qs_filter = qs_filter or {}
@@ -156,12 +157,8 @@ class Queue(models.Model):
         station = station or Station.main_station()
         station = Station.objects.get(pk=station.pk)  # re-fetch
         entries = Entry.objects.filter(queue=self, station=station)
-        entries_count = entries.count()
         if entries.count() > minimum:
             return
-        entries_needed = max_entries - entries_count
-
-        song_files_query = LibraryItem.objects.filter(**qs_filter)
 
         if station != Station.main_station():
             assert station
@@ -179,8 +176,8 @@ class Queue(models.Model):
             strategy = entry_point.load()
 
         song_files = strategy(
-            entries_needed=entries_needed,
-            queryset=song_files_query,
+            entries_needed=max_entries - entries.count(),
+            queryset=LibraryItem.objects.filter(**qs_filter),
             station=station,
         )
 
@@ -190,10 +187,13 @@ class Queue(models.Model):
                 with open(songfile.filename, "rb") as fp:
                     model_file = File(fp)
                     self.add_song(model_file, station)
+            # I think originally this was set to be broad because we don't know what
+            # kinds of exceptions mutagen is going to raise. TODO: capture mutagen
+            # errors where it is called and raise a custom exception that we can catch
+            # here.
+            # pylint: disable=broad-exception-caught
             except Exception:
-                logger.error(
-                    "auto_fill exception: LibraryItem(%s)", songfile.pk, exc_info=True
-                )
+                logger.exception("auto_fill exception: LibraryItem(%s)", songfile.pk)
         if song_files:
             signals.QUEUE_CHANGE_EVENT.set()
             signals.QUEUE_CHANGE_EVENT.clear()
