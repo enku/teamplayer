@@ -148,10 +148,7 @@ class MPCTest(TestCase):
         # when we call .currently_playing() and mpd's currentsong
         # returns no "title" key
         config = {
-            "currentsong.return_value": {
-                "file": "1-silence.mp3",
-                "artist": "Prince",
-            },
+            "currentsong.return_value": {"file": "1-silence.mp3", "artist": "Prince"},
             "status.return_value": {
                 "state": "play",
                 "time": "100:300",

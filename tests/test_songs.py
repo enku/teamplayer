@@ -37,10 +37,7 @@ class AutoFindSong(TestCase):
         queue = self.player.queue
 
         # Current mood...
-        Mood.objects.create(
-            station=self.main_station,
-            artist="Prince",
-        )
+        Mood.objects.create(station=self.main_station, artist="Prince")
 
         # And the entries
         Entry.objects.create(
@@ -70,10 +67,7 @@ class AutoFindSong(TestCase):
         queue = self.player.queue
 
         # And Current mood
-        Mood.objects.create(
-            station=self.main_station,
-            artist="Prince",
-        )
+        Mood.objects.create(station=self.main_station, artist="Prince")
 
         # When we call auto_find_song
         song = songs.auto_find_song(None, queue, self.main_station)
@@ -89,10 +83,7 @@ class AutoFindSong(TestCase):
         queue = self.player.queue
 
         # Current mood...
-        Mood.objects.create(
-            station=self.main_station,
-            artist="Prince",
-        )
+        Mood.objects.create(station=self.main_station, artist="Prince")
 
         # And the entries that don't fit the mood
         happiness = Entry.objects.create(
@@ -126,10 +117,7 @@ class AutoFindSong(TestCase):
         queue = self.player.queue
 
         # Current mood...
-        Mood.objects.create(
-            station=self.main_station,
-            artist="Prince",
-        )
+        Mood.objects.create(station=self.main_station, artist="Prince")
 
         # And the entries with a song that fits the mood
         Entry.objects.create(
@@ -166,10 +154,7 @@ class ScrobbleSongTest(TestCase):
 
         # then it makes the appropriate call to the scrobbler
         Network.return_value.update_now_playing.assert_called_with(
-            "Prince",
-            "Purple Rain",
-            album="Purple Rain",
-            duration=190,
+            "Prince", "Purple Rain", album="Purple Rain", duration=190
         )
 
     def test_not_now_playing(self):
@@ -189,11 +174,7 @@ class ScrobbleSongTest(TestCase):
         # then it makes the appropriate call to the scrobbler
         timestamp = int(now().timestamp()) - 190
         Network.return_value.scrobble.assert_called_with(
-            "Prince",
-            "Purple Rain",
-            timestamp,
-            album="Purple Rain",
-            duration=190,
+            "Prince", "Purple Rain", timestamp, album="Purple Rain", duration=190
         )
 
     def test_returns_True_on_success(self):

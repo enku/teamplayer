@@ -6,14 +6,12 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("teamplayer", "0006_add_playlog_model"),
-    ]
+    dependencies = [("teamplayer", "0006_add_playlog_model")]
 
     operations = [
         migrations.AddField(
             model_name="entry",
             name="album",
             field=models.CharField(max_length=254, null=True),
-        ),
+        )
     ]

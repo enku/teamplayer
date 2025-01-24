@@ -70,14 +70,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """Send a message to all connections associated with player"""
         clients = [i for i in cls.clients if i.player == player]
         for client in clients:
-            client.write_message(
-                dumps(
-                    {
-                        "type": message_type,
-                        "data": data,
-                    }
-                )
-            )
+            client.write_message(dumps({"type": message_type, "data": data}))
         return len(clients)
 
     @classmethod
@@ -88,14 +81,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         for client in cls.clients:
             if client in exclude:
                 continue
-            client.write_message(
-                dumps(
-                    {
-                        "type": message_type,
-                        "data": data,
-                    }
-                )
-            )
+            client.write_message(dumps({"type": message_type, "data": data}))
 
     @classmethod
     def broadcast_player_stats(cls) -> None:
@@ -122,10 +108,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     def notify_clients(cls, sender: models.Player, **kwargs: Any) -> None:
         """Signal handler to send a message to clients when the song changes."""
         current_song = kwargs["current_song"]
-        cls.broadcast(
-            "song_change",
-            current_song,
-        )
+        cls.broadcast("song_change", current_song)
         cls.broadcast_player_stats()
         cls.broadcast_station_stats()
 
@@ -176,11 +159,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
         cls.conn = cls.conn or cls.get_conn()
         cls.conn.write_message(
             dumps(
-                {
-                    "type": message_type,
-                    "key": django_settings.SECRET_KEY,
-                    "data": data,
-                }
+                {"type": message_type, "key": django_settings.SECRET_KEY, "data": data}
             )
         )
 
@@ -333,9 +312,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
                 "path": songfile.filename,
             }
             signals.library_add.send(
-                models.Player,
-                player=entry.queue.player,
-                song_info=song_info,
+                models.Player, player=entry.queue.player, song_info=song_info
             )
         else:
             os.unlink(fullpath)
@@ -343,10 +320,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
     def handle_dj_name_change(self, data: Any) -> None:
         SocketHandler.broadcast(
             "dj_name_change",
-            {
-                "previous_dj_name": data["previous_dj_name"],
-                "dj_name": data["dj_name"],
-            },
+            {"previous_dj_name": data["previous_dj_name"], "dj_name": data["dj_name"]},
         )
 
     def handle_user_created(self, data: Any) -> None:

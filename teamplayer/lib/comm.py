@@ -247,11 +247,7 @@ def play_log(sender: Station, **kwargs: Any) -> PlayLog | None:
     title = song_info["title"]
     time = now()
     playlog = PlayLog.objects.create(
-        artist=artist,
-        player=player,
-        station=station,
-        time=time,
-        title=title,
+        artist=artist, player=player, station=station, time=time, title=title
     )
 
     logger.debug("%s", playlog)

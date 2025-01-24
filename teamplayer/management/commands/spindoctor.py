@@ -78,10 +78,7 @@ def start_socket_server() -> None:
     """Start the tornado event loop"""
     logger.debug("Tornado has started")
     application = tornado.web.Application(
-        [
-            (r"/", SocketHandler),
-            (r"/ipc", IPCHandler),
-        ]
+        [(r"/", SocketHandler), (r"/ipc", IPCHandler)]
     )
     application.listen(settings.WEBSOCKET_PORT)
 

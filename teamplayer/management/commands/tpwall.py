@@ -26,10 +26,6 @@ class Command(BaseCommand):
         )
         conn.write_message(
             json.dumps(
-                {
-                    "type": "wall",
-                    "key": django_settings.SECRET_KEY,
-                    "data": message,
-                }
+                {"type": "wall", "key": django_settings.SECRET_KEY, "data": message}
             )
         )

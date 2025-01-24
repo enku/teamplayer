@@ -73,3 +73,6 @@ ignore = ["/migrations/"]
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = ["missing-docstring"]
+
+[tool.black]
+skip_magic_trailing_comma = true

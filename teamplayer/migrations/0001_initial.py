@@ -6,9 +6,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-    ]
+    dependencies = [migrations.swappable_dependency(settings.AUTH_USER_MODEL)]
 
     operations = [
         migrations.CreateModel(
@@ -29,9 +27,7 @@ class Migration(migrations.Migration):
                 ("artist", models.CharField(verbose_name="Unknown", max_length=254)),
                 ("filetype", models.CharField(max_length=4)),
             ],
-            options={
-                "ordering": ("-place", "id"),
-            },
+            options={"ordering": ("-place", "id")},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
@@ -49,9 +45,7 @@ class Migration(migrations.Migration):
                 ("artist", models.TextField()),
                 ("timestamp", models.DateTimeField(auto_now=True, auto_now_add=True)),
             ],
-            options={
-                "ordering": ("-timestamp", "artist"),
-            },
+            options={"ordering": ("-timestamp", "artist")},
             bases=(models.Model,),
         ),
         migrations.CreateModel(

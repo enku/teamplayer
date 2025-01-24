@@ -5,9 +5,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("teamplayer", "0002_initial_data"),
-    ]
+    dependencies = [("teamplayer", "0002_initial_data")]
 
     operations = [
         migrations.AlterField(

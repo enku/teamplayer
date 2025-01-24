@@ -43,9 +43,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-            ],
+            ]
         },
-    },
+    }
 ]
 WSGI_APPLICATION = "project.wsgi.application"
 DATABASES = {
@@ -63,9 +63,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = "/opt/teamplayer/static"
 HAYSTACK_CONNECTIONS = {
-    "default": {
-        "ENGINE": "haystack.backends.simple_backend.SimpleEngine",
-    },
+    "default": {"ENGINE": "haystack.backends.simple_backend.SimpleEngine"}
 }
 
 HAYSTACK_SIGNAL_PROCESSOR = "haystack.signals.RealtimeSignalProcessor"

@@ -36,10 +36,7 @@ class LibSongs(TestCase):
 
     @patch("teamplayer.lib.websocket.IPCHandler.send_message")
     def setUp(self, mock):
-        self.user_data = {
-            "username": "br",
-            "password": "blah blah",
-        }
+        self.user_data = {"username": "br", "password": "blah blah"}
 
         self.player = teamplayer.models.Player.objects.create_player(**self.user_data)
         self.user = self.player.user

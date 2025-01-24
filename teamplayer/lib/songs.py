@@ -333,21 +333,10 @@ def scrobble_song(song: SongMetaData, now_playing: bool = False) -> bool:
     try:
         logger.debug("Scrobbling “%s” by %s", song["title"], song["artist"])
         if now_playing:
-            network.update_now_playing(
-                artist,
-                title,
-                album=album,
-                duration=length,
-            )
+            network.update_now_playing(artist, title, album=album, duration=length)
         else:
             timestamp = int(now().timestamp()) - length
-            network.scrobble(
-                artist,
-                title,
-                timestamp,
-                album=album,
-                duration=length,
-            )
+            network.scrobble(artist, title, timestamp, album=album, duration=length)
     except pylast.WSError:
         return False
 

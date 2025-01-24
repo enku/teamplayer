@@ -104,11 +104,7 @@ class Command(BaseCommand):
                 continue
 
             if created:
-                logger.info(
-                    'added "%s" by %s',
-                    songfile.title,
-                    songfile.artist,
-                )
+                logger.info('added "%s" by %s', songfile.title, songfile.artist)
                 self.created += 1
             else:
                 self.skipped += 1

@@ -70,21 +70,14 @@ class PlayerTestCase(TestCase):
         # When we access the player_stats classmethod
         result = Player.player_stats()
 
-        expected = {
-            "active_queues": 1,
-            "songs": 0,
-            "stations": 1,
-        }
+        expected = {"active_queues": 1, "songs": 0, "stations": 1}
         # Then we get stats
         self.assertEqual(result, expected)
 
 
 class QueueViewsTestCase(TestCase):
     def setUp(self):
-        self.user_data = {
-            "username": "br",
-            "password": "blah blah",
-        }
+        self.user_data = {"username": "br", "password": "blah blah"}
 
         self.player = Player.objects.create_player(**self.user_data)
 
@@ -138,9 +131,7 @@ class QueueTestCase(TestCase):
         # add some songs
         for _ in range(5):
             Entry.objects.create(
-                song=SILENCE,
-                queue=self.player.queue,
-                station=self.station,
+                song=SILENCE, queue=self.player.queue, station=self.station
             )
 
     def test_reorder(self):
@@ -449,15 +440,9 @@ class StationTest(TestCase):
 
         # with a song in each station
         song1 = Entry.objects.create(
-            song=SILENCE,
-            queue=self.player.queue,
-            station=station1,
+            song=SILENCE, queue=self.player.queue, station=station1
         )
-        Entry.objects.create(
-            song=SILENCE,
-            queue=self.player.queue,
-            station=station2,
-        )
+        Entry.objects.create(song=SILENCE, queue=self.player.queue, station=station2)
 
         # when we call .get_songs() on a station
         song_qs = station1.get_songs()
@@ -696,11 +681,7 @@ class PlayLogTest(TestCase):
         time = timezone.now()
 
         self.playlog = PlayLog(
-            artist=artist,
-            player=player,
-            station=station,
-            time=time,
-            title=title,
+            artist=artist, player=player, station=station, time=time, title=title
         )
 
     def test_str(self):

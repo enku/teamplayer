@@ -7,9 +7,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("teamplayer", "0004_station_enabled"),
-    ]
+    dependencies = [("teamplayer", "0004_station_enabled")]
 
     operations = [
         migrations.CreateModel(
@@ -45,7 +43,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AlterUniqueTogether(
-            name="libraryitem",
-            unique_together=set([("artist", "title", "album")]),
+            name="libraryitem", unique_together=set([("artist", "title", "album")])
         ),
     ]

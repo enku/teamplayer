@@ -67,9 +67,7 @@ class RandomTest(AutoFillTest, TestCase):
 
         # when we call the random strategy
         result = auto_fill_random(
-            entries_needed=10,
-            queryset=queryset,
-            station=Station.main_station(),
+            entries_needed=10, queryset=queryset, station=Station.main_station()
         )
 
         # then it returns an empty list
@@ -125,9 +123,7 @@ class ContiguousTest(AutoFillTest, TestCase):
 
         # when we call the contiguous strategy
         result = auto_fill_contiguous(
-            entries_needed=10,
-            queryset=queryset,
-            station=Station.main_station(),
+            entries_needed=10, queryset=queryset, station=Station.main_station()
         )
 
         # then it returns an empty list
@@ -139,9 +135,7 @@ class ContiguousTest(AutoFillTest, TestCase):
 
         # when we call the contiguous strategy
         result = auto_fill_contiguous(
-            entries_needed=4,
-            queryset=queryset,
-            station=Station.main_station(),
+            entries_needed=4, queryset=queryset, station=Station.main_station()
         )
 
         # then the songs returned are in the same order as they are in the
@@ -158,9 +152,7 @@ class ContiguousTest(AutoFillTest, TestCase):
         # when we call the contiguous strategy needing more songs than are in
         # the queryset
         result = auto_fill_contiguous(
-            entries_needed=20,
-            queryset=queryset,
-            station=Station.main_station(),
+            entries_needed=20, queryset=queryset, station=Station.main_station()
         )
 
         # then we get back a list containing the entire queryset in order
@@ -205,9 +197,7 @@ class MoodTest(AutoFillTest, TestCase):
             settings.AUTOFILL_MOOD_TOP_ARTISTS = 1
             settings.AUTOFILL_MOOD_HISTORY = 86400
             result = auto_fill_mood(
-                entries_needed=1,
-                queryset=queryset,
-                station=station,
+                entries_needed=1, queryset=queryset, station=station
             )
 
         # then it gives us the one song by the top artist
@@ -225,9 +215,7 @@ class MoodTest(AutoFillTest, TestCase):
             settings.AUTOFILL_MOOD_TOP_ARTISTS = 3
             settings.AUTOFILL_MOOD_HISTORY = 86400
             result = auto_fill_mood(
-                entries_needed=3,
-                queryset=queryset,
-                station=station,
+                entries_needed=3, queryset=queryset, station=station
             )
 
         # then it gives us the songs by the top 3 artists
@@ -249,9 +237,7 @@ class MoodTest(AutoFillTest, TestCase):
             settings.AUTOFILL_MOOD_TOP_ARTISTS = 3
             settings.AUTOFILL_MOOD_HISTORY = 86400
             result = auto_fill_mood(
-                entries_needed=1,
-                queryset=queryset,
-                station=station,
+                entries_needed=1, queryset=queryset, station=station
             )
 
         # then obviouly we don't get the top artist because he has no
@@ -271,9 +257,7 @@ class MoodTest(AutoFillTest, TestCase):
             settings.AUTOFILL_MOOD_TOP_ARTISTS = 3
             settings.AUTOFILL_MOOD_HISTORY = 3600
             result = auto_fill_mood(
-                entries_needed=4,
-                queryset=queryset,
-                station=station,
+                entries_needed=4, queryset=queryset, station=station
             )
 
         # then it gives us the songs by the top 3 artists and another artist
@@ -305,9 +289,7 @@ class TagsTest(AutoFillTest, TestCase):
             Tag.reset_mock()
 
             result = auto_fill_from_tags(
-                entries_needed=3,
-                queryset=queryset,
-                station=station,
+                entries_needed=3, queryset=queryset, station=station
             )
 
         # then the queryset is filtered on the artists from the tags
@@ -332,9 +314,7 @@ class TagsTest(AutoFillTest, TestCase):
             p.return_value = [i.artist for i in queryset]
 
             result = auto_fill_from_tags(
-                entries_needed=20,
-                queryset=queryset,
-                station=station,
+                entries_needed=20, queryset=queryset, station=station
             )
 
         # then it returns all the songs in the queryset

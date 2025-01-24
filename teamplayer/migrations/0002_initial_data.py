@@ -24,28 +24,14 @@ def create_initial_data(apps, schema_editor):
 
     Player = apps.get_model("teamplayer", "Player")
     player = Player.objects.create(
-        **{
-            "auto_mode": True,
-            "dj_name": "",
-            "queue": queue,
-            "user": dj_ango,
-        }
+        **{"auto_mode": True, "dj_name": "", "queue": queue, "user": dj_ango}
     )
 
     Station = apps.get_model("teamplayer", "Station")
-    Station.objects.create(
-        **{
-            "name": "Main Station",
-            "creator": player,
-        }
-    )
+    Station.objects.create(**{"name": "Main Station", "creator": player})
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("teamplayer", "0001_initial"),
-    ]
+    dependencies = [("teamplayer", "0001_initial")]
 
-    operations = [
-        migrations.RunPython(create_initial_data),
-    ]
+    operations = [migrations.RunPython(create_initial_data)]

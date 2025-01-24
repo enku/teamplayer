@@ -125,9 +125,7 @@ def auto_fill_mood(
             )
         else:
             additional = auto_fill_random(
-                entries_needed=still_needed,
-                queryset=qs,
-                station=station,
+                entries_needed=still_needed, queryset=qs, station=station
             )
 
     songs = liked_songs + additional

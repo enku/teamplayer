@@ -207,10 +207,7 @@ def toggle_queue_status(request: HttpRequest) -> HttpResponse:
     IPCHandler.send_message(
         "queue_status", {"user": player.username, "status": new_status}
     )
-    return HttpResponse(
-        json.dumps(new_status),
-        content_type="application/json",
-    )
+    return HttpResponse(json.dumps(new_status), content_type="application/json")
 
 
 @login_required
