@@ -267,9 +267,9 @@ class Mood(models.Model):
         cls.objects.create(artist=artist, station=station)
 
         similar_artists = lib.songs.get_similar_artists(artist)
-        for artist in similar_artists:
+        for similar_artist in similar_artists:
             cls.objects.create(
-                artist=artist,
+                artist=similar_artist,
                 station=station,
             )
 
