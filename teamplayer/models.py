@@ -335,6 +335,8 @@ class Station(models.Model):
         return cls.objects.all().order_by("pk")
 
     def current_song(self) -> lib.mpc.CurrentlyPlaying:
+        # Avoid circular import
+        # pylint: disable=import-outside-toplevel
         from teamplayer.lib import mpc as libmpc
 
         return libmpc.MPC(station=self).currently_playing()
@@ -342,6 +344,8 @@ class Station(models.Model):
     def url(
         self, request: django.http.HttpRequest | tornado.httputil.HTTPServerRequest
     ) -> str:
+        # Avoid circular import
+        # pylint: disable=import-outside-toplevel
         from teamplayer.lib import mpc as libmpc
 
         http_host = (
@@ -375,7 +379,7 @@ class Station(models.Model):
         return cls.__main_station
 
 
-class PlayerManager(models.Manager["Player"]):
+class PlayerManager(models.Manager["Player"]):  # pylint: disable=too-few-public-methods
     def create_player(self, username: str, **kwargs: Any) -> Player:
         """Create a player with username"""
         user_kwargs = {"username": username}
