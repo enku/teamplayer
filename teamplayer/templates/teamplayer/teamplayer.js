@@ -12,7 +12,7 @@ var TeamPlayer = (function () {
             home: '{% url "home" %}',
             currently_playing:  '{% url "currently_playing" %}',
             add_to_queue: '{% url "add_to_queue" %}',
-            artist_page: '{% url "artist_page" "" %}',
+            artist_page: '{% url "artist_page" "Prince" %}',
             clear_png: '{% static "images/clear.png" %}',
             web_socket: '{{ websocket_url }}',
             reorder_queue: '{% url "reorder_queue" %}',
@@ -21,7 +21,7 @@ var TeamPlayer = (function () {
             show_players: '{% url "show_players" %}',
             main_view: '{% url "show_queue" %}',
             player: '{% url "player" %}',
-            my_station: '{% url "station_detail" "mine" %}'
+            my_station: '{% url "my_station" %}'
         },
 
         // current song
