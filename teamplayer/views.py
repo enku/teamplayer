@@ -2,7 +2,6 @@
 Views for the teamplayer django app
 """
 
-import json
 from importlib.metadata import version
 from typing import Any, NoReturn
 from urllib.parse import quote_plus
@@ -16,7 +15,7 @@ from django.core.files import File
 from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
 from django.db.models import Count, Sum
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
 from django.urls import reverse
@@ -71,9 +70,7 @@ def home(request: HttpRequest, station_id: str | int | None = None) -> HttpRespo
 
     if not request.accepts("text/html"):
         serializer = StationSerializer(station, context={"request": request})
-        return HttpResponse(
-            json.dumps(serializer.data), content_type="application/json"
-        )
+        return JsonResponse(serializer.data)
 
     return render(
         request,
@@ -133,7 +130,7 @@ def show_players(request: HttpRequest) -> Response:
 
 @login_required
 @require_POST
-def add_to_queue(request: HttpRequest) -> HttpResponse:
+def add_to_queue(request: HttpRequest) -> JsonResponse:
     """
     Add song to the queue
     """
@@ -162,7 +159,7 @@ def add_to_queue(request: HttpRequest) -> HttpResponse:
                 "not recognize the type of file you sent"
             )
         }
-        return HttpResponse(json.dumps(status), content_type="application/json")
+        return JsonResponse(status)
 
     # notify the Spin Doctor
     IPCHandler.send_message("song_added", entry.pk)
@@ -170,9 +167,7 @@ def add_to_queue(request: HttpRequest) -> HttpResponse:
     if settings.UPLOADED_LIBRARY_DIR:
         IPCHandler.send_message("library_add", entry.pk)
 
-    return HttpResponse(
-        json.dumps(EntrySerializer(entry).data), content_type="application/json"
-    )
+    return JsonResponse(EntrySerializer(entry).data)
 
 
 @login_required
@@ -199,14 +194,14 @@ def order_by_rank(request: HttpRequest) -> HttpResponseRedirect:
 
 @login_required
 @require_POST
-def toggle_queue_status(request: HttpRequest) -> HttpResponse:
+def toggle_queue_status(request: HttpRequest) -> JsonResponse:
     """Toggle player's queue's active status"""
     player: Player = request.player  # type: ignore[attr-defined]
     new_status = bool(player.queue.toggle_status())
     IPCHandler.send_message(
         "queue_status", {"user": player.username, "status": new_status}
     )
-    return HttpResponse(json.dumps(new_status), content_type="application/json")
+    return JsonResponse(new_status)
 
 
 @login_required
@@ -217,7 +212,7 @@ def toggle_auto_mode(request: HttpRequest) -> HttpResponseNoContent:
     return HttpResponseNoContent()
 
 
-def currently_playing(request: HttpRequest) -> HttpResponse:
+def currently_playing(request: HttpRequest) -> JsonResponse:
     """
     Return the following as a json dict
 
@@ -231,7 +226,7 @@ def currently_playing(request: HttpRequest) -> HttpResponse:
     station = request.station  # type: ignore[attr-defined]
 
     output = MPC(station=station).currently_playing()
-    response = HttpResponse(json.dumps(output), content_type="application/json")
+    response = JsonResponse(output)
     if output["remaining_time"] is not None:
         response["Cache-Control"] = f'no-cache, max-age={output["remaining_time"]}'
     else:
@@ -242,7 +237,7 @@ def currently_playing(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 @transaction.atomic
-def reorder_queue(request: HttpRequest) -> HttpResponse:
+def reorder_queue(request: HttpRequest) -> JsonResponse:
     """
     Given comma-delimited string (of integers), re-order queue
     return the re-ordered list of ids in json format
@@ -252,7 +247,7 @@ def reorder_queue(request: HttpRequest) -> HttpResponse:
     new_order_ids = [int(i) for i in new_order]
     ids = [i["id"] for i in queue.reorder(new_order_ids)]
 
-    return HttpResponse(json.dumps(ids), content_type="application/json")
+    return JsonResponse(ids, safe=False)
 
 
 @login_required()
@@ -401,11 +396,7 @@ def edit_station(request: HttpRequest) -> HttpResponse:
                 request.session["station_id"] = main_station.pk
             IPCHandler.send_message("station_delete", station_id)
     else:
-        content = json.dumps(form.errors)
-        response = HttpResponse(
-            content=content, content_type="application/json", status=400
-        )
-        return response
+        return JsonResponse(form.errors, status=400)
 
     return HttpResponse(message)
 
