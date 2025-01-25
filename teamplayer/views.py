@@ -10,7 +10,6 @@ from urllib.parse import quote_plus
 import django
 from django.contrib import messages
 from django.contrib.auth import logout as auth_logout
-from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.core.files import File
