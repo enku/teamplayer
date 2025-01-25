@@ -4,7 +4,7 @@ Views for the teamplayer django app
 
 import json
 from importlib.metadata import version
-from typing import Any
+from typing import Any, NoReturn
 from urllib.parse import quote_plus
 
 import django
@@ -469,11 +469,9 @@ def about(request: HttpRequest) -> HttpResponse:
     )
 
 
-def crash(_request: HttpRequest) -> HttpResponseNoContent:
+def crash(_request: HttpRequest) -> NoReturn:
     """Force an internal server error (for testing)"""
-    raise Exception("crash forced")
-
-    return HttpResponseNoContent()
+    raise RuntimeError("crash forced")
 
 
 @login_required
