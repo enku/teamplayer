@@ -11,14 +11,12 @@ from typing import Any, Mapping
 
 from strtobool import strtobool
 
-from teamplayer import __path__ as my_path
-
 
 @dataclass(frozen=True)
 class TeamPlayerSettings:  # pylint: disable=too-many-instance-attributes
 
     # pylint: disable=invalid-name
-    MPD_HOME: str = my_path[0]
+    MPD_HOME: str = ""
     QUEUE_DIR: str = ""
     MPD_ADDRESS: str = "localhost"
     MPD_PORT: int = 6600
