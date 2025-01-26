@@ -6,6 +6,7 @@ import builtins
 import json
 import os
 from dataclasses import dataclass, fields
+from functools import partial
 from typing import Any, Mapping
 
 from strtobool import strtobool
@@ -81,15 +82,16 @@ class TeamPlayerSettings:  # pylint: disable=too-many-instance-attributes
         return cls.from_dict(prefix, env)
 
     def __post_init__(self) -> None:
+        # gets around the frozen dataclass's __setattr__
+        antifreeze = partial(object.__setattr__, self)
+
         if not self.QUEUE_DIR:
-            object.__setattr__(self, "QUEUE_DIR", os.path.join(self.MPD_HOME, "queue"))
+            antifreeze("QUEUE_DIR", os.path.join(self.MPD_HOME, "queue"))
 
         if not self.MPD_HOME:
-            object.__setattr__(self, "MPD_HOME", os.path.join(self.MPD_HOME, "mpd.db"))
+            antifreeze("MPD_HOME", os.path.join(self.MPD_HOME, "mpd.db"))
 
-        object.__setattr__(
-            self, "SHAKE_THINGS_UP_FILTER", json.loads(self.SHAKE_THINGS_UP_FILTER)
-        )
+        antifreeze("SHAKE_THINGS_UP_FILTER", json.loads(self.SHAKE_THINGS_UP_FILTER))
 
 
 settings = TeamPlayerSettings.from_environ(prefix="TEAMPLAYER_")
