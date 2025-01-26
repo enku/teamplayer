@@ -1,25 +1,23 @@
 # mypy: disable-error-code="attr-defined"
-from typing import Callable
+from typing import Callable, TypeAlias
 
-import django.http
+from django.http import HttpRequest, HttpResponse
 
 from .models import Player, Queue, Station
 
+MiddlewareCallable: TypeAlias = Callable[[HttpRequest], HttpResponse]
 
-class TeamPlayerMiddleware:  # pylint: disable=too-few-public-methods
+
+def TeamPlayerMiddleware(  # pylint: disable=invalid-name
+    get_response: Callable[[HttpRequest], HttpResponse]
+) -> MiddlewareCallable:
     """Special middleware for TeamPlayer
 
     This middleware requires the auth and session middlewares, so be certain to
     place it after.
     """
 
-    def __init__(
-        self,
-        get_response: Callable[[django.http.HttpRequest], django.http.HttpResponse],
-    ) -> None:
-        self.get_response = get_response
-
-    def __call__(self, request: django.http.HttpRequest) -> django.http.HttpResponse:
+    def call(request: HttpRequest) -> HttpResponse:
         """Add a "player" attribute to the request object."""
         if hasattr(request, "user") and request.user.is_authenticated:
             user = request.user
@@ -33,17 +31,18 @@ class TeamPlayerMiddleware:  # pylint: disable=too-few-public-methods
         # station
         main_station = Station.main_station()
         request.station = None
-        if "station_id" in request.session:
+        session = request.session
+        if station_id := session.get("station_id"):
             try:
-                station_id = request.session["station_id"]
-                station = Station.objects.get(pk=station_id)
-                request.station = station
+                request.station = Station.objects.get(pk=station_id)
             except Station.DoesNotExist:
                 pass
 
         if not request.station:
             # put 'em on the main station
-            request.session["station_id"] = main_station.pk
+            session["station_id"] = main_station.pk
             request.station = main_station
 
-        return self.get_response(request)
+        return get_response(request)
+
+    return call
