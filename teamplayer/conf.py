@@ -16,7 +16,7 @@ from strtobool import strtobool
 class TeamPlayerSettings:  # pylint: disable=too-many-instance-attributes
 
     # pylint: disable=invalid-name
-    MPD_HOME: str = ""
+    MPD_HOME: str = "mpd.db"
     QUEUE_DIR: str = ""
     MPD_ADDRESS: str = "localhost"
     MPD_PORT: int = 6600
@@ -82,9 +82,6 @@ class TeamPlayerSettings:  # pylint: disable=too-many-instance-attributes
     def __post_init__(self) -> None:
         # gets around the frozen dataclass's __setattr__
         antifreeze = partial(object.__setattr__, self)
-
-        if not self.MPD_HOME:
-            antifreeze("MPD_HOME", os.path.join(self.MPD_HOME, "mpd.db"))
 
         if not self.QUEUE_DIR:
             antifreeze("QUEUE_DIR", os.path.join(self.MPD_HOME, "queue"))
