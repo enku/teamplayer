@@ -85,11 +85,11 @@ class TeamPlayerSettings:  # pylint: disable=too-many-instance-attributes
         # gets around the frozen dataclass's __setattr__
         antifreeze = partial(object.__setattr__, self)
 
-        if not self.QUEUE_DIR:
-            antifreeze("QUEUE_DIR", os.path.join(self.MPD_HOME, "queue"))
-
         if not self.MPD_HOME:
             antifreeze("MPD_HOME", os.path.join(self.MPD_HOME, "mpd.db"))
+
+        if not self.QUEUE_DIR:
+            antifreeze("QUEUE_DIR", os.path.join(self.MPD_HOME, "queue"))
 
         antifreeze("SHAKE_THINGS_UP_FILTER", json.loads(self.SHAKE_THINGS_UP_FILTER))
 
