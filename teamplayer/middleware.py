@@ -9,7 +9,7 @@ MiddlewareCallable: TypeAlias = Callable[[HttpRequest], HttpResponse]
 
 
 def TeamPlayerMiddleware(  # pylint: disable=invalid-name
-    get_response: Callable[[HttpRequest], HttpResponse]
+    get_response: Callable[[HttpRequest], HttpResponse],
 ) -> MiddlewareCallable:
     """Special middleware for TeamPlayer
 
