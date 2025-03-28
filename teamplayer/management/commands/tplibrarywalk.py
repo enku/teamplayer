@@ -1,4 +1,5 @@
 import os
+from dataclasses import dataclass
 from typing import Any, Iterable
 
 from django.core.exceptions import ValidationError
@@ -10,6 +11,14 @@ from teamplayer.lib import attempt_file_rename
 from teamplayer.models import LibraryItem, Player, Station
 
 os.environ.setdefault("LANG", "en_US.UTF-8")
+
+
+@dataclass
+class Stats:
+    created: int = 0
+    skipped: int = 0
+    errors: int = 0
+    renamed: int = 0
 
 
 class Command(BaseCommand):
@@ -26,28 +35,23 @@ class Command(BaseCommand):
         parser.add_argument("dir", nargs="+", help="Directory to walk")
 
     def handle(self, *args: Any, **options: Any) -> None:
-        self.options = options
-        self.created = 0
-        self.skipped = 0
-        self.errors = 0
-        self.renamed = 0
         self.station = Station.main_station()
         self.dj_ango = Player.dj_ango()
+        stats = Stats()
 
         for directory in options["dir"]:
             path = os.path.realpath(directory)
             for tup in os.walk(path):
-                self._handle_files(*tup)
+                self._handle_files(*tup, stats, options["rename"])
 
-        logger.info("added:   %s", self.created)
-        if self.renamed:
-            logger.info("renamed: %s", self.renamed)
-        logger.info("errors:  %s", self.errors)
-        logger.info("skipped: %s", self.skipped)
+        logger.info("added:   %s", stats.created)
+        if stats.renamed:
+            logger.info("renamed: %s", stats.renamed)
+        logger.info("errors:  %s", stats.errors)
+        logger.info("skipped: %s", stats.skipped)
 
     def _rename_file(self, fullpath: str) -> str | None:
-        newname = attempt_file_rename(fullpath)
-        if newname:
+        if newname := attempt_file_rename(fullpath):
             try:
                 os.rename(fullpath, newname)
             except OSError:
@@ -56,11 +60,15 @@ class Command(BaseCommand):
             msg = "%s has been renamed"
             logger.info(msg, newname)
             return newname
-        else:
-            return None
+        return None
 
     def _handle_files(
-        self, dirpath: str, _dirnames: Any, filenames: Iterable[str]
+        self,
+        dirpath: str,
+        _dirnames: Any,
+        filenames: Iterable[str],
+        stats: Stats,
+        rename: bool,
     ) -> None:
         player = self.dj_ango
         station_id = self.station.pk
@@ -75,22 +83,22 @@ class Command(BaseCommand):
                 fullpath.encode("utf-8")
             except UnicodeEncodeError:
                 renamed = False
-                if self.options["rename"]:
+                if rename:
                     newname = self._rename_file(fullpath)
                     if newname:
                         fullpath = newname
-                        self.renamed += 1
+                        stats.renamed += 1
                         renamed = True
                 if not renamed:
                     logger.exception("Filename cannot be used")
-                    self.errors += 1
+                    stats.errors += 1
                     continue
 
             try:
                 metadata = File(fullpath, easy=True)
             except Exception:
                 logger.exception("Error adding %s to library", fullpath, exc_info=True)
-                self.errors += 1
+                stats.errors += 1
                 continue
             if not metadata:
                 continue
@@ -100,11 +108,11 @@ class Command(BaseCommand):
                     fullpath, metadata, player, station_id
                 )
             except ValidationError:
-                self.errors += 1
+                stats.errors += 1
                 continue
 
             if created:
                 logger.info('added "%s" by %s', songfile.title, songfile.artist)
-                self.created += 1
+                stats.created += 1
             else:
-                self.skipped += 1
+                stats.skipped += 1
