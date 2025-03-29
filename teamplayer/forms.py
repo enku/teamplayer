@@ -67,7 +67,7 @@ class ChangeDJNameForm(forms.Form):
         if not name:
             return ""
 
-        if not self.legal_name(name):
+        if not self.valid_name(name):
             raise forms.ValidationError(f"“{name}” is an invalid name.")
 
         try:
@@ -79,7 +79,7 @@ class ChangeDJNameForm(forms.Form):
 
         return name
 
-    def legal_name(self, name: str) -> bool:
+    def valid_name(self, name: str) -> bool:
         if name.lower() in ("dj ango", "dj_ango", "django"):
             return False
 
