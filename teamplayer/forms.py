@@ -25,9 +25,6 @@ class EditStationForm(forms.Form):
         if name.lower() == "teamplayer":
             raise forms.ValidationError(f"“{name}” is an invalid name.")
 
-        if len(name) > 128:
-            raise forms.ValidationError("The name is too long.")
-
         return name
 
     def clean(self) -> dict[str, Any]:
