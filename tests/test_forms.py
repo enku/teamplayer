@@ -22,7 +22,7 @@ class EditStationTests(django.test.TestCase):
         form = EditStationForm(data)
         self.assertFalse(form.is_valid())
 
-        self.assertEqual({'name': ['“teamplayer” is an invalid name.']}, form.errors)
+        self.assertEqual({"name": ["“teamplayer” is an invalid name."]}, form.errors)
 
     def test_station_name_length(self) -> None:
         data = {"name": "x" * 129, "action": "rename", "station_id": self.station.pk}
