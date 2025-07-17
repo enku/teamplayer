@@ -57,10 +57,8 @@ class Queue(models.Model):
         assert song_file.name
 
         # get the extension of the original filename
-        dot = song_file.name.rfind(".")
-        if dot != -1:
-            extension = song_file.name[dot + 1 :]
-        else:
+        _, dot, extension = song_file.name.rpartition(".")
+        if not dot:
             extension = None
 
         filename = lib.get_random_filename(extension)
