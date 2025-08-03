@@ -1,8 +1,9 @@
 """Fixures and utilities for teamplayer tests"""
 
 # pylint: disable=redefined-outer-name
+from unittest import mock
 
-from unittest_fixtures import fixture, Fixtures
+from unittest_fixtures import fixture, Fixtures, FixtureContext
 from teamplayer.models import Player, Station
 
 
@@ -24,3 +25,11 @@ def station(
     name = name or f"{user.username}'s station"
 
     return Station.objects.create(creator=player, name=name)
+
+
+@fixture()
+def station_thread(_: Fixtures) -> FixtureContext[mock.Mock]:
+    with mock.patch(
+        "teamplayer.management.commands.spindoctor.StationThread", autospec=True
+    ) as station_thread:
+        yield station_thread
