@@ -33,3 +33,11 @@ def station_thread(_: Fixtures) -> FixtureContext[mock.Mock]:
         "teamplayer.management.commands.spindoctor.StationThread", autospec=True
     ) as station_thread:
         yield station_thread
+
+
+@fixture()
+def start_socket_server(_: Fixtures) -> FixtureContext[mock.Mock]:
+    with mock.patch(
+        "teamplayer.management.commands.spindoctor.start_socket_server", autospec=True
+    ) as sss:
+        yield sss
