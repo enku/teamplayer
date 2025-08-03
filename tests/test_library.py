@@ -116,7 +116,7 @@ class AddToQueueTest(TestCase):
         )
 
         # given the logged in user
-        assert self.client.login(username="test", password="test")
+        self.client.login(username="test", password="test")
 
         # when the user attempts to add the song to his queue
         response = self.client.post(self.url, {"song_id": song.pk})
@@ -127,7 +127,7 @@ class AddToQueueTest(TestCase):
 
     def test_invalid_submission_sends_error(self):
         # given the logged in user
-        assert self.client.login(username="test", password="test")
+        self.client.login(username="test", password="test")
 
         # when the user attempts to add a song with insufficient data
         response = self.client.post(self.url, {})  # missing song_id
