@@ -2,30 +2,38 @@
 
 import django.test
 
+from unittest_fixtures import given, Fixtures, where
 from teamplayer.forms import EditStationForm
-from teamplayer.models import Player, Station
+
+from . import lib
 
 
+@given(lib.player, lib.station, player2=lib.player, station2=lib.station)
+@where(player2__username="player2", station2__creator="player2")
 class EditStationTests(django.test.TestCase):
-    def setUp(self) -> None:
-        self.player = Player.objects.create_player(username="test", password="test")
-        self.station = Station.objects.create(creator=self.player)
-
-    def test(self) -> None:
-        data = {"name": "test", "action": "rename", "station_id": self.station.pk}
+    def test(self, fixtures: Fixtures) -> None:
+        data = {"name": "test", "action": "rename", "station_id": fixtures.station.pk}
         form = EditStationForm(data)
 
         self.assertTrue(form.is_valid(), form.errors)
 
-    def test_station_named_teamplayer(self) -> None:
-        data = {"name": "teamplayer", "action": "rename", "station_id": self.station.pk}
+    def test_station_named_teamplayer(self, fixtures: Fixtures) -> None:
+        data = {
+            "name": "teamplayer",
+            "action": "rename",
+            "station_id": fixtures.station.pk,
+        }
         form = EditStationForm(data)
         self.assertFalse(form.is_valid())
 
         self.assertEqual({"name": ["“teamplayer” is an invalid name."]}, form.errors)
 
-    def test_station_name_length(self) -> None:
-        data = {"name": "x" * 129, "action": "rename", "station_id": self.station.pk}
+    def test_station_name_length(self, fixtures: Fixtures) -> None:
+        data = {
+            "name": "x" * 129,
+            "action": "rename",
+            "station_id": fixtures.station.pk,
+        }
         form = EditStationForm(data)
 
         self.assertFalse(form.is_valid())
@@ -34,10 +42,12 @@ class EditStationTests(django.test.TestCase):
             form.errors,
         )
 
-    def test_station_already_exisiting_name(self) -> None:
-        player2 = Player.objects.create_player(username="player2", password="test")
-        Station.objects.create(creator=player2, name="test")
-        data = {"name": "test", "action": "rename", "station_id": self.station.pk}
+    def test_station_already_exisiting_name(self, fixtures: Fixtures) -> None:
+        data = {
+            "name": fixtures.station2.name,
+            "action": "rename",
+            "station_id": fixtures.station.pk,
+        }
         form = EditStationForm(data)
 
         self.assertFalse(form.is_valid())

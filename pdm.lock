@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:57fcb5e1dd06de30b1a2e3ecf736de4e68b26e6b74b6ba6b73d885cce20e387f"
+content_hash = "sha256:4b79e3e54cec81749711225c661db97410f6a5d51a7832d9465164890fcf5060"
 
 [[metadata.targets]]
 requires_python = ">=3.11"
@@ -648,6 +648,16 @@ summary = "Provider of IANA time zone data"
 files = [
     {file = "tzdata-2025.2-py2.py3-none-any.whl", hash = "sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8"},
     {file = "tzdata-2025.2.tar.gz", hash = "sha256:b60a638fcc0daffadf82fe0f57e53d06bdec2f36c4df66280ae79bce6bd6f2b9"},
+]
+
+[[package]]
+name = "unittest-fixtures"
+version = "2.0.0"
+requires_python = ">=3.11"
+summary = "A small library for loading unittest fixtures"
+files = [
+    {file = "unittest_fixtures-2.0.0-py3-none-any.whl", hash = "sha256:d5f6cee9a4c707cb98f784784f6459c45c55cfc7ae389e247c7955027ddd885f"},
+    {file = "unittest_fixtures-2.0.0.tar.gz", hash = "sha256:60525004818817acfa7a1335f12b0f89761f94a91304f26e166c4d9b4c07b76f"},
 ]
 
 [[package]]

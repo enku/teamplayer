@@ -46,21 +46,6 @@ django_settings_module = "tests.project.project.settings"
 [tool.pdm]
 version = { source = "scm" }
 
-[tool.pdm.dev-dependencies]
-dev = [
-    "black>=24.8.0",
-    "coverage>=7.6.1",
-    "Whoosh>=2.7.4",
-    "isort>=5.10.1",
-    "typos>=1.17.2",
-    "mypy>=1.11.2",
-    "django-stubs>=5.1.0",
-    "types-requests>=2.31.0.6",
-    "djangorestframework-stubs>=3.14.5",
-    "pylint>=3.3.1",
-    "pylint-django>=2.5.5",
-]
-
 [tool.isort]
 profile = "black"
 multi_line_output = 3
@@ -76,3 +61,19 @@ disable = ["missing-docstring"]
 
 [tool.black]
 skip_magic_trailing_comma = true
+
+[dependency-groups]
+dev = [
+    "black>=24.8.0",
+    "coverage>=7.6.1",
+    "Whoosh>=2.7.4",
+    "isort>=5.10.1",
+    "typos>=1.17.2",
+    "mypy>=1.11.2",
+    "django-stubs>=5.1.0",
+    "types-requests>=2.31.0.6",
+    "djangorestframework-stubs>=3.14.5",
+    "pylint>=3.3.1",
+    "pylint-django>=2.5.5",
+    "unittest-fixtures>=2.0.0",
+]
