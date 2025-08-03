@@ -19,4 +19,4 @@ def tests(session: nox.Session) -> None:
     ]
     session.install(*dev_dependencies)
 
-    session.run("pdm", "run", "make", "test", external=True)
+    session.run("make", "test", external=True)
