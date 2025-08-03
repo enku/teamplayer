@@ -41,3 +41,11 @@ def start_socket_server(_: Fixtures) -> FixtureContext[mock.Mock]:
         "teamplayer.management.commands.spindoctor.start_socket_server", autospec=True
     ) as sss:
         yield sss
+
+
+@fixture()
+def shutdown(_: Fixtures) -> FixtureContext[mock.Mock]:
+    with mock.patch(
+        "teamplayer.management.commands.spindoctor.shutdown", autospec=True
+    ) as shutdown:
+        yield shutdown

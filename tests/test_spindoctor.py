@@ -16,7 +16,7 @@ from . import lib
 
 
 # pylint: disable=unused-argument
-@given(lib.station, lib.station_thread, lib.start_socket_server)
+@given(lib.station, lib.station_thread, lib.start_socket_server, lib.shutdown)
 class SpinDoctorCommandTestCase(TestCase):
     def test_updates_dj_angos_queue(self, fixtures: Fixtures) -> None:
         dj_ango = Player.dj_ango()
@@ -55,26 +55,22 @@ class SpinDoctorCommandTestCase(TestCase):
 
         setproctitle.assert_called_once_with("spindoctor")
 
-    @mock.patch("teamplayer.management.commands.spindoctor.shutdown")
-    def test_shuts_down_on_keyboard_interrupt(
-        self, shutdown: mock.Mock, fixtures: Fixtures
-    ) -> None:
+    def test_shuts_down_on_keyboard_interrupt(self, fixtures: Fixtures) -> None:
         start_socket_server = fixtures.start_socket_server
         start_socket_server.side_effect = KeyboardInterrupt()
 
         call_command("spindoctor")
 
+        shutdown = fixtures.shutdown
         shutdown.assert_called_once_with()
 
-    @mock.patch("teamplayer.management.commands.spindoctor.shutdown")
-    def test_shuts_down_on_exceptions(
-        self, shutdown: mock.Mock, fixtures: Fixtures
-    ) -> None:
+    def test_shuts_down_on_exceptions(self, fixtures: Fixtures) -> None:
         start_socket_server = fixtures.start_socket_server
         start_socket_server.side_effect = RuntimeError("Kaboom!")
 
         call_command("spindoctor")
 
+        shutdown = fixtures.shutdown
         shutdown.assert_called_once_with()
 
 
