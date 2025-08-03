@@ -3,6 +3,7 @@
 import os
 import signal
 from unittest import mock
+from unittest_fixtures import given, Fixtures
 
 from django.core.management import call_command
 from django.test import TestCase
@@ -11,12 +12,19 @@ from teamplayer.conf import settings
 from teamplayer.management.commands import spindoctor
 from teamplayer.models import Player, Queue, Station
 
+from . import lib
 
+
+# pylint: disable=unused-argument
+@given(lib.station)
 @mock.patch("teamplayer.management.commands.spindoctor.StationThread")
 @mock.patch("teamplayer.management.commands.spindoctor.start_socket_server")
 class SpinDoctorCommandTestCase(TestCase):
     def test_updates_dj_angos_queue(
-        self, _start_socket_server: mock.Mock, _station_thread: mock.Mock
+        self,
+        _start_socket_server: mock.Mock,
+        _station_thread: mock.Mock,
+        fixtures: Fixtures,
     ) -> None:
         dj_ango = Player.dj_ango()
         queue: Queue = dj_ango.queue
@@ -29,10 +37,12 @@ class SpinDoctorCommandTestCase(TestCase):
         self.assertFalse(queue.active)
 
     def test_creates_station_threads(
-        self, _start_socket_server: mock.Mock, station_thread: mock.Mock
+        self,
+        _start_socket_server: mock.Mock,
+        station_thread: mock.Mock,
+        fixtures: Fixtures,
     ) -> None:
-        player = Player.objects.create_player(username="test", password="test")
-        station = Station.objects.create(creator=player)
+        station = fixtures.station
         stations = list(Station.objects.all())
         self.assertEqual(len(stations), 2)
 
@@ -43,7 +53,10 @@ class SpinDoctorCommandTestCase(TestCase):
         )
 
     def test_starts_socket_server(
-        self, start_socket_server: mock.Mock, _station_thread: mock.Mock
+        self,
+        start_socket_server: mock.Mock,
+        _station_thread: mock.Mock,
+        fixtures: Fixtures,
     ) -> None:
         call_command("spindoctor")
 
@@ -55,6 +68,7 @@ class SpinDoctorCommandTestCase(TestCase):
         setproctitle: mock.Mock,
         _start_socket_server: mock.Mock,
         _station_thread: mock.Mock,
+        fixtures: Fixtures,
     ) -> None:
         call_command("spindoctor")
 
@@ -66,6 +80,7 @@ class SpinDoctorCommandTestCase(TestCase):
         shutdown: mock.Mock,
         start_socket_server: mock.Mock,
         _station_thread: mock.Mock,
+        fixtures: Fixtures,
     ) -> None:
         start_socket_server.side_effect = KeyboardInterrupt()
 
@@ -79,6 +94,7 @@ class SpinDoctorCommandTestCase(TestCase):
         shutdown: mock.Mock,
         start_socket_server: mock.Mock,
         _station_thread: mock.Mock,
+        fixtures: Fixtures,
     ) -> None:
         start_socket_server.side_effect = RuntimeError("Kaboom!")
 
