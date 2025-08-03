@@ -17,7 +17,7 @@ dependencies = [
     "mutagen>=1.45.1",
     "typing-extensions>=4.9.0",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 readme = "README.rst"
 [project.entry-points]
