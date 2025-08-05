@@ -3,7 +3,10 @@
 # pylint: disable=redefined-outer-name
 from unittest import mock
 
-from unittest_fixtures import fixture, Fixtures, FixtureContext
+from django.core.handlers.wsgi import WSGIRequest
+from django.test.client import RequestFactory
+from unittest_fixtures import FixtureContext, Fixtures, fixture
+
 from teamplayer.models import Player, Station
 
 
@@ -49,3 +52,20 @@ def shutdown(_: Fixtures) -> FixtureContext[mock.Mock]:
         "teamplayer.management.commands.spindoctor.shutdown", autospec=True
     ) as shutdown:
         yield shutdown
+
+
+@fixture(player)
+def request(
+    fixtures: Fixtures,
+    player: Player | None = None,
+    method: str = "get",
+    path: str = "/",
+) -> WSGIRequest:
+    player = player or fixtures.player
+    request_factory = RequestFactory()
+    request_method = getattr(request_factory, method)
+    request = request_method(path)
+    request.user = player.user
+    request.session = {}
+
+    return request
