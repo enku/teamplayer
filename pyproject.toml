@@ -26,6 +26,9 @@ contiguous = "teamplayer.lib.autofill:auto_fill_contiguous"
 mood = "teamplayer.lib.autofill:auto_fill_mood"
 random = "teamplayer.lib.autofill:auto_fill_random"
 
+[project.urls]
+homepage = "https://github.com/enku/teamplayer"
+repository = "https://github.com/enku/teamplayer"
 
 [build-system]
 requires = ["pdm-pep517>=1.0.0"]
