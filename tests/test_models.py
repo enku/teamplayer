@@ -1,5 +1,7 @@
 """Unit tests for the TeamPlayer Django app"""
 
+# pylint: disable=unused-argument
+
 import json
 import os
 from io import BytesIO
@@ -11,10 +13,11 @@ import django.core.files.uploadedfile
 import django.test
 import django.urls
 from django.utils import timezone
+from unittest_fixtures import Fixtures, given, where
 
 from teamplayer.models import Entry, LibraryItem, Mood, Player, PlayLog, Station
 
-from . import utils
+from . import lib, utils
 
 SILENCE = utils.SILENCE
 SpinDoctor = utils.SpinDoctor
@@ -25,21 +28,20 @@ patch = mock.patch
 reverse = django.urls.reverse
 
 
+@given(lib.player)
+@where(player__username="test_player")
 class PlayerTestCase(TestCase):
-    def setUp(self):
-        self.player = Player.objects.create_player("test_player", password="test")
-
-    def test_create_player(self):
-        player = self.player
+    def test_create_player(self, fixtures: Fixtures) -> None:
+        player = fixtures.player
         self.assertEqual(player.username, "test_player")
         self.assertTrue(hasattr(player, "queue"))
 
         logged_in = self.client.login(username="test_player", password="test")
         self.assertTrue(logged_in)
 
-    def test_str(self):
+    def test_str(self, fixtures: Fixtures) -> None:
         # Given the player
-        player = self.player
+        player = fixtures.player
 
         # When we str() it
         result = str(player)
@@ -47,9 +49,9 @@ class PlayerTestCase(TestCase):
         # Then we get the username
         self.assertEqual(result, player.user.username)
 
-    def test_toggle_auto_mode(self):
+    def test_toggle_auto_mode(self, fixtures: Fixtures) -> None:
         # Given the player
-        player = self.player
+        player = fixtures.player
 
         # When toggle_auto_mode is called
         result = player.toggle_auto_mode()
@@ -65,7 +67,7 @@ class PlayerTestCase(TestCase):
         self.assertFalse(result)
         self.assertFalse(player.auto_mode)
 
-    def test_player_stats_property(self):
+    def test_player_stats_property(self, fixtures: Fixtures) -> None:
         # Given the Player class
         # When we access the player_stats classmethod
         result = Player.player_stats()
