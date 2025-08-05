@@ -31,7 +31,7 @@ class Command(BaseCommand):
     help = "Hey DJ play that song!"
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super(Command, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if setproctitle:
             setproctitle("spindoctor")

@@ -28,7 +28,7 @@ class StationThread(threading.Thread):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.station = kwargs.pop("station")
-        super(StationThread, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.running = False
         self.mpc = MPC(self.station)

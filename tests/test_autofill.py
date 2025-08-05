@@ -23,8 +23,7 @@ class AutoFillTest:
     """Mixin for the autofill tests"""
 
     def setUp(self):
-        parent = super()
-        parent.setUp()
+        super().setUp()
 
         self.dj_ango = Player.dj_ango()
 
@@ -164,8 +163,7 @@ class MoodTest(AutoFillTest, TestCase):
     """tests for the mood strategy"""
 
     def setUp(self):
-        parent = super()
-        parent.setUp()
+        super().setUp()
 
         station = Station.main_station()
 

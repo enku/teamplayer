@@ -671,8 +671,7 @@ class PlayLogTest(TestCase):
     """Tests for the PlayLog model"""
 
     def setUp(self):
-        parent = super(PlayLogTest, self)
-        parent.setUp()
+        super().setUp()
 
         station = Station.main_station()
         artist = "Earth, Wind & Fire"
