@@ -16,7 +16,7 @@ class AutoFindSong(TestCase):
     def setUp(self):
         # create a player
         self.player = Player.objects.create_player("test", password="test")
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
         self.url = reverse("home")
 
         with patch("teamplayer.lib.mpc.MPC") as mpc:

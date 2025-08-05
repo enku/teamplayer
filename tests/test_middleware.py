@@ -18,7 +18,7 @@ class TeamPlayerMiddlewareTestCase(TestCase):
 
     def test_process_request(self):
         # Given the logged in user
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
 
         # And the request instance
         request = self.request
@@ -43,7 +43,7 @@ class TeamPlayerMiddlewareTestCase(TestCase):
 
         # when we login and go to a page
         url = reverse("home")
-        self.client.login(username="test2", password="***")
+        self.client.force_login(user)
         self.client.get(url)
 
         # then the middleware gives the user a player object
@@ -52,7 +52,7 @@ class TeamPlayerMiddlewareTestCase(TestCase):
 
     def test_request_has_station(self):
         # Given the logged in user
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
 
         # And the request instance
         request = self.request
@@ -76,7 +76,7 @@ class TeamPlayerMiddlewareTestCase(TestCase):
         station = Station.objects.create(creator=self.player, name="test station")
 
         # and the logged in user
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
 
         # when the user goes to that station
         url = reverse("station", args=[station.pk])

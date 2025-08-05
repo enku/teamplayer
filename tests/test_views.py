@@ -27,7 +27,7 @@ class HomePageView(TestCase):
     def setUp(self):
         # create a player
         self.player = Player.objects.create_player(username="test", password="test")
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
         self.url = reverse("home")
 
         patcher = patch("teamplayer.lib.mpc.MPC")
@@ -123,7 +123,7 @@ class ShowQueueView(TestCase):
     def setUp(self):
         # create a player
         self.player = Player.objects.create_player(username="test", password="test")
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
         self.url = reverse("show_queue")
 
     def test_empty_queue(self):
@@ -202,7 +202,7 @@ class ClearQueueView(TestCase):
 
     def setUp(self):
         self.player = Player.objects.create_player(username="test", password="test")
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
         self.url = reverse("show_queue")
 
         # create a player station
@@ -303,7 +303,7 @@ class EditStationView(TestCase):
     def setUp(self):
         # create a player
         self.player = Player.objects.create_player(username="test", password="test")
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
 
         patcher = patch("teamplayer.lib.mpc.MPC")
         self.addCleanup(patcher.stop)
@@ -532,7 +532,7 @@ class JSObjectTest(TestCase):
     def setUp(self):
         # create a player
         self.player = Player.objects.create_player(username="test", password="test")
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
 
     def test_view(self):
         # Given the js_object url

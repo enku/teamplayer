@@ -98,9 +98,7 @@ class QueueViewsTestCase(TestCase):
         # first, verify user has an empty queue
         self.assertEqual(self.player.queue.entry_set.count(), 0)
         # log in as the user
-        self.client.login(
-            username=self.user_data["username"], password=self.user_data["password"]
-        )
+        self.client.force_login(self.player.user)
 
         with open(SILENCE, "rb") as song:
             self.client.post(view, {"song": song}, follow=True)
@@ -501,7 +499,7 @@ class StationTest(TestCase):
         view = "edit_station"
         post = {"station_id": station.pk, "action": "rename", "name": "TeamPlayer"}
 
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
         response = self.client.post(
             reverse(view), post, follow=True, HTTP_REFERRER=reverse("show_stations")
         )

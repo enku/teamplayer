@@ -90,7 +90,7 @@ class AddToQueueTest(TestCase):
     @patch("teamplayer.library.views.IPCHandler.send_message")
     def test_add_to_queue(self, mock):
         """add_to_queue view"""
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
         response = self.client.post(self.url, {"song_id": self.song.pk})
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content.decode("utf-8"))
@@ -116,7 +116,7 @@ class AddToQueueTest(TestCase):
         )
 
         # given the logged in user
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
 
         # when the user attempts to add the song to his queue
         response = self.client.post(self.url, {"song_id": song.pk})
@@ -127,7 +127,7 @@ class AddToQueueTest(TestCase):
 
     def test_invalid_submission_sends_error(self):
         # given the logged in user
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
 
         # when the user attempts to add a song with insufficient data
         response = self.client.post(self.url, {})  # missing song_id
@@ -163,7 +163,7 @@ class AddSongWithUTF8Filename(TestCase):
 
     @patch("teamplayer.library.views.IPCHandler.send_message")
     def test_add_utf8_filename(self, mock):
-        self.client.login(username="test", password="test")
+        self.client.force_login(self.player.user)
         response = self.client.post(self.url, {"song_id": self.datura.pk})
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content.decode("utf-8"))

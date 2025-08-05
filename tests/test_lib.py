@@ -42,9 +42,7 @@ class LibSongs(TestCase):
         self.user = self.player.user
         view = reverse("add_to_queue")
 
-        self.client.login(
-            username=self.user_data["username"], password=self.user_data["password"]
-        )
+        self.client.force_login(self.user)
 
         with open(SILENCE, "rb") as song:
             self.client.post(view, {"song": song}, follow=True)
