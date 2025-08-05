@@ -4,7 +4,7 @@ from typing import Any
 
 from django.contrib.auth.decorators import login_required
 from django.core.files import File
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
 from haystack.generic_views import SearchView
@@ -18,7 +18,7 @@ from teamplayer.serializers import EntrySerializer
 
 @login_required
 @require_POST
-def add_to_queue(request: HttpRequest) -> HttpResponse:
+def add_to_queue(request: HttpRequest) -> JsonResponse:
     """Add song to the queue.
 
     Return the dictified entry on success.  Or {'error': message} on failure.
@@ -31,10 +31,7 @@ def add_to_queue(request: HttpRequest) -> HttpResponse:
         library_item = get_object_or_404(LibraryItem, pk=library_id)
 
         if not os.path.exists(library_item.filename):
-            return HttpResponse(
-                json.dumps({"error": "Song could not be located"}),
-                content_type="application/json",
-            )
+            return JsonResponse({"error": "Song could not be located"})
 
         with open(library_item.filename, "rb") as fp:
             entry = request.player.queue.add_song(File(fp), station)  # type: ignore[attr-defined]
@@ -42,13 +39,9 @@ def add_to_queue(request: HttpRequest) -> HttpResponse:
         # notify the Spin Doctor
         IPCHandler.send_message("song_added", entry.pk)
 
-        return HttpResponse(
-            json.dumps(EntrySerializer(entry).data), content_type="application/json"
-        )
+        return JsonResponse(EntrySerializer(entry).data)
 
-    return HttpResponse(
-        json.dumps({"error": form.errors.as_text()}), content_type="application/json"
-    )
+    return JsonResponse({"error": form.errors.as_text()})
 
 
 class SongSearchView(SearchView):  # type: ignore
