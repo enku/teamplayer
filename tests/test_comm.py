@@ -5,18 +5,22 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.utils import timezone
+from unittest_fixtures import Fixtures, given
 
 from teamplayer.lib import comm
 from teamplayer.lib.mpc import MPC
 from teamplayer.models import Mood, Player, PlayLog, Station
 
+from . import lib
 
+
+@given(lib.player, lib.station)
 class ScrobbleSongTest(TestCase):
     """Tests for the async.scrobble_song function"""
 
-    def test_calls_scrobbler(self):
+    def test_calls_scrobbler(self, fixtures: Fixtures):
         # given the player
-        self.player = Player.objects.create_player("test_player", password="***")
+        player = fixtures.player
         # given the main station
         main_station = Station.main_station()
 
@@ -25,7 +29,7 @@ class ScrobbleSongTest(TestCase):
             "artist": "Prince",
             "title": "Purple Rain",
             "station_id": main_station.pk,
-            "player": self.player.username,
+            "player": player.username,
         }
 
         # when we call scrobble_song
@@ -37,21 +41,18 @@ class ScrobbleSongTest(TestCase):
         # then the scrobbler is called with the expected args
         mock_scrob.assert_called_with(song_info, now_playing=False)
 
-    def test_called_not_main_station(self):
+    def test_called_not_main_station(self, fixtures: Fixtures):
         # given the player
-        self.player = Player.objects.create_player("test_player", password="***")
+        player = fixtures.player
         # given the station that's not the main station
-        station = Station()
-        station.creator = self.player
-        station.name = "test station"
-        station.save()
+        station = fixtures.station
 
         # given the song_info dict
         song_info = {
             "artist": "Prince",
             "title": "Purple Rain",
             "station_id": station.pk,
-            "player": self.player.username,
+            "player": player.username,
         }
 
         # when we call scrobble_song
