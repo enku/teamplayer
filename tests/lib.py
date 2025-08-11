@@ -1,6 +1,7 @@
 """Fixures and utilities for teamplayer tests"""
 
 # pylint: disable=redefined-outer-name
+import tempfile
 from unittest import mock
 
 from django.core.handlers.wsgi import WSGIRequest
@@ -69,3 +70,10 @@ def request(
     request.session = {}
 
     return request
+
+
+@fixture()
+def tempdir(_: Fixtures) -> FixtureContext[str]:
+    """Temporary directory fixture"""
+    with tempfile.TemporaryDirectory() as tempdir:
+        yield tempdir

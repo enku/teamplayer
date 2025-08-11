@@ -5,7 +5,6 @@
 import json
 import os
 from io import BytesIO
-from tempfile import TemporaryDirectory
 from unittest import mock
 
 import django.contrib.auth.models
@@ -244,6 +243,7 @@ class QueueTestCase(TestCase):
         self.assertEqual(places, list(range(len(songs))))
 
 
+@given(lib.tempdir)
 class QueueAutoFill(TestCase):
     """
     Demonstrate the auto_fill() method.
@@ -262,7 +262,7 @@ class QueueAutoFill(TestCase):
             length=301,
         )
 
-    def test_auto_fill(self):
+    def test_auto_fill(self, fixtures: Fixtures) -> None:
         queue = self.dj_ango.queue
 
         # when we filter songs < 5 minutes
@@ -273,7 +273,7 @@ class QueueAutoFill(TestCase):
         # then we don't get our 301-second songfile
         self.assertEqual(queue.entry_set.count(), 0)
 
-    def test_auto_fill_user_station_with_hashtag(self):
+    def test_auto_fill_user_station_with_hashtag(self, fixtures: Fixtures) -> None:
         # given the player
         player = Player.objects.create_player("test", password="***")
 
@@ -295,7 +295,7 @@ class QueueAutoFill(TestCase):
         # and adds entries to the queue
         self.assertEqual(player.queue.entry_set.count(), 10)
 
-    def test_auto_fill_user_station_without_hashtag(self):
+    def test_auto_fill_user_station_without_hashtag(self, fixtures: Fixtures) -> None:
         # given the player
         player = Player.objects.create_player("test", password="***")
 
@@ -315,40 +315,40 @@ class QueueAutoFill(TestCase):
         # and nothing is added to the queue
         self.assertEqual(player.queue.entry_set.count(), 0)
 
-    def test_multiple_files(self):
+    def test_multiple_files(self, fixtures: Fixtures) -> None:
         """We can have multiple files and get back as many as we ask for"""
         queue = self.dj_ango.queue
-        with TemporaryDirectory() as tempdir:
-            with open(SILENCE, "rb") as fp:
-                silence = fp.read()
-            filesize = len(silence)
-            for i in range(10):
-                filename = f"{i}.mp3"
-                fullpath = os.path.join(tempdir, filename)
-                with open(fullpath, "wb") as fp:
-                    fp.write(silence)
-                LibraryItem.objects.create(
-                    filename=fullpath,
-                    artist="DJ Ango",
-                    title=f"Song {i}",
-                    album="Redundant",
-                    filesize=filesize,
-                    station_id=self.station.pk,
-                    added_by=self.dj_ango,
-                    length=301,
-                )
-            self.assertEqual(LibraryItem.objects.count(), 11)
-            queue.auto_fill(
-                max_entries=5, station=self.station, qs_filter={"length__lt": 600}
+        with open(SILENCE, "rb") as fp:
+            silence = fp.read()
+        filesize = len(silence)
+        for i in range(10):
+            filename = f"{i}.mp3"
+            fullpath = os.path.join(fixtures.tempdir, filename)
+            with open(fullpath, "wb") as fp:
+                fp.write(silence)
+            LibraryItem.objects.create(
+                filename=fullpath,
+                artist="DJ Ango",
+                title=f"Song {i}",
+                album="Redundant",
+                filesize=filesize,
+                station_id=self.station.pk,
+                added_by=self.dj_ango,
+                length=301,
             )
-            self.assertEqual(queue.entry_set.count(), 5)
+        self.assertEqual(LibraryItem.objects.count(), 11)
+        queue.auto_fill(
+            max_entries=5, station=self.station, qs_filter={"length__lt": 600}
+        )
+        self.assertEqual(queue.entry_set.count(), 5)
 
 
+@given(lib.tempdir)
 class StationManagerTest(TestCase):
     def setUp(self):
         self.player = Player.objects.create_player("test", password="***")
 
-    def test_create_station(self):
+    def test_create_station(self, fixtures: Fixtures) -> None:
         # given the player
         player = self.player
 
@@ -359,7 +359,7 @@ class StationManagerTest(TestCase):
         self.assertEqual(station.creator, player)
         self.assertEqual(station.name, "test station")
 
-    def test_create_station_with_songs(self):
+    def test_create_station_with_songs(self, fixtures: Fixtures):
         # given the player
         player = self.player
 
@@ -376,33 +376,32 @@ class StationManagerTest(TestCase):
         )
         main_station = Station.main_station()
         songs = []
-        with TemporaryDirectory() as tempdir:
-            with open(SILENCE, "rb") as fp:
-                silence = fp.read()
+        with open(SILENCE, "rb") as fp:
+            silence = fp.read()
 
-            for data in song_data:
-                filename = os.path.join(tempdir, f"{data[0]}-{data[1]}.mp3")
-                with open(filename, "wb") as fp:
-                    fp.write(silence)
-                song = LibraryItem.objects.create(
-                    artist=data[0],
-                    title=data[1],
-                    filename=filename,
-                    filesize=80000,
-                    album="Marduk's Mix Tape",
-                    genre="Unknown",
-                    station_id=main_station.pk,
-                    added_by=player,
-                )
-                songs.append(song)
-
-            # when we call Station.objects.create_station() with those songs
-            station = Station.objects.create_station(
-                creator=player, name="My Station", songs=songs
+        for data in song_data:
+            filename = os.path.join(fixtures.tempdir, f"{data[0]}-{data[1]}.mp3")
+            with open(filename, "wb") as fp:
+                fp.write(silence)
+            song = LibraryItem.objects.create(
+                artist=data[0],
+                title=data[1],
+                filename=filename,
+                filesize=80000,
+                album="Marduk's Mix Tape",
+                genre="Unknown",
+                station_id=main_station.pk,
+                added_by=player,
             )
+            songs.append(song)
 
-            # then the station is created and the song entries added
-            self.assertEqual(station.entries.count(), len(songs))
+        # when we call Station.objects.create_station() with those songs
+        station = Station.objects.create_station(
+            creator=player, name="My Station", songs=songs
+        )
+
+        # then the station is created and the song entries added
+        self.assertEqual(station.entries.count(), len(songs))
 
 
 class StationTest(TestCase):

@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import shutil
-import tempfile
 from unittest.mock import patch
 
 from django.core import management
@@ -10,8 +9,11 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from mutagen import File
+from unittest_fixtures import Fixtures, given
 
 from teamplayer.models import Entry, LibraryItem, Player, Station
+
+from . import lib
 
 DIR = os.path.dirname(__file__)
 SILENCE = os.path.join(DIR, "data", "silence.mp3")
@@ -174,38 +176,36 @@ class AddSongWithUTF8Filename(TestCase):
         self.assertEqual(song.count(), 1)
 
 
+@given(lib.tempdir)
 class TpLibraryWalkTestCase(TestCase):
     """Tests for the tplibrarywalk management command"""
 
-    def setUp(self):
-        self.directory = tempfile.mkdtemp()
+    def setUp(self) -> None:
         self.logger = logging.getLogger("tplibrarywalk")
         self.orig_loglevel = self.logger.getEffectiveLevel()
         self.logger.setLevel(logging.CRITICAL)
 
-    def tearDown(self):
-        shutil.rmtree(self.directory)
-        self.directory = None
+    def tearDown(self) -> None:
         self.logger.setLevel(self.orig_loglevel)
 
-    def test_bad_flac_file(self):
+    def test_bad_flac_file(self, fixtures: Fixtures) -> None:
         """Bad FLAC file"""
         # Given the bad flac file
         filename = "bad.flac"
-        filename = os.path.join(self.directory, filename)
+        filename = os.path.join(fixtures.tempdir, filename)
 
         with open(filename, "w") as fp:
             fp.write("This is not a good FLAC file")
 
         # When we run tplibrarywalk on the directory
-        management.call_command("tplibrarywalk", self.directory)
+        management.call_command("tplibrarywalk", fixtures.tempdir)
 
         # Then it succeeds, but we just don't get any files
         self.assertEqual(LibraryItem.objects.all().count(), 0)
 
-    def test_unencodable_filename(self):
+    def test_unencodable_filename(self, fixtures: Fixtures) -> None:
         filename = "Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3"
-        filename = os.path.join(self.directory, filename)
+        filename = os.path.join(fixtures.tempdir, filename)
 
         # encoding this as utf-8 causes the following error:
         # UnicodeEncodeError: 'utf-8' codec can't encode character '\udce9' in
@@ -216,28 +216,28 @@ class TpLibraryWalkTestCase(TestCase):
         shutil.copy(DATURA, filename)
 
         # When we call the management command on it
-        management.call_command("tplibrarywalk", self.directory)
+        management.call_command("tplibrarywalk", fixtures.tempdir)
 
         # Then it succeeds, but we just don't get any files
         self.assertEqual(LibraryItem.objects.all().count(), 0)
 
-    def test_unencodable_filename_rename(self):
+    def test_unencodable_filename_rename(self, fixtures: Fixtures) -> None:
         filename = "Kass\udce9 Mady Diabat\udce9 - Ko Kuma Magni.mp3"
-        filename = os.path.join(self.directory, filename)
+        filename = os.path.join(fixtures.tempdir, filename)
 
         # This is because the filename is actually latin-1, encoded but
         # Python(3) decodes it as UTF-8, but can't re-encode it.
         shutil.copy(DATURA, filename)
 
         # When we call the management command on it with --rename
-        management.call_command("tplibrarywalk", self.directory, rename=True)
+        management.call_command("tplibrarywalk", fixtures.tempdir, rename=True)
 
         # Then it succeeds and the file is renamed
         self.assertEqual(LibraryItem.objects.all().count(), 1)
 
         songfile = LibraryItem.objects.all()[0]
         expected = os.path.join(
-            self.directory, "Kass\u00e9 Mady Diabat\u00e9 - Ko Kuma Magni.mp3"
+            fixtures.tempdir, "Kass\u00e9 Mady Diabat\u00e9 - Ko Kuma Magni.mp3"
         )
         self.assertEqual(songfile.filename, expected)
 
