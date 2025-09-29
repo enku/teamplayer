@@ -65,14 +65,14 @@ class ScrobbleSongTest(TestCase):
         self.assertEqual(mock_scrob.mock_calls, [])
 
 
+@given(player=lambda _: Player.objects.create_player("test_player", password="***"))
+@given(station=lambda _: Station.main_station())
 class LogMoodTest(TestCase):
     """Tests for the async.log_mood function"""
 
-    def test_call(self):
+    def test_call(self, fixtures: Fixtures) -> None:
         # given the player
-        player = Player.objects.create_player("test_player", password="***")
-        # given the station
-        station = Station.main_station()
+        player = fixtures.player
 
         # given the song_info dict
         song_info = {
@@ -86,18 +86,15 @@ class LogMoodTest(TestCase):
         # when we call log_mood
         with patch("teamplayer.models.lib.songs.get_similar_artists") as gsa:
             gsa.return_value = []
-            comm.log_mood(sender=station, current_song=song_info)
+            comm.log_mood(sender=fixtures.station, current_song=song_info)
 
         # then a mood is added
-        query = Mood.objects.filter(artist="Madonna", station=station)
+        query = Mood.objects.filter(artist="Madonna", station=fixtures.station)
         self.assertEqual(query.count(), 1)
 
-    def test_unknown(self):
+    def test_unknown(self, fixtures: Fixtures) -> None:
         # given the player
-        player = Player.objects.create_player("test_player", password="***")
-
-        # given the station
-        station = Station.main_station()
+        player = fixtures.player
 
         # given the song_info with "Unknown" artist
         song_info = {
@@ -109,18 +106,15 @@ class LogMoodTest(TestCase):
         }
 
         # when we call log_mood
-        comm.log_mood(sender=station, current_song=song_info)
+        comm.log_mood(sender=fixtures.station, current_song=song_info)
 
         # then a mood is not added
         query = Mood.objects.all()
         self.assertEqual(query.count(), 0)
 
-    def test_doesnt_log_django(self):
+    def test_doesnt_log_django(self, fixtures: Fixtures) -> None:
         # given the DJ Ango Player
         dj_ango = Player.dj_ango()
-
-        # given the station
-        station = Station.main_station()
 
         # given the song_info from DJ Ango
         song_info = {
@@ -132,7 +126,7 @@ class LogMoodTest(TestCase):
         }
 
         # when we call log_mood
-        comm.log_mood(sender=station, current_song=song_info)
+        comm.log_mood(sender=fixtures.station, current_song=song_info)
 
         # then a mood is not added
         query = Mood.objects.all()
