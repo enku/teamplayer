@@ -2,16 +2,17 @@
 
 import json
 import re
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import django.test
 import django.urls
+from unittest_fixtures import Fixtures, given, where
 
 from teamplayer import views
 from teamplayer.conf import settings
 from teamplayer.models import Entry, Player, PlayLog, Station
 
-from . import utils
+from . import lib, utils
 
 RequestFactory = django.test.RequestFactory
 SpinDoctor = utils.SpinDoctor
@@ -21,49 +22,31 @@ reverse = django.urls.reverse
 SILENCE = utils.SILENCE
 
 
+@given(response=lambda f: f.client.get(f.url, follow=True))
+@given(lib.mpc)
+@given(lib.player)
+@where(player__login=True)
+@given(url=lambda _: reverse("home"))
 class HomePageView(TestCase):
     """Tests for the home page view (excluding song list)"""
 
-    def setUp(self):
-        # create a player
-        self.player = Player.objects.create_player(username="test", password="test")
-        self.client.force_login(self.player.user)
-        self.url = reverse("home")
-
-        patcher = patch("teamplayer.lib.mpc.MPC")
-        self.addCleanup(patcher.stop)
-        mpc = patcher.start()
-        mpc.return_value.http_port = 8002
-        mpc.return_value.currently_playing.return_value = {
-            "dj": "DJ Skipp Traxx",
-            "artist": "Prince",
-            "title": "Purple Rain",
-            "total_time": 99,
-            "remaining_time": 12,
-            "station_id": 1,
-            "artist_image": "/artist/Prince/image",
-        }
-        self.mpc = mpc
-
-        self.client.get(self.url)
-
-    def test_home(self):
-        response = self.client.get(self.url, follow=True)
+    def test_home(self, fixtures: Fixtures) -> None:
+        response = fixtures.client.get(fixtures.url, follow=True)
         self.assertEqual(response.status_code, 200)
 
-    def test_dj_name_appears(self):
-        self.player.dj_name = "Skipp Traxx"
-        self.player.save()
-        response = self.client.get(self.url, follow=True)
+    def test_dj_name_appears(self, fixtures: Fixtures) -> None:
+        fixtures.player.dj_name = "Skipp Traxx"
+        fixtures.player.save()
+        response = fixtures.client.get(fixtures.url, follow=True)
         self.assertContains(response, "Skipp Traxx")
 
     @patch("teamplayer.lib.websocket.IPCHandler.send_message")
-    def test_set_djname(self, mock):
+    def test_set_djname(self, mock: Mock, fixtures: Fixtures) -> None:
         """Test that we can set the dj name in the view"""
         # This doesn't test the home page view per-se but it's an AJAX view
         # accessible via the home page
         url = reverse("change_dj_name")
-        response = self.client.post(url, {"dj_name": "Liquid X"})
+        response = fixtures.client.post(url, {"dj_name": "Liquid X"})
         self.assertEqual(response.status_code, 204)
         player = Player.objects.get(user__username="test")
         self.assertEqual(player.dj_name, "Liquid X")
@@ -73,9 +56,9 @@ class HomePageView(TestCase):
         )
 
     @patch("teamplayer.views.MPC")
-    def test_song_display(self, mpc):
+    def test_song_display(self, mpc: Mock, fixtures: Fixtures) -> None:
         """Test that the currently playing area is working"""
-        mpc.return_value = self.mpc.return_value
+        mpc.return_value = fixtures.mpc.return_value
         url = reverse("currently_playing")
         response = self.client.get(url)
         data = json.loads(response.content.decode("utf-8"))
@@ -89,7 +72,7 @@ class HomePageView(TestCase):
         )
 
     @patch("teamplayer.views.MPC.currently_playing")
-    def test_currently_playing(self, mock):
+    def test_currently_playing(self, mock: Mock, fixtures: Fixtures) -> None:
         mock.return_value = {
             "dj": "DJ Skipp Traxx",
             "artist": "Prince",
@@ -109,10 +92,10 @@ class HomePageView(TestCase):
         self.assertEqual(data["title"], "Purple Rain")
 
     @patch("teamplayer.views.MPC.currently_playing")
-    def test_going_back_to_station(self, mock):
+    def test_going_back_to_station(self, mock: Mock, fixtures: Fixtures) -> None:
         """Show that we don't get infinite redirects when re-getting
         the station page"""
-        response = self.client.get(self.url, follow=True)
+        response = fixtures.client.get(fixtures.url, follow=True)
         redirect_chain = response.redirect_chain
         self.assertLessEqual(len(redirect_chain), 1)
 
