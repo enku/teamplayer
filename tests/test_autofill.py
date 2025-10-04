@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 from django.test import TestCase
 from django.utils import timezone
-from unittest_fixtures import Fixtures, fixture, given
+from unittest_fixtures import FixtureContext, Fixtures, fixture, given
 
 from teamplayer.lib import songs as songslib
 from teamplayer.lib.autofill import (
@@ -168,19 +168,13 @@ class ContiguousTest(TestCase):
         self.assertEqual(result, queryset_list)
 
 
-@given(songs_fixture)
-class MoodTest(TestCase):
-    """tests for the mood strategy"""
+@fixture()
+def mood_fixture(_: Fixtures) -> FixtureContext[None]:
+    station = Station.main_station()
 
-    def setUp(self):
-        super().setUp()
-
-        station = Station.main_station()
-
-        # let's set the mood ;-)
-        path = "teamplayer.models.lib.songs.get_similar_artists"
-        patcher = patch(path)
-        get_similar_artists = patcher.start()
+    # let's set the mood ;-)
+    path = "teamplayer.models.lib.songs.get_similar_artists"
+    with patch(path) as get_similar_artists:
         get_similar_artists.return_value = ["Marilyn Manson", "KMFDM"]
         Mood.log_mood("Nine Inch Nails", station)
         Mood.log_mood("Nine Inch Nails", station)
@@ -193,7 +187,12 @@ class MoodTest(TestCase):
         norah_jones_mood.timestamp = two_hours_ago
         norah_jones_mood.save()
 
-        self.addCleanup(patcher.stop)
+        yield
+
+
+@given(songs_fixture, mood_fixture)
+class MoodTest(TestCase):
+    """tests for the mood strategy"""
 
     def test_finds_top_artists(self, fixtures: Fixtures) -> None:
         # given the queryset
