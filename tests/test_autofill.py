@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 from django.test import TestCase
 from django.utils import timezone
+from unittest_fixtures import Fixtures, fixture, given
 
 from teamplayer.lib import songs as songslib
 from teamplayer.lib.autofill import (
@@ -18,49 +19,50 @@ from teamplayer.models import LibraryItem, Mood, Player, Station
 
 from . import utils
 
+ARTISTS = [
+    "Britney Spears",
+    "KMFDM",
+    "Kanye West",
+    "Katie Melua",
+    "Marilyn Manson",
+    "Nine Inch Nails",
+    "Norah Jones",
+    "Sufjan Stevens",
+    "The Glitch Mob",
+    "edIT",
+]
 
-class AutoFillTest:
-    """Mixin for the autofill tests"""
 
-    def setUp(self):
-        super().setUp()
+@fixture()
+def songs_fixture(_: Fixtures) -> list[LibraryItem]:
+    songs: list[LibraryItem] = []
+    dj_ango = Player.dj_ango()
 
-        self.dj_ango = Player.dj_ango()
-
-        artists = (
-            "Britney Spears",
-            "KMFDM",
-            "Kanye West",
-            "Katie Melua",
-            "Marilyn Manson",
-            "Nine Inch Nails",
-            "Norah Jones",
-            "Sufjan Stevens",
-            "The Glitch Mob",
-            "edIT",
+    # let's fill the library with some songage
+    for artist in ARTISTS:
+        filename = f'{artist.lower().replace(" ", "_")}.mp3'
+        songfile = LibraryItem(
+            filename=filename,
+            artist=artist,
+            title="Silent Night",
+            album="Various Artists Do Silent Night",
+            genre="Unknown",
+            length=300,
+            filesize=3000,
+            station_id=1,
+            mimetype="audio/mp3",
+            added_by=dj_ango,
         )
-        # let's fill the library with some songage
-        for artist in artists:
-            filename = f'{artist.lower().replace(" ", "_")}.mp3'
-            songfile = LibraryItem(
-                filename=filename,
-                artist=artist,
-                title="Silent Night",
-                album="Various Artists Do Silent Night",
-                genre="Unknown",
-                length=300,
-                filesize=3000,
-                station_id=1,
-                mimetype="audio/mp3",
-                added_by=self.dj_ango,
-            )
-            songfile.save()
+        songfile.save()
+        songs.append(songfile)
+    return songs
 
 
-class RandomTest(AutoFillTest, TestCase):
+@given(songs_fixture)
+class RandomTest(TestCase):
     """tests for the random autofill strategy"""
 
-    def test_empty_queryset_returns_empty_list(self):
+    def test_empty_queryset_returns_empty_list(self, fixtures: Fixtures) -> None:
         # given the empty queryset
         queryset = LibraryItem.objects.none()
 
@@ -72,7 +74,9 @@ class RandomTest(AutoFillTest, TestCase):
         # then it returns an empty list
         self.assertEqual(result, [])
 
-    def test_queryset_less_than_needed_returns_entire_queryset(self):
+    def test_queryset_less_than_needed_returns_entire_queryset(
+        self, fixtures: Fixtures
+    ) -> None:
         # given the queryset
         queryset = LibraryItem.objects.all()[:5]
 
@@ -91,7 +95,9 @@ class RandomTest(AutoFillTest, TestCase):
         returned_songs = set(result)
         self.assertEqual(returned_songs, all_songs)
 
-    def test_queryset_more_than_needed_returns_only_needed(self):
+    def test_queryset_more_than_needed_returns_only_needed(
+        self, fixtures: Fixtures
+    ) -> None:
         # given the queryset
         queryset = LibraryItem.objects.all()
 
@@ -113,10 +119,11 @@ class RandomTest(AutoFillTest, TestCase):
         self.assertEqual(len(ids), 5)
 
 
-class ContiguousTest(AutoFillTest, TestCase):
+@given(songs_fixture)
+class ContiguousTest(TestCase):
     """tests for the contiguous autofill strategy"""
 
-    def test_empty_queryset_returns_empty_list(self):
+    def test_empty_queryset_returns_empty_list(self, fixtures: Fixtures) -> None:
         # given the empty queryset
         queryset = LibraryItem.objects.none()
 
@@ -128,7 +135,7 @@ class ContiguousTest(AutoFillTest, TestCase):
         # then it returns an empty list
         self.assertEqual(result, [])
 
-    def test_returns_songs_in_queryset_order(self):
+    def test_returns_songs_in_queryset_order(self, fixtures: Fixtures) -> None:
         # given the queryset
         queryset = LibraryItem.objects.all()
 
@@ -144,7 +151,9 @@ class ContiguousTest(AutoFillTest, TestCase):
         ordered_songs = queryset_list[index : index + 4]
         self.assertEqual(result, ordered_songs)
 
-    def test_entries_needed_less_than_queryset_returns_full_set_ordered(self):
+    def test_entries_needed_less_than_queryset_returns_full_set_ordered(
+        self, fixtures: Fixtures
+    ) -> None:
         # given the queryset
         queryset = LibraryItem.objects.all()[:5]
 
@@ -159,7 +168,8 @@ class ContiguousTest(AutoFillTest, TestCase):
         self.assertEqual(result, queryset_list)
 
 
-class MoodTest(AutoFillTest, TestCase):
+@given(songs_fixture)
+class MoodTest(TestCase):
     """tests for the mood strategy"""
 
     def setUp(self):
@@ -185,7 +195,7 @@ class MoodTest(AutoFillTest, TestCase):
 
         self.addCleanup(patcher.stop)
 
-    def test_finds_top_artists(self):
+    def test_finds_top_artists(self, fixtures: Fixtures) -> None:
         # given the queryset
         queryset = LibraryItem.objects.all()
 
@@ -203,7 +213,7 @@ class MoodTest(AutoFillTest, TestCase):
         song = result[0]
         self.assertEqual(song.artist, "KMFDM")
 
-    def test_finds_top_artists2(self):
+    def test_finds_top_artists2(self, fixtures: Fixtures) -> None:
         # given the queryset
         queryset = LibraryItem.objects.all()
 
@@ -221,7 +231,7 @@ class MoodTest(AutoFillTest, TestCase):
         artists = set(i.artist for i in result)
         self.assertEqual(artists, {"Nine Inch Nails", "KMFDM", "Marilyn Manson"})
 
-    def test_does_not_return_artist_who_has_no_songs(self):
+    def test_does_not_return_artist_who_has_no_songs(self, fixtures: Fixtures) -> None:
         # given the artist who has no songs
         songs = LibraryItem.objects.filter(artist="Artist 4")
         songs.delete()
@@ -244,7 +254,9 @@ class MoodTest(AutoFillTest, TestCase):
         song = result[0]
         self.assertNotEqual(song.artist, "Artist 4")
 
-    def test_returns_random_artist_song_when_not_enough_artists(self):
+    def test_returns_random_artist_song_when_not_enough_artists(
+        self, fixtures: Fixtures
+    ) -> None:
         # given the queryset
         queryset = LibraryItem.objects.all()
 
@@ -264,7 +276,7 @@ class MoodTest(AutoFillTest, TestCase):
         self.assertGreater(artists, {"KMFDM", "Nine Inch Nails", "Marilyn Manson"})
 
 
-class TagsTest(AutoFillTest, TestCase):
+class TagsTest(TestCase):
     """tests for the autofill_from_tags strategy"""
 
     def test_auto_fill_from_tags(self):
