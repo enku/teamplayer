@@ -132,7 +132,7 @@ class IPCHandler(tornado.websocket.WebSocketHandler):
             return
 
         message_type = data["type"]
-        handler_name = "handle_%s" % message_type
+        handler_name = f"handle_{message_type}"
         logger.debug("Message received: %s", message_type)
 
         if hasattr(self, handler_name):

@@ -150,7 +150,7 @@ def add_to_queue(request: HttpRequest) -> JsonResponse:
     except songs.SongMetadataError:
         client_filename = uploaded_file.name
         if client_filename:
-            extra = "%s: " % client_filename
+            extra = f"{client_filename}: "
         else:
             extra = ""
         status = {
