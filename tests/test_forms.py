@@ -11,29 +11,23 @@ from . import lib
 @given(lib.player, lib.station, player2=lib.player, station2=lib.station)
 @where(player2__username="player2", station2__creator="player2")
 class EditStationTests(django.test.TestCase):
-    def test(self, fixtures: Fixtures) -> None:
-        data = {"name": "test", "action": "rename", "station_id": fixtures.station.pk}
+    unittest_fixtures_kwarg = "f"
+
+    def test(self, f: Fixtures) -> None:
+        data = {"name": "test", "action": "rename", "station_id": f.station.pk}
         form = EditStationForm(data)
 
         self.assertTrue(form.is_valid(), form.errors)
 
-    def test_station_named_teamplayer(self, fixtures: Fixtures) -> None:
-        data = {
-            "name": "teamplayer",
-            "action": "rename",
-            "station_id": fixtures.station.pk,
-        }
+    def test_station_named_teamplayer(self, f: Fixtures) -> None:
+        data = {"name": "teamplayer", "action": "rename", "station_id": f.station.pk}
         form = EditStationForm(data)
         self.assertFalse(form.is_valid())
 
         self.assertEqual({"name": ["“teamplayer” is an invalid name."]}, form.errors)
 
-    def test_station_name_length(self, fixtures: Fixtures) -> None:
-        data = {
-            "name": "x" * 129,
-            "action": "rename",
-            "station_id": fixtures.station.pk,
-        }
+    def test_station_name_length(self, f: Fixtures) -> None:
+        data = {"name": "x" * 129, "action": "rename", "station_id": f.station.pk}
         form = EditStationForm(data)
 
         self.assertFalse(form.is_valid())
@@ -42,12 +36,8 @@ class EditStationTests(django.test.TestCase):
             form.errors,
         )
 
-    def test_station_already_exisiting_name(self, fixtures: Fixtures) -> None:
-        data = {
-            "name": fixtures.station2.name,
-            "action": "rename",
-            "station_id": fixtures.station.pk,
-        }
+    def test_station_already_exisiting_name(self, f: Fixtures) -> None:
+        data = {"name": f.station2.name, "action": "rename", "station_id": f.station.pk}
         form = EditStationForm(data)
 
         self.assertFalse(form.is_valid())
