@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Broadcast a message to TeamPlayer users"""
+
 import functools
 import json
 import sys

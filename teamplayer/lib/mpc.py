@@ -98,8 +98,7 @@ class MPC(object):
         """Create the mpd config file and write the config to it"""
 
         with open(self.conf_file, "w") as mpd_file:
-            mpd_file.write(
-                f"""# Automatically generated.  Do not edit.
+            mpd_file.write(f"""# Automatically generated.  Do not edit.
 
         port                    "{self.port}"
         bind_to_address         "{self.address}"
@@ -121,8 +120,7 @@ class MPC(object):
             bitrate             "{settings.STREAM_BITRATE}"
             format              "{settings.STREAM_FORMAT}"
         }}
-        """
-            )
+        """)
 
         # make sure the config queue dir exists
         if not os.path.isdir(settings.QUEUE_DIR):
